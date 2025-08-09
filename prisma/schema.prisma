@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型 (管理员/营销人员)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  password      String?   // 用于存储加密后的密码
+  image         String?
+  role          Role      @default(MARKETER) // 角色: ADMIN 或 MARKETER
+  accounts      Account[]
+  sessions      Session[]
+}
+
+// 用户角色枚举
+enum Role {
+  ADMIN
+  MARKETER
+}
+
+// Next-Auth 必需模型
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+// 核心业务模型：号码表
+model PhoneNumber {
+  id                  String             @id @default(cuid())
+  phoneNumber         String             @unique
+  isPremium           Boolean            @default(false)
+  premiumReason       String?
+  reservationStatus   ReservationStatus  @default(UNRESERVED)
+  orderTimestamp      DateTime?
+  paymentAmount       Float?
+  paymentMethod       PaymentMethod?
+  transactionId       String?
+  assignedMarketer    String?
+  customerName        String?
+  customerContact     String?
+  shippingAddress     String?
+  emsTrackingNumber   String?
+  deliveryStatus      DeliveryStatus?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+// 枚举类型定义
+enum ReservationStatus {
+  UNRESERVED
+  PENDING_REVIEW
+  RESERVED
+}
+
+enum PaymentMethod {
+  WECHAT
+  ALIPAY
+  CASH
+  OTHER
+}
+
+enum DeliveryStatus {
+  EMPTY
+  IN_TRANSIT_UNACTIVATED
+  IN_TRANSIT_ACTIVATED
+  RECEIVED_UNACTIVATED
+}
