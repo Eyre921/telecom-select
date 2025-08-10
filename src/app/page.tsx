@@ -1,103 +1,148 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect, useMemo } from 'react';
+import { PhoneNumber } from '@prisma/client';
+import { NumberCard } from '@/components/ui/NumberCard';
+import { OrderModal } from '@/components/ui/OrderModal';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+// 一个简单的加载动画组件
+const Spinner = () => (
+    <div className="flex justify-center items-center py-20">
+      <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-blue-500"></div>
     </div>
+);
+
+export default function HomePage() {
+  const [allNumbers, setAllNumbers] = useState<PhoneNumber[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hideReserved, setHideReserved] = useState(false);
+
+  const [selectedNumber, setSelectedNumber] = useState<PhoneNumber | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // 定义获取数据的函数
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/numbers');
+      if (!response.ok) {
+        throw new Error('获取号码列表失败，请稍后重试');
+      }
+      const data = await response.json();
+      setAllNumbers(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 组件加载时获取数据
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // 使用 useMemo 优化筛选逻辑，避免不必要的重复计算
+  const filteredNumbers = useMemo(() => {
+    return allNumbers.filter(number => {
+      const matchesSearch = number.phoneNumber.includes(searchTerm.trim());
+      const matchesVisibility = !hideReserved || number.reservationStatus === 'UNRESERVED';
+      return matchesSearch && matchesVisibility;
+    });
+  }, [allNumbers, searchTerm, hideReserved]);
+
+  // 定义各种事件处理函数
+  const handleCardClick = (number: PhoneNumber) => {
+    setSelectedNumber(number);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedNumber(null);
+  };
+
+  const handleOrderSuccess = () => {
+    handleCloseModal();
+    setShowSuccessMessage(true);
+    // 订单成功后，重新获取最新数据以更新号码状态
+    fetchData();
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+    }, 5000); // 成功消息显示5秒
+  };
+
+  return (
+      <main className="container mx-auto p-4 md:p-8 bg-gray-50 min-h-screen">
+        {/* 订单成功消息横幅 */}
+        {showSuccessMessage && (
+            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-lg animate-in fade-in-50" role="alert">
+              <p className="font-bold">预定成功!</p>
+              <p>您的号码已临时锁定。请根据页面提示完成支付并联系销售人员确认。</p>
+            </div>
+        )}
+
+        {/* 页面标题 */}
+        <header className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">校园卡在线选号</h1>
+          <p className="mt-2 text-gray-600">请选择您心仪的号码</p>
+        </header>
+
+        {/* 控制区域 */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-8 sticky top-4 z-40">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <input
+                type="text"
+                placeholder="搜索包含的数字..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full md:flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex items-center justify-center">
+              <label className="flex items-center cursor-pointer select-none">
+              <span className="mr-3 text-gray-700 font-medium">
+                一键屏蔽已选
+              </span>
+                <div className="relative">
+                  <input type="checkbox" className="sr-only" checked={hideReserved} onChange={() => setHideReserved(!hideReserved)} />
+                  <div className={`block w-14 h-8 rounded-full transition-colors ${hideReserved ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${hideReserved ? 'transform translate-x-full' : ''}`}></div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* 内容展示区域 */}
+        {isLoading ? (
+            <Spinner />
+        ) : error ? (
+            <div className="text-center text-red-500 bg-red-100 p-4 rounded-lg">{error}</div>
+        ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {filteredNumbers.length > 0 ? (
+                  filteredNumbers.map(number => (
+                      <NumberCard key={number.id} number={number} onClick={handleCardClick} />
+                  ))
+              ) : (
+                  <p className="col-span-full text-center text-gray-500 py-10">没有找到匹配的号码。</p>
+              )}
+            </div>
+        )}
+
+        {/* 订单模态框 */}
+        <OrderModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            number={selectedNumber}
+            onOrderSuccess={handleOrderSuccess}
+        />
+      </main>
   );
 }
