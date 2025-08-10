@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import {PrismaClient} from '@prisma/client';
 
 // This is a common pattern to prevent creating too many PrismaClient instances
 // during development due to Next.js hot-reloading.

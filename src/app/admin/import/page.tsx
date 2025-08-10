@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import {useState} from 'react';
+import Link from 'next/link';
 
 type ImportFormat = 'table1' | 'table2';
 
-function FeedbackMessage({ message, type }: { message: string; type: 'success' | 'error' | '' }) {
+function FeedbackMessage({message, type}: { message: string; type: 'success' | 'error' | '' }) {
     if (!message) return null;
     const baseClasses = 'mt-4 rounded-md p-4 text-sm';
     const typeClasses = {
@@ -21,32 +22,32 @@ function FeedbackMessage({ message, type }: { message: string; type: 'success' |
 export default function ImportPage() {
     const [data, setData] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [feedback, setFeedback] = useState({ message: '', type: '' as 'success' | 'error' | '' });
+    const [feedback, setFeedback] = useState({message: '', type: '' as 'success' | 'error' | ''});
     const [format, setFormat] = useState<ImportFormat>('table1');
 
     const handleImport = async () => {
-        setFeedback({ message: '', type: '' });
+        setFeedback({message: '', type: ''});
         if (!data.trim()) {
-            setFeedback({ message: '请输入需要导入的数据！', type: 'error' });
+            setFeedback({message: '请输入需要导入的数据！', type: 'error'});
             return;
         }
         setIsLoading(true);
         try {
             const response = await fetch('/api/admin/import-data', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: data, type: format }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: data, type: format}),
             });
             const result = await response.json();
             if (!response.ok) {
                 throw new Error(result.error || '导入失败，请检查数据格式或联系管理员。');
             }
             const successMessage = `导入完成！新增 ${result.createdCount || 0} 条，更新 ${result.updatedCount || 0} 条，跳过 ${result.skippedCount || 0} 条。`;
-            setFeedback({ message: successMessage, type: 'success' });
+            setFeedback({message: successMessage, type: 'success'});
             setData('');
         } catch (error: any) {
             console.error('Import failed:', error);
-            setFeedback({ message: error.message || '发生未知错误，导入失败。', type: 'error' });
+            setFeedback({message: error.message || '发生未知错误，导入失败。', type: 'error'});
         } finally {
             setIsLoading(false);
         }
@@ -54,7 +55,7 @@ export default function ImportPage() {
 
     const handleDataChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         if (feedback.message) {
-            setFeedback({ message: '', type: '' });
+            setFeedback({message: '', type: ''});
         }
         setData(e.target.value);
     };
@@ -62,25 +63,37 @@ export default function ImportPage() {
     return (
         <main className="flex min-h-screen flex-col items-center bg-gray-50 p-4 sm:p-12">
             <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-md sm:p-10">
-                <div className="text-center">
+                <div className="text-center mb-4 relative">
                     <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                         批量导入/更新数据
                     </h1>
                     <p className="mt-2 text-sm text-gray-600">
                         请选择正确的数据格式，然后将表格数据粘贴到文本框中。
                     </p>
+                    <Link href="/admin/dashboard"
+                          className="absolute top-0 right-0 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+                        &larr; 返回仪表盘
+                    </Link>
                 </div>
 
                 <div className="mt-8">
                     <label className="block text-sm font-medium text-gray-700 mb-2">请选择导入的数据格式</label>
                     <fieldset className="flex space-x-4">
                         <div className="flex items-center">
-                            <input id="table1" value="table1" name="import-format" type="radio" checked={format === 'table1'} onChange={(e) => setFormat(e.target.value as ImportFormat)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                            <label htmlFor="table1" className="ml-3 block text-sm font-medium text-gray-700">格式一 (号码基础信息)</label>
+                            <input id="table1" value="table1" name="import-format" type="radio"
+                                   checked={format === 'table1'}
+                                   onChange={(e) => setFormat(e.target.value as ImportFormat)}
+                                   className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                            <label htmlFor="table1" className="ml-3 block text-sm font-medium text-gray-700">格式一
+                                (号码基础信息)</label>
                         </div>
                         <div className="flex items-center">
-                            <input id="table2" value="table2" name="import-format" type="radio" checked={format === 'table2'} onChange={(e) => setFormat(e.target.value as ImportFormat)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
-                            <label htmlFor="table2" className="ml-3 block text-sm font-medium text-gray-700">格式二 (邮寄发货信息)</label>
+                            <input id="table2" value="table2" name="import-format" type="radio"
+                                   checked={format === 'table2'}
+                                   onChange={(e) => setFormat(e.target.value as ImportFormat)}
+                                   className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                            <label htmlFor="table2" className="ml-3 block text-sm font-medium text-gray-700">格式二
+                                (邮寄发货信息)</label>
                         </div>
                     </fieldset>
                 </div>
@@ -105,7 +118,7 @@ export default function ImportPage() {
                     />
                 </div>
 
-                <FeedbackMessage message={feedback.message} type={feedback.type} />
+                <FeedbackMessage message={feedback.message} type={feedback.type}/>
 
                 <div className="mt-6">
                     <button

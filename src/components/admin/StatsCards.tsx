@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
 // 定义统计数据的类型
 interface StatsData {
@@ -11,7 +11,7 @@ interface StatsData {
 }
 
 // 单个统计卡片组件
-const StatCard = ({ title, value, isLoading }: { title: string; value: number; isLoading: boolean }) => (
+const StatCard = ({title, value, isLoading}: { title: string; value: number; isLoading: boolean }) => (
     <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-sm font-medium text-gray-500">{title}</h3>
         {isLoading ? (
@@ -53,10 +53,10 @@ export const StatsCards = () => {
 
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <StatCard title="总号码数" value={stats?.totalNumbers ?? 0} isLoading={isLoading} />
-            <StatCard title="剩余可选" value={stats?.availableNumbers ?? 0} isLoading={isLoading} />
-            <StatCard title="待审核订单" value={stats?.pendingReview ?? 0} isLoading={isLoading} />
-            <StatCard title="今日新增订单" value={stats?.newOrdersToday ?? 0} isLoading={isLoading} />
+            <StatCard title="总号码数" value={stats?.totalNumbers ?? 0} isLoading={isLoading}/>
+            <StatCard title="剩余可选" value={stats?.availableNumbers ?? 0} isLoading={isLoading}/>
+            <StatCard title="待审核订单" value={stats?.pendingReview ?? 0} isLoading={isLoading}/>
+            <StatCard title="今日新增订单" value={stats?.newOrdersToday ?? 0} isLoading={isLoading}/>
         </div>
     );
 };

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import {NextResponse} from 'next/server';
 import prisma from '@/lib/prisma';
-import { ReservationStatus } from '@prisma/client';
+import {ReservationStatus} from '@prisma/client';
 
 export async function POST(request: Request) {
     try {
@@ -15,17 +15,17 @@ export async function POST(request: Request) {
 
         // 基础验证
         if (!numberId || !customerName || !customerContact || !paymentAmount) {
-            return new NextResponse('缺少必要信息', { status: 400 });
+            return new NextResponse('缺少必要信息', {status: 400});
         }
 
         if (paymentAmount === 200 && !shippingAddress) {
-            return new NextResponse('选择200元全款时必须填写收货地址', { status: 400 });
+            return new NextResponse('选择200元全款时必须填写收货地址', {status: 400});
         }
 
         // 关键：在事务中检查号码是否仍然可用，防止并发问题
         const updatedNumber = await prisma.$transaction(async (tx) => {
             const numberToReserve = await tx.phoneNumber.findUnique({
-                where: { id: numberId },
+                where: {id: numberId},
             });
 
             if (numberToReserve?.reservationStatus !== ReservationStatus.UNRESERVED) {
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
             // 更新号码记录
             return tx.phoneNumber.update({
-                where: { id: numberId },
+                where: {id: numberId},
                 data: {
                     reservationStatus: 'PENDING_REVIEW',
                     orderTimestamp: new Date(),
@@ -46,13 +46,13 @@ export async function POST(request: Request) {
             });
         });
 
-        return NextResponse.json(updatedNumber, { status: 201 });
+        return NextResponse.json(updatedNumber, {status: 201});
 
     } catch (error: any) {
         console.error('[CREATE_ORDER_API_ERROR]', error);
         if (error.message.includes('该号码已被预定')) {
-            return new NextResponse(error.message, { status: 409 }); // 409 Conflict
+            return new NextResponse(error.message, {status: 409}); // 409 Conflict
         }
-        return new NextResponse('创建订单失败', { status: 500 });
+        return new NextResponse('创建订单失败', {status: 500});
     }
 }

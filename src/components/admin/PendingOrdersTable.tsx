@@ -1,7 +1,7 @@
 "use client";
 
-import { PhoneNumber } from '@prisma/client';
-import { useEffect, useState } from 'react';
+import {PhoneNumber} from '@prisma/client';
+import {useEffect, useState} from 'react';
 
 // 计算并格式化倒计时
 const formatTimeLeft = (timestamp: string | Date): string => {
@@ -23,7 +23,7 @@ interface PendingOrdersTableProps {
     onRelease: (numberId: string) => void; // 用于通知父组件有订单被释放
 }
 
-export const PendingOrdersTable = ({ initialPendingNumbers, onApprove, onRelease }: PendingOrdersTableProps) => {
+export const PendingOrdersTable = ({initialPendingNumbers, onApprove, onRelease}: PendingOrdersTableProps) => {
     const [pendingNumbers, setPendingNumbers] = useState(initialPendingNumbers);
     const [releasingId, setReleasingId] = useState<string | null>(null);
 
@@ -74,7 +74,8 @@ export const PendingOrdersTable = ({ initialPendingNumbers, onApprove, onRelease
                                             </p>
                                         </div>
                                         <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 space-x-4">
-                                            <button onClick={() => onApprove(number)} className="font-medium text-indigo-600 hover:text-indigo-500">
+                                            <button onClick={() => onApprove(number)}
+                                                    className="font-medium text-indigo-600 hover:text-indigo-500">
                                                 批准/编辑
                                             </button>
                                             <button
