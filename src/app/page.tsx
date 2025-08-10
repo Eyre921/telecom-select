@@ -1,9 +1,9 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {PhoneNumber} from '@prisma/client';
-import {NumberCard} from '@/components/ui/NumberCard';
-import {OrderModal} from '@/components/ui/OrderModal';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { PhoneNumber } from '@prisma/client';
+import { NumberCard } from '@/components/ui/NumberCard';
+import { OrderModal } from '@/components/ui/OrderModal';
 
 // 加载动画组件
 const Spinner = () => (
@@ -29,7 +29,6 @@ export default function HomePage() {
     const [isLoading, setIsLoading] = useState(false);
     const loaderRef = useRef<HTMLDivElement>(null);
 
-    // 用于触发重新加载的 state
     const [reloadTrigger, setReloadTrigger] = useState(0);
 
     // 数据获取函数
@@ -54,7 +53,6 @@ export default function HomePage() {
             if (newNumbers.length === 0) {
                 setHasMore(false);
             } else {
-                // **关键修复**: 过滤掉已存在的号码，防止重复key
                 setAllNumbers(prev => {
                     const existingIds = new Set(prev.map(n => n.id));
                     const uniqueNewNumbers = newNumbers.filter((n: PhoneNumber) => !existingIds.has(n.id));
@@ -75,7 +73,7 @@ export default function HomePage() {
         setAllNumbers([]);
         setPage(1);
         setHasMore(true);
-        setReloadTrigger(t => t + 1); // 改变这个值来触发下面的 effect
+        setReloadTrigger(t => t + 1);
     };
 
     // 初始加载或触发重载时运行
@@ -92,7 +90,7 @@ export default function HomePage() {
                     fetchData();
                 }
             },
-            {threshold: 1.0}
+            { threshold: 1.0 }
         );
 
         const currentLoader = loaderRef.current;
@@ -126,14 +124,17 @@ export default function HomePage() {
         setSelectedNumber(null);
     };
 
+    // **关键修复**: 移除了 handleCloseModal() 的调用
     const handleOrderSuccess = () => {
-        handleCloseModal();
-        setShowSuccessMessage(true);
-        // 订单成功后，重置状态并重新加载数据
+        // 订单成功后，不再关闭弹窗，而是让弹窗内部自己切换视图
+        setShowSuccessMessage(true); // 这个消息会在弹窗关闭后显示在主页面上
+
+        // 在后台刷新数据
         setAllNumbers([]);
         setPage(1);
         setHasMore(true);
         setReloadTrigger(t => t + 1);
+
         setTimeout(() => {
             setShowSuccessMessage(false);
         }, 5000);
@@ -142,9 +143,7 @@ export default function HomePage() {
     return (
         <main className="container mx-auto p-4 md:p-8 bg-gray-50 min-h-screen">
             {showSuccessMessage && (
-                <div
-                    className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-lg animate-in fade-in-50"
-                    role="alert">
+                <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-lg animate-in fade-in-50" role="alert">
                     <p className="font-bold">预定成功!</p>
                     <p>您的号码已临时锁定。请根据页面提示完成支付并联系销售人员确认。</p>
                 </div>
@@ -170,12 +169,9 @@ export default function HomePage() {
                 一键屏蔽已选
               </span>
                             <div className="relative">
-                                <input type="checkbox" className="sr-only" checked={hideReserved}
-                                       onChange={handleHideReservedToggle}/>
-                                <div
-                                    className={`block w-14 h-8 rounded-full transition-colors ${hideReserved ? 'bg-green-400' : 'bg-gray-300'}`}></div>
-                                <div
-                                    className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${hideReserved ? 'transform translate-x-full' : ''}`}></div>
+                                <input type="checkbox" className="sr-only" checked={hideReserved} onChange={handleHideReservedToggle} />
+                                <div className={`block w-14 h-8 rounded-full transition-colors ${hideReserved ? 'bg-green-400' : 'bg-gray-300'}`}></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${hideReserved ? 'transform translate-x-full' : ''}`}></div>
                             </div>
                         </label>
                     </div>
@@ -186,12 +182,12 @@ export default function HomePage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {filteredNumbers.map(number => (
-                    <NumberCard key={number.id} number={number} onClick={handleCardClick}/>
+                    <NumberCard key={number.id} number={number} onClick={handleCardClick} />
                 ))}
             </div>
 
             <div ref={loaderRef} className="col-span-full h-10">
-                {isLoading && <Spinner/>}
+                {isLoading && <Spinner />}
             </div>
 
             {!isLoading && !hasMore && allNumbers.length > 0 && (

@@ -14,7 +14,7 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
     // --- 请在这里修改您的二维码 ---
     // **第1步**: 将您的支付二维码图片链接粘贴到下面的引号中。
     // 例如: "https://www.your-website.com/qr-code.jpg"
-    const YOUR_QR_CODE_IMAGE_URL = "https://www.baidu.com/img/flexible/logo/pc/result@2.png";
+    const YOUR_QR_CODE_IMAGE_URL = "https://i.imgs.ovh/2025/08/11/EBUpM.png";
     // ---------------------------------
 
     // 表单状态
