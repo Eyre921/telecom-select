@@ -1,10 +1,9 @@
 import {NextResponse} from 'next/server';
 import bcrypt from 'bcrypt';
-import {PrismaClient} from '@prisma/client';
-
+import prisma from '@/lib/prisma';
 // We instantiate Prisma Client directly here to ensure it's self-contained
 // and not affected by other files.
-const prisma = new PrismaClient();
+
 
 export async function POST(request: Request) {
     try {

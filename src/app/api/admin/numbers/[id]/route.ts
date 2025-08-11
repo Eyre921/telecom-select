@@ -5,8 +5,8 @@ import prisma from '@/lib/prisma';
 
 // PATCH 方法用于更新单个号码记录
 export async function PATCH(
-    request: NextRequest,
-    {params}: { params: { id: string } } // 这是获取动态参数的正确方式
+    request: any, // 修改为 any
+    {params}: any  // 修改为 any
 ) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -40,8 +40,8 @@ export async function PATCH(
 
 // DELETE 方法用于删除单个号码记录
 export async function DELETE(
-    request: NextRequest,
-    {params}: { params: { id: string } } // 同样使用正确的参数解构方式
+    request: any, // 修改为 any
+    {params}: any  // 修改为 any
 ) {
     const session = await getServerSession(authOptions);
     if (session?.user?.role !== 'ADMIN') {
