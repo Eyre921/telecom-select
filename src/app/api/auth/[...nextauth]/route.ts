@@ -5,3 +5,4 @@ import {authOptions} from '@/lib/auth'; // 从新的、唯一的配置文件导�
 const handler = NextAuth(authOptions);
 
 export {handler as GET, handler as POST};
+//
