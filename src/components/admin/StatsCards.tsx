@@ -37,8 +37,10 @@ export const StatsCards = () => {
                 }
                 const data = await response.json();
                 setStats(data);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                console.error('Error:', err);
+                const errorMessage = err instanceof Error ? err.message : '统计数据加载失败';
+                setError(errorMessage);
             } finally {
                 setIsLoading(false);
             }

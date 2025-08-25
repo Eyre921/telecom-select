@@ -16,10 +16,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="zh-CN">
-        {/* The `className` from the font object has been removed from the <body> tag.
-        The application will now use the default system fonts defined in globals.css.
-      */}
-        <body>{children}</body>
+        <head>
+            <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        </head>
+        <body suppressHydrationWarning={true}>{children}</body>
         </html>
     );
 }

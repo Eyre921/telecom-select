@@ -28,8 +28,9 @@ export default function TempRegisterPage() {
 
             setMessage(`成功注册用户: ${data.email}！现在您可以删除 temp-register 页面，并去数据库中修改该用户的角色为 ADMIN。`);
 
-        } catch (error: any) {
-            setMessage(`错误: ${error.message}`);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '注册失败';
+            setMessage(`错误: ${errorMessage}`);
         } finally {
             setIsLoading(false);
         }

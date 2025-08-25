@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PhoneNumber } from '@prisma/client';
+import Image from 'next/image';
 
 interface OrderModalProps {
     isOpen: boolean;
@@ -78,8 +79,10 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
             // 切换到二维码/成功视图
             setOrderSubmitted(true);
 
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            console.error('Error:', err);
+            const errorMessage = err instanceof Error ? err.message : '订单提交失败';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -137,9 +140,11 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
                             <strong className="text-red-500">支付后请务必联系销售人员确认订单！</strong>
                         </p>
                         <div className="flex justify-center my-4">
-                            <img
-                                src={YOUR_QR_CODE_IMAGE_URL} // **第2步**: 这里会自动使用您在上面填写的链接
+                            <Image
+                                src={YOUR_QR_CODE_IMAGE_URL}
                                 alt="支付二维码"
+                                width={224}
+                                height={224}
                                 className="w-48 h-48 md:w-56 md:h-56 border rounded-lg"
                                 onError={(e) => { e.currentTarget.src = 'https://placehold.co/256x256/f87171/ffffff?text=图片加载失败'; }}
                             />

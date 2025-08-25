@@ -27,7 +27,7 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const {name, value, type} = e.target;
 
-        let processedValue: any = value;
+        let processedValue: string | number | boolean | null = value;
         if (type === 'checkbox') {
             processedValue = (e.target as HTMLInputElement).checked;
         } else if (value === '') {
@@ -48,7 +48,7 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
     };
 
     // 动态生成表单字段
-    const renderFormField = (key: string, value: any) => {
+    const renderFormField = (key: string, value: string | number | boolean | null) => {
         const label = FIELD_TRANSLATIONS[key] || key;
 
         // 根据字段名选择不同的输入类型
@@ -67,7 +67,7 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
             return (
                 <div key={key}>
                     <label htmlFor={key} className="block text-sm font-medium text-gray-700">{label}</label>
-                    <select name={key} id={key} value={value || ''} onChange={handleChange}
+                    <select name={key} id={key} value={value?.toString() || ''} onChange={handleChange}
                             className="mt-1 w-full p-2 border border-gray-300 rounded-md">
                         <option value="">未指定</option>
                         {Object.entries(enumOptions).map(([enumKey, enumValue]) => <option key={enumKey}
@@ -84,7 +84,7 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
                     type={typeof value === 'number' ? 'number' : 'text'}
                     name={key}
                     id={key}
-                    value={value || ''}
+                    value={value?.toString() || ''}
                     onChange={handleChange}
                     className="mt-1 w-full p-2 border border-gray-300 rounded-md"
                 />
@@ -104,7 +104,7 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {Object.entries(formData)
                             .filter(([key]) => !EXCLUDED_FIELDS.includes(key))
-                            .map(([key, value]) => renderFormField(key, value))
+                            .map(([key, value]) => renderFormField(key, value instanceof Date ? value.toISOString() : value))
                         }
                     </div>
 

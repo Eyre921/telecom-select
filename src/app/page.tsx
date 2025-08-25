@@ -60,8 +60,9 @@ export default function HomePage() {
                 });
                 setPage(prev => prev + 1);
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : '获取数据失败';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -79,7 +80,7 @@ export default function HomePage() {
     // 初始加载或触发重载时运行
     useEffect(() => {
         fetchData();
-    }, [reloadTrigger]);
+    }, [fetchData, reloadTrigger]);
 
 
     // Intersection Observer 用于检测用户是否滚动到底部

@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
             default:
                 return new NextResponse(JSON.stringify({error: '无效的操作'}), {status: 400});
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[ADMIN_ACTIONS_API_ERROR]', error);
-        return new NextResponse(JSON.stringify({error: error.message || '服务器内部错误'}), {status: 500});
+        const errorMessage = error instanceof Error ? error.message : '服务器内部错误';
+        return new NextResponse(JSON.stringify({error: errorMessage}), {status: 500});
     }
 }

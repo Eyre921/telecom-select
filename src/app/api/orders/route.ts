@@ -48,11 +48,15 @@ export async function POST(request: Request) {
 
         return NextResponse.json(updatedNumber, {status: 201});
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[CREATE_ORDER_API_ERROR]', error);
-        if (error.message.includes('该号码已被预定')) {
-            return new NextResponse(error.message, {status: 409}); // 409 Conflict
+        const errorMessage = error instanceof Error ? error.message : '未知错误';
+        if (errorMessage.includes('该号码已被预定')) {
+            return new NextResponse(JSON.stringify({error: errorMessage}), {
+                status: 409,
+                headers: {'Content-Type': 'application/json'}
+            }); // 返回JSON格式
         }
-        return new NextResponse('创建订单失败', {status: 500});
+        return new NextResponse(JSON.stringify({error: errorMessage}), {status: 500});
     }
 }

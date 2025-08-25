@@ -38,7 +38,8 @@ export const PendingOrdersTable = ({initialPendingNumbers, onApprove, onRelease}
         try {
             // 这里我们假设父组件会处理API调用和状态更新
             onRelease(numberId);
-        } catch (error) {
+        } catch (err: unknown) {
+            console.error('Release error:', err);
             alert('释放失败，请刷新页面后重试。');
         } finally {
             setReleasingId(null);
