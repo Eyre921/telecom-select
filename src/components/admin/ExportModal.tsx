@@ -225,12 +225,12 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* 头部 */}
-        <div className="flex items-center justify-between p-6 border-b bg-blue-50">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-blue-50 flex-shrink-0">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">导出数据</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">导出数据</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               {isLoadingAllData ? '正在加载数据...' : `共 ${allData.length} 条数据`}
             </p>
           </div>
@@ -242,16 +242,16 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
           </button>
         </div>
         
-        {/* 内容 */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)] space-y-4">
+        {/* 内容 - 使用 flex-1 和 overflow-y-auto */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           
           {/* 筛选条件 */}
           <div className="bg-gray-50 p-3 rounded-lg">
-            <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2 flex items-center">
               <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">1</span>
               筛选条件（可选）
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">号段筛选</label>
                 <input
@@ -294,7 +294,7 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
             
             {/* 筛选结果提示 */}
             <div className="mt-2 p-2 bg-blue-100 border border-blue-200 rounded-md">
-              <p className="text-sm text-blue-700">
+              <p className="text-xs sm:text-sm text-blue-700">
                 📊 筛选结果：<strong>{filteredData.length}</strong> 条数据
                 {phonePrefix && ` | 号段：${phonePrefix}`}
                 {assignedMarketer && ` | 营销人员：${assignedMarketer}`}
@@ -304,8 +304,8 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
           </div>
 
           {/* 选择导出字段 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 flex items-center">
               <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">2</span>
               选择导出字段
             </h3>
@@ -359,12 +359,12 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
           </div>
 
           {/* 选择导出格式 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 flex items-center">
               <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">3</span>
               选择导出格式
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-white transition-colors">
                 <input
                   type="radio"
@@ -396,23 +396,23 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
           </div>
         </div>
         
-        {/* 底部按钮 */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-t bg-gray-50 gap-3">
-          <div className="text-sm text-gray-600">
+        {/* 底部按钮 - 固定在底部 */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-t bg-gray-50 gap-3 flex-shrink-0">
+          <div className="text-xs sm:text-sm text-gray-600">
             准备导出 <strong className="text-blue-600">{filteredData.length}</strong> 条数据，
             <strong className="text-blue-600">{selectedColumns.length}</strong> 个字段
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
             >
               取消
             </button>
             <button
               onClick={handleExport}
               disabled={isExporting || selectedColumns.length === 0 || filteredData.length === 0 || isLoadingAllData}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-sm sm:text-base"
             >
               {isExporting ? (
                 <>
