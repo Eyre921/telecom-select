@@ -412,7 +412,10 @@ export default function DashboardPage() {
                     批量导入数据
                 </Link>
                 <button
-                    onClick={() => signOut({callbackUrl: '/'})}
+                    onClick={async () => {
+                        await signOut({ redirect: false });
+                        window.location.href = '/signin';
+                    }}
                     className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition-colors"
                 >
                     登出

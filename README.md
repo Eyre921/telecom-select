@@ -126,52 +126,33 @@ mkdir deploy
 cd deploy
 ```
 
-
 ### 2. 复制必要文件
 
 ```bash
-
 # Windows (推荐使用 cp 命令)
-
 cp -r ../.next/standalone/* .
-
 cp -r ../.next/static ./.next/static
-
 cp -r ../public ./public
-
 cp -r ../prisma ./prisma
-
 cp ../prisma/dev.db ./prisma/dev.db 2>nul || echo "数据库文件不存在，将在迁移时创建"
 
-  
-
 # 如果 cp 命令不可用，可以使用 robocopy（Windows 内置）
-
 # robocopy "../.next/standalone" "." /E
-
 # robocopy "../.next/static" ".next/static" /E
-
 # robocopy "../public" "public" /E
-
 # robocopy "../prisma" "prisma" /E
-
 # copy "../prisma/dev.db" "prisma/dev.db" 2>nul
 
-  
-
 # Linux/macOS
-
 cp -r ../.next/standalone/* .
-
 cp -r ../.next/static ./.next/static
-
 cp -r ../public ./public
-
 cp -r ../prisma ./prisma
-
 cp ../prisma/dev.db ./prisma/dev.db 2>/dev/null || true
-
 ```
+
+> **💡 重要提示**: `deploy` 目录包含了生产环境运行所需的所有文件，但**不包含** `node_modules`。这是因为 Next.js 的 `standalone` 模式已经将必要的依赖打包到了输出文件中。
+
 ### 3. 配置环境变量
 
 在 `deploy` 目录创建 `.env` 文件：
@@ -200,6 +181,8 @@ EOF
 npm install --omit=dev
 ```
 
+> **📝 说明**: 虽然 `standalone` 模式已经包含了运行时依赖，但仍需要安装 Prisma 等工具依赖用于数据库操作。
+
 ### 5. 初始化数据库
 
 ```bash
@@ -219,6 +202,27 @@ node server.js
 访问 [http://localhost:3000](http://localhost:3000) 验证部署是否成功。
 
 ## 🌐 生产环境部署
+
+### 部署文件上传策略
+
+#### 完整部署（首次部署或依赖更新）
+将本地 `deploy` 目录的**所有文件**上传到服务器目标目录。
+
+#### 增量部署（仅代码更新）
+如果只是代码更新，没有依赖变化，可以选择性上传：
+
+**需要上传的文件/目录：**
+- `server.js` - 应用入口文件
+- `.next/` - Next.js 构建产物
+- `public/` - 静态资源文件
+- `prisma/` - 数据库相关文件
+- `.env` - 环境变量配置
+
+**可以保留的文件/目录：**
+- `node_modules/` - 如果依赖没有变化，可以保留服务器上现有的
+- `package.json` 和 `package-lock.json` - 如果依赖没有变化
+
+> **⚠️ 注意**: 如果 `package.json` 中的依赖发生了变化，必须重新上传这些文件并在服务器端重新安装依赖。
 
 ### 低配置服务器优化（可选）
 
@@ -240,7 +244,7 @@ free -h
 
 ### 1. 上传文件到服务器
 
-将本地 `deploy` 目录的所有文件上传到服务器目标目录（如 `/www/wwwroot/telecom/`）。
+根据部署策略，将相应文件上传到服务器目标目录（如 `/www/wwwroot/telecom/`）。
 
 ### 2. 服务器端配置
 
@@ -251,8 +255,10 @@ cd /www/wwwroot/telecom/
 # 设置内存限制（低配置服务器）
 export NODE_OPTIONS="--max-old-space-size=800"
 
-# 安装生产依赖
+# 安装或更新生产依赖（仅在首次部署或依赖更新时需要）
 npm install --omit=dev
+# 或者使用内存限制
+NODE_OPTIONS="--max-old-space-size=800" npm install --omit=dev --no-audit --no-fund
 
 # 生成 Prisma Client
 npx prisma generate
@@ -263,6 +269,10 @@ npx prisma migrate deploy
 # 设置执行权限
 chmod +x server.js
 ```
+
+> **💡 优化提示**: 
+> - 对于增量部署，如果 `node_modules` 目录已存在且依赖未变化，可以跳过 `npm install` 步骤
+> - 建议在部署脚本中添加依赖检查逻辑，只在必要时重新安装依赖
 
 ### 3. 配置生产环境变量
 
@@ -277,6 +287,45 @@ PORT=3000
 ```
 
 > **🔒 安全提示**: 生产环境的 `NEXTAUTH_SECRET` 必须是强密码，且与开发环境不同。
+
+### 4. 部署脚本示例（可选）
+
+创建 `deploy.sh` 脚本来自动化部署过程：
+
+```bash
+#!/bin/bash
+
+# 部署脚本
+APP_DIR="/www/wwwroot/telecom"
+APP_NAME="telecom-app"
+
+echo "开始部署..."
+
+# 停止应用
+pm2 stop $APP_NAME 2>/dev/null || true
+
+# 进入应用目录
+cd $APP_DIR
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.package-lock.json" ]; then
+    echo "检测到依赖变化，重新安装依赖..."
+    NODE_OPTIONS="--max-old-space-size=800" npm install --omit=dev --no-audit --no-fund
+else
+    echo "依赖未变化，跳过安装步骤"
+fi
+
+# 生成 Prisma Client
+npx prisma generate
+
+# 运行数据库迁移
+npx prisma migrate deploy
+
+# 重启应用
+pm2 start server.js --name $APP_NAME 2>/dev/null || pm2 restart $APP_NAME
+
+echo "部署完成！"
+```
 
 ## 📊 PM2 进程管理
 
@@ -504,3 +553,72 @@ tasklist   # Windows
 
 **📝 最后更新**: 2025年8月
 **🔧 维护者**: Eyre921
+
+---
+
+### **关于Nginx反向代理页面内容未更新问题的排查与解决报告**
+
+**报告日期:** 2025年8月25日 **问题状态:** 已解决
+
+---
+
+#### **1. 问题描述**
+
+- **涉及服务:** 域名 `https://blog.nfeyre.top/` 的Nginx反向代理服务。
+    
+- **故障现象:** 访问通过Nginx反向代理的域名 `https://blog.nfeyre.top/` 时，显示的网页内容为旧版本。而直接通过源服务器地址 `http://115.120.219.70:3000/` 访问时，显示的是经过修改的最新内容。
+    
+- **业务影响:** 网站更新无法实时展示给用户，导致信息滞后。
+    
+
+#### **2. 故障排查过程**
+
+1. **初步诊断:** 根据“代理访问是旧页面，源站访问是新页面”的典型现象，初步判定问题根源为Nginx服务端的缓存机制导致。
+    
+2. **尝试方案一 (失败):**
+    
+    - **操作:** 尝试在宝塔面板的【反向代理】->【配置文件】->【自定义配置文件】中，通过添加一个新的 `location / { ... }` 配置块来覆盖原有配置，并加入禁用缓存的HTTP头指令。
+        
+    - **结果:** 保存配置文件时，Nginx服务返回严重错误（`[emerg]`）：`duplicate location "/"`。
+        
+    - **分析:** 此错误表明Nginx配置文件中出现了两个 `location /` 定义，这是不允许的。根本原因在于，宝塔面板的自定义配置功能是将代码“添加”到`server`块中，而非“覆盖”已有的`location`块，从而导致了语法冲突。
+        
+3. **根本原因分析:**
+    
+    - 通过检查主配置文件，发现存在 `proxy_cache_path` 指令，明确了该反向代理服务**开启了代理缓存功能**，这是导致页面不更新的直接原因。
+        
+    - 首次修复尝试失败的原因在于对面板配置文件加载机制的理解有误，试图重复定义 `location` 块。
+        
+
+#### **3. 最终解决方案**
+
+- **操作:** 清空【自定义配置文件】中的错误代码，不再定义`location`块，而是直接在`server`配置域（`server` block）下添加控制缓存行为的指令。具体添加的代码如下：
+    
+    Nginx
+    
+    ```
+    # 添加以下代码来禁用并绕过缓存
+    proxy_cache_bypass 1;
+    proxy_no_cache 1;
+    
+    # 添加响应头，强制浏览器不缓存
+    add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+    expires off;
+    ```
+    
+- **原理:** `proxy_cache_bypass` 和 `proxy_no_cache` 指令可以直接用于`server`上下文，它们的作用会被其下的`location`块继承。`1`代表条件始终为真，即强制Nginx对每一次请求都：
+    
+    1. `proxy_cache_bypass 1;`: 绕过缓存，直接请求源站。
+        
+    2. `proxy_no_cache 1;`: 不将新获取的内容存入缓存。 同时，通过 `add_header` 指令强制客户端浏览器也不进行缓存，实现了端到端的缓存禁用。
+        
+- **结果:** 配置保存成功，Nginx服务正常重载。刷新后，网站内容立即更新为最新版本。问题得到圆满解决。
+    
+
+#### **4. 总结与建议**
+
+- 在使用类似宝塔面板的管理工具时，其“自定义配置”功能通常是在现有配置基础上做**追加**而非**覆盖**，在添加配置时需特别注意上下文，避免产生语法冲突。
+    
+- 对于面板已开启的模块化功能（如代理缓存），应优先查找图形化界面（GUI）中的开关进行关闭，这通常是更安全、更推荐的操作方式。
+    
+- 当必须手动修改配置以禁用某项功能时，应准确理解相关指令的作用域（可在`http`, `server`, `location`中的哪个层级使用），以实现“精确打击”。
