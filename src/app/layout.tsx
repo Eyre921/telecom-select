@@ -5,8 +5,8 @@ import "./globals.css";
 // to prevent any external network calls.
 
 export const metadata: Metadata = {
-    title: "校园卡在线选号系统",
-    description: "由Next.js驱动的校园卡在线选号系统",
+    title: "电信校园卡在线选号系统",
+    description: "由Next.js驱动的校园卡在线选号系统，Eyre制作，欢迎使用",
 };
 
 export default function RootLayout({

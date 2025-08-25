@@ -7,6 +7,7 @@ import {PhoneNumber} from '@prisma/client';
 import {StatsCards} from '@/components/admin/StatsCards';
 import {PendingOrdersTable} from '@/components/admin/PendingOrdersTable';
 import {EditOrderModal} from '@/components/admin/EditOrderModal';
+import {ExportModal} from '@/components/admin/ExportModal';
 import {ENUM_TRANSLATIONS, FIELD_TRANSLATIONS} from '@/lib/utils';
 
 // --- 类型定义 ---
@@ -135,6 +136,7 @@ export default function DashboardPage() {
     const [deleteSearchTerm, setDeleteSearchTerm] = useState('');
     const [prefixTerm, setPrefixTerm] = useState('');
     const [pendingOrders, setPendingOrders] = useState<PhoneNumber[]>([]);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     // 拖拽状态 - 移到组件内部
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -399,6 +401,12 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-6 lg:p-8">
             {/* --- 新增的功能按钮区域 --- */}
             <div className="flex justify-end items-center gap-4 mb-6">
+                <button
+                    onClick={() => setIsExportModalOpen(true)}
+                    className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+                >
+                    导出数据
+                </button>
                 <Link href="/admin/import"
                       className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
                     批量导入数据
@@ -635,6 +643,13 @@ export default function DashboardPage() {
 
             <EditOrderModal isOpen={isEditModalOpen} onClose={handleCloseModal} numberData={selectedNumber}
                             onSave={(id, data) => handleSave(id, data)}/>
+            
+            <ExportModal 
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                data={allNumbers}
+                allColumns={ALL_COLUMNS}
+            />
         </div>
     );
 }

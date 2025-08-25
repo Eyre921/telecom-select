@@ -5,10 +5,8 @@ import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 
 export async function GET(request: NextRequest) {
-    // 使用正确的 authOptions 来获取 session
     const session = await getServerSession(authOptions);
     if (!session) {
-        // 如果 session 无效，返回 401 未授权错误
         return new NextResponse(JSON.stringify({error: '未授权'}), {status: 401});
     }
 
@@ -17,10 +15,11 @@ export async function GET(request: NextRequest) {
         const searchTerm = searchParams.get('search');
         const page = parseInt(searchParams.get('page') || '1', 10);
         const limit = parseInt(searchParams.get('limit') || '50', 10);
+        const all = searchParams.get('all') === 'true'; // 新增：检查是否获取全部数据
+        
         const skip = (page - 1) * limit;
         const sort = JSON.parse(searchParams.get('sort') || '{}');
 
-        // 移除了不被支持的 'mode: "insensitive"' 属性，确保兼容性
         const where: Prisma.PhoneNumberWhereInput = searchTerm
             ? {
                 OR: [
@@ -36,16 +35,27 @@ export async function GET(request: NextRequest) {
             ? {[sort.field]: sort.direction}
             : {createdAt: 'desc'};
 
+        // 修改：当all=true时，不使用分页限制
+        const findManyOptions: Prisma.PhoneNumberFindManyArgs = {
+            where,
+            orderBy
+        };
+        
+        if (!all) {
+            findManyOptions.skip = skip;
+            findManyOptions.take = limit;
+        }
+
         const [phoneNumbers, totalCount] = await prisma.$transaction([
-            prisma.phoneNumber.findMany({where, orderBy, skip, take: limit}),
+            prisma.phoneNumber.findMany(findManyOptions),
             prisma.phoneNumber.count({where})
         ]);
 
         return NextResponse.json({
             data: phoneNumbers,
             total: totalCount,
-            page,
-            limit
+            page: all ? 1 : page,
+            limit: all ? totalCount : limit
         }, {status: 200});
 
     } catch (error) {

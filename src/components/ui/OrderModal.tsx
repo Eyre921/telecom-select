@@ -108,7 +108,7 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
                                     </div>
                                     <div onClick={() => setPaymentOption(200)} className={`flex-1 p-3 border rounded-lg cursor-pointer text-center transition-all ${paymentOption === 200 ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400'}`}>
                                         <p className="font-semibold">200元 全款</p>
-                                        <p className="text-xs text-gray-500">直接邮寄到家</p>
+                                        <p className="text-xs text-gray-500">直接邮寄到家/送到寝室</p>
                                     </div>
                                 </div>
                             </div>

@@ -2,8 +2,7 @@ import {NextResponse} from 'next/server';
 import {getServerSession} from 'next-auth/next';
 import {authOptions} from '@/lib/auth';
 import prisma from '@/lib/prisma';
-// import {PhoneNumber, ReservationStatus, PaymentMethod} from '@prisma/client';
-import {PhoneNumber, ReservationStatus, PaymentMethod, DeliveryStatus} from '@prisma/client';
+import {PhoneNumber, ReservationStatus, PaymentMethod} from '@prisma/client';
 
 // 字段映射定义
 const FIELD_MAPPINGS = {

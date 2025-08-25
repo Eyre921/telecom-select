@@ -39,9 +39,8 @@ export async function POST(request: Request) {
         });
 
         // 5. Return a success response (without the password)
-        const {password: _password, ...userWithoutPassword} = user;
+        const {password: userPassword, ...userWithoutPassword} = user;
         return NextResponse.json(userWithoutPassword, {status: 201});
-
     } catch (error) {
         console.error('[REGISTER_API_ERROR]', error);
         // Return a proper JSON error response
