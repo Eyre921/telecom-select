@@ -67,8 +67,17 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
       if (assignedMarketer && item.assignedMarketer !== assignedMarketer) {
         return false;
       }
-      if (reservationStatus && item.reservationStatus !== reservationStatus) {
-        return false;
+      if (reservationStatus) {
+        // 将中文显示值转换为英文枚举值进行比较
+        const statusMapping: { [key: string]: string } = {
+          '未预定': 'UNRESERVED',
+          '审核中': 'PENDING_REVIEW', 
+          '已预定': 'RESERVED'
+        };
+        const englishStatus = statusMapping[reservationStatus];
+        if (englishStatus && item.reservationStatus !== englishStatus) {
+          return false;
+        }
       }
       return true;
     });
