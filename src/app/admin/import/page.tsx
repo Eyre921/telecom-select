@@ -210,6 +210,7 @@ export default function ImportPage() {
     const [format, setFormat] = useState<ImportFormat>('table1');
     const [feedback, setFeedback] = useState<{message: string; type: 'success' | 'error' | ''; detailedLog?: string[]}>({message: '', type: ''});
     const [isLoading, setIsLoading] = useState(false);
+    const [allowEmptyFields, setAllowEmptyFields] = useState(true); // 添加到组件顶层
     const [selectedFields, setSelectedFields] = useState<SelectedField[]>([
         { key: 'phoneNumber', label: '号码', required: true }
     ]);
@@ -228,10 +229,12 @@ export default function ImportPage() {
         
         setIsLoading(true);
         try {
+            // 移除错误的状态定义和JSX代码
             const requestBody = {
                 text: data,
                 type: format,
-                customFields: format === 'custom' ? selectedFields.map(f => f.key) : undefined
+                customFields: format === 'custom' ? selectedFields.map(f => f.key) : undefined,
+                allowEmptyFields: allowEmptyFields
             };
             
             const response = await fetch('/api/admin/import-data', {

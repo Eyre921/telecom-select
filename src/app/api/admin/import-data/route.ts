@@ -10,6 +10,7 @@ const FIELD_MAPPINGS = {
     reservationStatus: { 
         key: 'reservationStatus', 
         parser: (value: string) => {
+            if (!value || !value.trim()) return ReservationStatus.UNRESERVED;
             const v = value.toLowerCase();
             if (v.includes('已预定') || v.includes('已交付')) return ReservationStatus.RESERVED;
             if (v.includes('审核')) return ReservationStatus.PENDING_REVIEW;
@@ -19,18 +20,20 @@ const FIELD_MAPPINGS = {
     paymentAmount: { 
         key: 'paymentAmount', 
         parser: (value: string) => {
+            if (!value || !value.trim()) return null;
             const match = value.match(/\d+(\.\d+)?/);
             return match ? parseFloat(match[0]) : null;
         }
     },
-    customerName: { key: 'customerName', parser: (value: string) => value.trim() || null },
-    assignedMarketer: { key: 'assignedMarketer', parser: (value: string) => value.trim() || null },
-    customerContact: { key: 'customerContact', parser: (value: string) => value.trim() || null },
-    shippingAddress: { key: 'shippingAddress', parser: (value: string) => value.trim() || null },
-    emsTrackingNumber: { key: 'emsTrackingNumber', parser: (value: string) => value.trim() || null },
+    customerName: { key: 'customerName', parser: (value: string) => value && value.trim() ? value.trim() : null },
+    assignedMarketer: { key: 'assignedMarketer', parser: (value: string) => value && value.trim() ? value.trim() : null },
+    customerContact: { key: 'customerContact', parser: (value: string) => value && value.trim() ? value.trim() : null },
+    shippingAddress: { key: 'shippingAddress', parser: (value: string) => value && value.trim() ? value.trim() : null },
+    emsTrackingNumber: { key: 'emsTrackingNumber', parser: (value: string) => value && value.trim() ? value.trim() : null },
     paymentMethod: {
         key: 'paymentMethod',
         parser: (value: string) => {
+            if (!value || !value.trim()) return null;
             const v = value.toLowerCase();
             if (v.includes('微信') || v.includes('wechat')) return PaymentMethod.WECHAT;
             if (v.includes('支付宝') || v.includes('alipay')) return PaymentMethod.ALIPAY;
@@ -38,7 +41,7 @@ const FIELD_MAPPINGS = {
             return PaymentMethod.OTHER;
         }
     },
-    transactionId: { key: 'transactionId', parser: (value: string) => value.trim() || null }
+    transactionId: { key: 'transactionId', parser: (value: string) => value && value.trim() ? value.trim() : null }
 };
 
 // 智能识别表头函数
@@ -97,22 +100,10 @@ function analyzeNumber(numberStr: string): { isPremium: boolean; reason: string 
 
 // 自定义字段解析器
 function parseCustomFormat(line: string, fieldKeys: string[]): Partial<PhoneNumber> | null {
-    const parts = line.split('\t');
-    if (parts.length < fieldKeys.length) {
-        return null;
-    }
-
-    const result: Record<string, unknown> = {};
+    const parts = line.split('\t').map(p => p.trim());
     
-    fieldKeys.forEach((key, index) => {
-        if (index < parts.length && FIELD_MAPPINGS[key as keyof typeof FIELD_MAPPINGS]) {
-            const mapping = FIELD_MAPPINGS[key as keyof typeof FIELD_MAPPINGS];
-            const value = parts[index]?.trim();
-            if (value && mapping) {
-                result[mapping.key] = mapping.parser(value);
-            }
-        }
-    });
+    // 只要有足够的列数就继续处理，不要求所有字段都有值
+    if (parts.length < 1) return null;
 
     const data: Partial<PhoneNumber> = {};
     
@@ -120,18 +111,19 @@ function parseCustomFormat(line: string, fieldKeys: string[]): Partial<PhoneNumb
         const fieldKey = fieldKeys[i];
         const value = parts[i];
         
-        if (!value) continue;
-        
-        const mapping = FIELD_MAPPINGS[fieldKey as keyof typeof FIELD_MAPPINGS];
-        if (mapping) {
-            const parsedValue = mapping.parser(value);
-            if (parsedValue !== null && parsedValue !== undefined) {
-                (data as Record<string, unknown>)[mapping.key] = parsedValue;
+        // 允许空值，只有在有实际内容时才处理
+        if (value && value.trim()) {
+            const mapping = FIELD_MAPPINGS[fieldKey as keyof typeof FIELD_MAPPINGS];
+            if (mapping) {
+                const parsedValue = mapping.parser(value);
+                if (parsedValue !== null && parsedValue !== undefined) {
+                    (data as Record<string, unknown>)[mapping.key] = parsedValue;
+                }
             }
         }
     }
     
-    // 验证必需字段
+    // 验证必需字段（只检查号码）
     if (!data.phoneNumber || !/^1[3-9]\d{9}$/.test(data.phoneNumber)) {
         return null;
     }
@@ -140,36 +132,61 @@ function parseCustomFormat(line: string, fieldKeys: string[]): Partial<PhoneNumb
 }
 
 function parseTable1(line: string): Partial<PhoneNumber> | null {
-    const parts = line.trim().split(/\s+/).filter(Boolean);
-    if (parts.length < 1) return null;
+    // 移除制表符个数检查，直接分割
+    const parts = line.split('\t');
 
-    const phoneNumber = parts[0];
+    // 第一个字段必须是有效的手机号码
+    const phoneNumber = parts[0] ? parts[0].trim() : '';
     if (!/^1[3-9]\d{9}$/.test(phoneNumber)) return null;
 
-    const data: Partial<PhoneNumber> = {phoneNumber};
+    const data: Partial<PhoneNumber> = { phoneNumber };
 
-    if (parts.length === 1) {
-        data.reservationStatus = ReservationStatus.UNRESERVED;
-        return data;
-    }
-
-    const statusPart = parts[1];
-    if (statusPart) {
-        if (statusPart.includes('已预定') || statusPart.includes('已交付')) data.reservationStatus = ReservationStatus.RESERVED;
-        else if (statusPart.includes('审核')) data.reservationStatus = ReservationStatus.PENDING_REVIEW;
-        else data.reservationStatus = ReservationStatus.UNRESERVED;
+    // 处理预定状态字段（第2列）- 如果存在的话
+    if (parts.length > 1) {
+        const statusPart = parts[1] ? parts[1].trim() : '';
+        if (statusPart) {
+            if (statusPart.includes('已预定') || statusPart.includes('已交付')) {
+                data.reservationStatus = ReservationStatus.RESERVED;
+            } else if (statusPart.includes('审核')) {
+                data.reservationStatus = ReservationStatus.PENDING_REVIEW;
+            } else {
+                data.reservationStatus = ReservationStatus.UNRESERVED;
+            }
+        } else {
+            data.reservationStatus = ReservationStatus.UNRESERVED;
+        }
     } else {
         data.reservationStatus = ReservationStatus.UNRESERVED;
     }
 
-    const amountPart = parts[2];
-    if (amountPart) {
-        const amountMatch = amountPart.match(/\d+/);
-        data.paymentAmount = amountMatch ? parseFloat(amountMatch[0]) : null;
+    // 处理收款金额字段（第3列）- 如果存在的话
+    if (parts.length > 2) {
+        const amountPart = parts[2] ? parts[2].trim() : '';
+        if (amountPart) {
+            const amountMatch = amountPart.match(/\d+(\.\d+)?/);
+            data.paymentAmount = amountMatch ? parseFloat(amountMatch[0]) : null;
+        } else {
+            data.paymentAmount = null;
+        }
+    } else {
+        data.paymentAmount = null;
     }
 
-    if (parts[3]) data.customerName = parts[3];
-    if (parts[4]) data.assignedMarketer = parts[4];
+    // 处理客户姓名字段（第4列）- 如果存在的话
+    if (parts.length > 3) {
+        const customerNamePart = parts[3] ? parts[3].trim() : '';
+        data.customerName = customerNamePart || null;
+    } else {
+        data.customerName = null;
+    }
+
+    // 处理工作人员字段（第5列）- 如果存在的话
+    if (parts.length > 4) {
+        const marketerPart = parts[4] ? parts[4].trim() : '';
+        data.assignedMarketer = marketerPart || null;
+    } else {
+        data.assignedMarketer = null;
+    }
 
     return data;
 }
@@ -380,57 +397,58 @@ function formatFieldValue(key: string, value: unknown): string {
 function findDataStartLine(lines: string[], type: string, customFields?: string[]): { startIndex: number; hasHeader: boolean; error?: string } {
     if (lines.length === 0) return { startIndex: 0, hasHeader: false };
     
-    // 定义预设格式的期望字段数量
-    const expectedFieldCounts = {
-        table1: 5, // 号码、状态、金额、客户姓名、工作人员
-        table2: 7, // 序号、客户姓名、号码、序号、联系号码、地址、快递单号
-        custom: customFields?.length || 0
-    };
-    
-    const expectedCount = expectedFieldCounts[type as keyof typeof expectedFieldCounts] || 0;
-    
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        const parts = line.split('\t').map(p => p.trim()).filter(Boolean);
-        
-        // 检查是否为表头行（包含关键词）
-        const lowerLine = line.toLowerCase();
-        const isHeaderLine = lowerLine.includes('号码') || lowerLine.includes('姓名') || 
-                           lowerLine.includes('序号') || lowerLine.includes('客户') || 
-                           lowerLine.includes('工作人员') || lowerLine.includes('地址') || 
-                           lowerLine.includes('金额') || lowerLine.includes('状态') || 
-                           lowerLine.includes('联系') || lowerLine.includes('单号');
-        
-        if (isHeaderLine) {
-            // 找到表头，验证字段数量
-            if (expectedCount > 0 && parts.length !== expectedCount) {
-                return {
-                    startIndex: i,
-                    hasHeader: true,
-                    error: `表头字段数量不匹配！期望 ${expectedCount} 个字段，实际 ${parts.length} 个字段。请检查数据格式是否正确。`
-                };
+        // 对于table1格式，特殊处理制表符分隔的数据
+        if (type === 'table1') {
+            const parts = line.split('\t'); // 不过滤空字段
+            
+            // 检查是否为表头行（包含关键词）
+            const lowerLine = line.toLowerCase();
+            const isHeaderLine = lowerLine.includes('号码') || lowerLine.includes('姓名') || 
+                               lowerLine.includes('序号') || lowerLine.includes('客户') || 
+                               lowerLine.includes('工作人员') || lowerLine.includes('地址') || 
+                               lowerLine.includes('金额') || lowerLine.includes('状态') || 
+                               lowerLine.includes('联系') || lowerLine.includes('单号');
+            
+            if (isHeaderLine) {
+                return { startIndex: i, hasHeader: true };
             }
-            return { startIndex: i, hasHeader: true };
-        }
-        
-        // 检查是否为数据行（第一列包含手机号或序号）
-        const firstCol = parts[0];
-        const isDataLine = /^1[3-9]\d{9}$/.test(firstCol) || // 手机号
-                          /^\d{1,4}$/.test(firstCol) || // 序号
-                          (type === 'custom' && customFields?.[0] === 'phoneNumber' && /^1[3-9]\d{9}$/.test(firstCol));
-        
-        if (isDataLine) {
-            // 找到数据行，验证字段数量
-            if (expectedCount > 0 && parts.length !== expectedCount) {
-                return {
-                    startIndex: i,
-                    hasHeader: false,
-                    error: `数据字段数量不匹配！期望 ${expectedCount} 个字段，实际 ${parts.length} 个字段。请检查数据格式：\n${getFormatExample(type)}`
-                };
+            
+            // 检查是否为数据行（第一列包含手机号）
+            const firstCol = parts[0] ? parts[0].trim() : '';
+            const isDataLine = /^1[3-9]\d{9}$/.test(firstCol);
+            
+            if (isDataLine) {
+                return { startIndex: i, hasHeader: false };
             }
-            return { startIndex: i, hasHeader: false };
+        } else {
+            // 其他格式保持原有逻辑
+            const parts = line.split('\t').map(p => p.trim()).filter(Boolean);
+            
+            // 检查是否为表头行（包含关键词）
+            const lowerLine = line.toLowerCase();
+            const isHeaderLine = lowerLine.includes('号码') || lowerLine.includes('姓名') || 
+                               lowerLine.includes('序号') || lowerLine.includes('客户') || 
+                               lowerLine.includes('工作人员') || lowerLine.includes('地址') || 
+                               lowerLine.includes('金额') || lowerLine.includes('状态') || 
+                               lowerLine.includes('联系') || lowerLine.includes('单号');
+            
+            if (isHeaderLine) {
+                return { startIndex: i, hasHeader: true };
+            }
+            
+            // 检查是否为数据行（第一列包含手机号或序号）
+            const firstCol = parts[0];
+            const isDataLine = /^1[3-9]\d{9}$/.test(firstCol) || // 手机号
+                              /^\d{1,4}$/.test(firstCol) || // 序号
+                              (type === 'custom' && customFields?.[0] === 'phoneNumber' && /^1[3-9]\d{9}$/.test(firstCol));
+            
+            if (isDataLine) {
+                return { startIndex: i, hasHeader: false };
+            }
         }
     }
     
@@ -457,7 +475,7 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
     expectedCount: number;
 } {
     const expectedFieldCounts = {
-        table1: 5, // 号码、状态、金额、客户姓名、工作人员
+        table1: 1, // 只需要第一列是手机号
         table2: 7, // 序号、客户姓名、号码、序号、联系号码、地址、快递单号
         custom: customFields?.length || 0
     };
@@ -467,18 +485,31 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
     const excessiveLines: { line: string; lineNumber: number; actualCount: number; expectedCount: number }[] = [];
     
     lines.forEach((line, index) => {
-        const parts = line.split('\t').map(p => p.trim());
-        const actualCount = parts.length;
-        
-        if (actualCount < expectedCount) {
-            insufficientLines.push(`第${index + 1}行: ${line} (缺少${expectedCount - actualCount}个字段)`);
-        } else if (actualCount > expectedCount && !forceImport) {
-            excessiveLines.push({
-                line,
-                lineNumber: index + 1,
-                actualCount,
-                expectedCount
-            });
+        if (type === 'table1') {
+            // 对于table1格式，只检查第一个字段是否为有效手机号，完全跳过字段数量检查
+            const parts = line.split('\t');
+            const phoneNumber = parts[0] ? parts[0].trim() : '';
+            
+            // 只检查第一个字段是否为有效手机号
+            if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+                insufficientLines.push(`第${index + 1}行: ${line} (第一列不是有效的手机号码)`);
+            }
+            // 完全移除制表符数量检查
+        } else {
+            // 其他格式保持原有逻辑
+            const parts = line.split('\t').map(p => p.trim());
+            const actualCount = parts.length;
+            
+            if (actualCount < expectedCount) {
+                insufficientLines.push(`第${index + 1}行: ${line} (缺少${expectedCount - actualCount}个字段)`);
+            } else if (actualCount > expectedCount && !forceImport) {
+                excessiveLines.push({
+                    line,
+                    lineNumber: index + 1,
+                    actualCount,
+                    expectedCount
+                });
+            }
         }
     });
     
