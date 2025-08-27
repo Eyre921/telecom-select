@@ -242,19 +242,34 @@ export default function DashboardPage() {
             params.append('sort', JSON.stringify(sortConfig));
             params.append('page', String(pageToFetch));
             params.append('limit', String(ITEMS_PER_PAGE));
-
+    
             const response = await fetch(`/api/admin/numbers?${params.toString()}`);
-            if (!response.ok) throw new Error('获取号码数据失败');
-
+            
+            // 增强错误处理
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: '未知错误' }));
+                const errorMessage = response.status === 401 
+                    ? '认证失败，请重新登录' 
+                    : response.status === 403 
+                    ? '权限不足，无法访问数据' 
+                    : errorData.error || `请求失败 (${response.status})`;
+                throw new Error(errorMessage);
+            }
+    
             const result = await response.json();
-
             setAllNumbers(result.data);
             setCurrentPage(result.page);
             setTotalPages(Math.ceil(result.total / ITEMS_PER_PAGE));
-
+    
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : '未知错误';
+            console.error('获取号码数据失败:', err);
             setError(errorMessage);
+            
+            // 如果是认证错误，可以考虑重定向到登录页
+            if (errorMessage.includes('认证失败')) {
+                // 可以添加重定向逻辑
+            }
         } finally {
             setIsLoading(false);
         }
@@ -432,7 +447,11 @@ export default function DashboardPage() {
         if (!confirm('【高危操作】您确定要永久删除这条记录吗？此操作不可恢复！')) return;
         try {
             const response = await fetch(`/api/admin/numbers/${id}`, {method: 'DELETE'});
-            if (response.status !== 204) throw new Error((await response.json()).error || '删除失败');
+            // 修改：接受200状态码
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || '删除失败');
+            }
             alert('记录已成功删除！');
             await refreshAllData();
         } catch (err: unknown) {

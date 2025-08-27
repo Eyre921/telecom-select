@@ -2,6 +2,7 @@
 
 import {useState} from 'react';
 import Link from 'next/link';
+import { SchoolSelector } from '@/components/admin/SchoolSelector';
 
 type ImportFormat = 'table1' | 'table2' | 'custom';
 
@@ -210,10 +211,14 @@ export default function ImportPage() {
     const [format, setFormat] = useState<ImportFormat>('table1');
     const [feedback, setFeedback] = useState<{message: string; type: 'success' | 'error' | ''; detailedLog?: string[]}>({message: '', type: ''});
     const [isLoading, setIsLoading] = useState(false);
-    const [allowEmptyFields, setAllowEmptyFields] = useState(true); // 添加到组件顶层
+    const [allowEmptyFields, setAllowEmptyFields] = useState(true);
     const [selectedFields, setSelectedFields] = useState<SelectedField[]>([
         { key: 'phoneNumber', label: '号码', required: true }
     ]);
+    
+    // 新增学校选择状态
+    const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
 
     const handleImport = async () => {
         setFeedback({message: '', type: ''});
@@ -227,14 +232,22 @@ export default function ImportPage() {
             return;
         }
         
+        // 新增学校选择验证
+        if (!selectedSchoolId) {
+            setFeedback({message: '请选择要导入数据的学校！', type: 'error'});
+            return;
+        }
+        
         setIsLoading(true);
         try {
-            // 移除错误的状态定义和JSX代码
             const requestBody = {
                 text: data,
                 type: format,
                 customFields: format === 'custom' ? selectedFields.map(f => f.key) : undefined,
-                allowEmptyFields: allowEmptyFields
+                allowEmptyFields: allowEmptyFields,
+                // 新增学校和院系信息
+                schoolId: selectedSchoolId,
+                departmentId: selectedDepartmentId || undefined
             };
             
             const response = await fetch('/api/admin/import-data', {
@@ -244,9 +257,7 @@ export default function ImportPage() {
             });
             const result = await response.json();
             if (!response.ok) {
-                // 处理字段数量不足的详细错误信息
                 if (result.details && Array.isArray(result.details)) {
-                    // details 已经是格式化好的字符串数组，直接使用
                     const detailsText = result.details.join('\n');
                     const errorMessage = `${result.error}\n\n详细信息：\n${detailsText}`;
                     throw new Error(errorMessage);
@@ -335,7 +346,7 @@ export default function ImportPage() {
                         批量导入/更新数据
                     </h1>
                     <p className="mt-2 text-sm text-gray-600">
-                        请选择数据格式，自定义字段顺序，然后将表格数据粘贴到文本框中。<br/>
+                        请选择要导入的学校、数据格式，自定义字段顺序，然后将表格数据粘贴到文本框中。<br/>
                         <span className="text-indigo-600 font-medium">✨ 系统会自动识别是否包含表头</span>
                     </p>
                     <Link href="/admin/dashboard"
@@ -345,8 +356,32 @@ export default function ImportPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* 左侧：格式选择和字段配置 */}
+                    {/* 左侧：学校选择、格式选择和字段配置 */}
                     <div className="space-y-6">
+                        {/* 新增学校选择器 */}
+                        <div className="border-b pb-4">
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">选择导入目标</h3>
+                            <SchoolSelector
+                                selectedSchoolId={selectedSchoolId}
+                                selectedDepartmentId={selectedDepartmentId}
+                                onSchoolChange={setSelectedSchoolId}
+                                onDepartmentChange={setSelectedDepartmentId}
+                                showResetButton={true}
+                                className="space-y-3"
+                            />
+                            {selectedSchoolId && (
+                                <div className="mt-3 p-3 bg-green-50 rounded-md">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-green-600">✓</span>
+                                        <span className="text-sm text-green-800 font-medium">导入目标已选择</span>
+                                    </div>
+                                    <p className="text-xs text-green-700 mt-1">
+                                        所有导入的号码数据将分配给选定的学校{selectedDepartmentId ? '和院系' : ''}。
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">请选择导入的数据格式</label>
                             <fieldset className="space-y-2">

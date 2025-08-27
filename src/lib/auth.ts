@@ -43,7 +43,6 @@ export const authOptions: AuthOptions = {
         strategy: 'jwt',
     },
     callbacks: {
-        // redirect 回调可以被移除，因为跳转由自定义页面精确处理
         jwt: async ({ token, user }) => {
             if (user) {
                 token.id = user.id;
@@ -54,7 +53,7 @@ export const authOptions: AuthOptions = {
         session: async ({ session, token }) => {
             if (token && session.user) {
                 session.user.id = token.id as string;
-                session.user.role = token.role; // 移除强制类型转换
+                session.user.role = token.role;
             }
             return session;
         },

@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试报告 - 2025-08-27T16:57:29.807Z</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+        .content { padding: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid #007bff; }
+        .metric.success { border-left-color: #28a745; }
+        .metric.danger { border-left-color: #dc3545; }
+        .metric.warning { border-left-color: #ffc107; }
+        .metric h3 { margin: 0 0 10px 0; color: #495057; font-size: 14px; text-transform: uppercase; }
+        .metric .value { font-size: 24px; font-weight: bold; color: #212529; }
+        .section { margin-bottom: 30px; }
+        .section h2 { color: #495057; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+        .test-grid { display: grid; gap: 10px; }
+        .test-item { display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #6c757d; }
+        .test-item.success { border-left-color: #28a745; background: #d4edda; }
+        .test-item.failure { border-left-color: #dc3545; background: #f8d7da; }
+        .test-status { width: 20px; height: 20px; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .test-status.success { background: #28a745; }
+        .test-status.failure { background: #dc3545; }
+        .test-details { flex: 1; }
+        .test-name { font-weight: 600; color: #212529; }
+        .test-info { font-size: 12px; color: #6c757d; margin-top: 4px; }
+        .role-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .progress-bar { width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #28a745, #20c997); transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 API测试报告</h1>
+            <p>生成时间: 2025/8/28 00:57:29</p>
+        </div>
+        
+        <div class="content">
+            <div class="summary">
+                <div class="metric">
+                    <h3>总测试数</h3>
+                    <div class="value">1</div>
+                </div>
+                <div class="metric success">
+                    <h3>通过</h3>
+                    <div class="value">0</div>
+                </div>
+                <div class="metric danger">
+                    <h3>失败</h3>
+                    <div class="value">1</div>
+                </div>
+                <div class="metric">
+                    <h3>成功率</h3>
+                    <div class="value">0.00%</div>
+                </div>
+                <div class="metric">
+                    <h3>耗时</h3>
+                    <div class="value">9.15s</div>
+                </div>
+                <div class="metric warning">
+                    <h3>API覆盖率</h3>
+                    <div class="value">0%</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📊 整体进度</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0.00%"></div>
+                </div>
+                <p style="margin-top: 10px; color: #6c757d;">API覆盖率: 0/15 个端点</p>
+            </div>
+            
+            
+            
+            
+            <div class="section">
+                <h2>❌ 失败的测试详情</h2>
+                <div class="test-grid">
+                    
+                        <div class="test-item failure">
+                            <div class="test-status failure">✗</div>
+                            <div class="test-details">
+                                <div class="test-name">Test Execution</div>
+                                <div class="test-info">
+                                    错误: Command failed: npx prisma generate
+Environment variables loaded from .env
+Error: 
+EPERM: operation not permitted, rename 'D:\Eyre\Desktop\telecom\telecom-select-system\node_modules\.prisma\client\query_engine-windows.dll.node.tmp9256' -> 'D:\Eyre\Desktop\telecom\telecom-select-system\node_modules\.prisma\client\query_engine-windows.dll.node'
+
+
+
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="section">
+                <h2>🎯 测试用户信息</h2>
+                <div class="role-section">
+                    
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                            <strong>SUPER_ADMIN</strong>: admin@system.com<br>
+                            <small style="color: #6c757d;">超级管理员，拥有所有权限</small>
+                        </div>
+                    
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                            <strong>SCHOOL_ADMIN</strong>: admin@pku.edu.cn<br>
+                            <small style="color: #6c757d;">北京大学校级管理员</small>
+                        </div>
+                    
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                            <strong>SCHOOL_ADMIN</strong>: admin@tsinghua.edu.cn<br>
+                            <small style="color: #6c757d;">清华大学校级管理员</small>
+                        </div>
+                    
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                            <strong>MARKETER</strong>: marketer1@telecom.com<br>
+                            <small style="color: #6c757d;">北京大学销售人员</small>
+                        </div>
+                    
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px;">
+                            <strong>MARKETER</strong>: marketer2@telecom.com<br>
+                            <small style="color: #6c757d;">清华大学销售人员</small>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    

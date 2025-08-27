@@ -1,0 +1,285 @@
+{
+  "summary": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0,
+    "duration": 13127,
+    "timestamp": "2025-08-27T17:07:03.803Z"
+  },
+  "testResults": [
+    {
+      "testName": "Server Connectivity",
+      "success": true,
+      "details": "GET / - Response received",
+      "timestamp": "2025-08-27T17:06:59.413Z",
+      "responseTime": 2890,
+      "statusCode": 200
+    },
+    {
+      "testName": "Public - Phone Numbers List",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T17:06:59.870Z",
+      "responseTime": 457,
+      "statusCode": 200
+    },
+    {
+      "testName": "Auth - CSRF Token",
+      "success": true,
+      "details": "GET /api/auth/csrf - Response received",
+      "timestamp": "2025-08-27T17:07:00.784Z",
+      "responseTime": 913,
+      "statusCode": 200
+    },
+    {
+      "testName": "Auth - Session Check",
+      "success": true,
+      "details": "GET /api/auth/session - Response received",
+      "timestamp": "2025-08-27T17:07:00.893Z",
+      "responseTime": 108,
+      "statusCode": 200
+    },
+    {
+      "testName": "Authentication - SUPER_ADMIN",
+      "success": true,
+      "details": "User admin@system.com authenticated successfully",
+      "timestamp": "2025-08-27T17:07:01.232Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": true,
+      "details": "User admin@pku.edu.cn authenticated successfully",
+      "timestamp": "2025-08-27T17:07:01.553Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": true,
+      "details": "User marketer1@telecom.com authenticated successfully",
+      "timestamp": "2025-08-27T17:07:01.857Z"
+    },
+    {
+      "testName": "Admin Stats - SUPER_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/stats - Response received",
+      "timestamp": "2025-08-27T17:07:02.065Z",
+      "responseTime": 207,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Numbers List - SUPER_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/numbers - Response received",
+      "timestamp": "2025-08-27T17:07:02.284Z",
+      "responseTime": 219,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Organizations - SUPER_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/organizations - Response received",
+      "timestamp": "2025-08-27T17:07:02.478Z",
+      "responseTime": 194,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Actions - SUPER_ADMIN",
+      "success": true,
+      "details": "POST /api/admin/actions - Response received",
+      "timestamp": "2025-08-27T17:07:02.689Z",
+      "responseTime": 211,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Stats - SCHOOL_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/stats - Response received",
+      "timestamp": "2025-08-27T17:07:02.787Z",
+      "responseTime": 97,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Numbers List - SCHOOL_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/numbers - Response received",
+      "timestamp": "2025-08-27T17:07:02.863Z",
+      "responseTime": 76,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Organizations - SCHOOL_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/organizations - Response received",
+      "timestamp": "2025-08-27T17:07:02.937Z",
+      "responseTime": 73,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Stats - MARKETER",
+      "success": true,
+      "details": "GET /api/admin/stats - Response received",
+      "timestamp": "2025-08-27T17:07:03.012Z",
+      "responseTime": 75,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Numbers List - MARKETER",
+      "success": true,
+      "details": "GET /api/admin/numbers - Response received",
+      "timestamp": "2025-08-27T17:07:03.104Z",
+      "responseTime": 92,
+      "statusCode": 200
+    },
+    {
+      "testName": "Admin Organizations - MARKETER",
+      "success": true,
+      "details": "GET /api/admin/organizations - Response received",
+      "timestamp": "2025-08-27T17:07:03.212Z",
+      "responseTime": 107,
+      "statusCode": 200
+    },
+    {
+      "testName": "Permission Boundary - MARKETER accessing SUPER_ADMIN",
+      "success": true,
+      "details": "POST /api/admin/actions - Response received",
+      "timestamp": "2025-08-27T17:07:03.281Z",
+      "responseTime": 68,
+      "statusCode": 403
+    },
+    {
+      "testName": "Error Handling - 404 Not Found",
+      "success": true,
+      "details": "Expected error status 404",
+      "timestamp": "2025-08-27T17:07:03.734Z",
+      "responseTime": 453,
+      "statusCode": 404
+    },
+    {
+      "testName": "Error Handling - Unauthorized Admin Access",
+      "success": true,
+      "details": "Expected error status 401",
+      "timestamp": "2025-08-27T17:07:03.803Z",
+      "responseTime": 68,
+      "statusCode": 401
+    }
+  ],
+  "failedTests": [],
+  "userTests": {
+    "SUPER_ADMIN": [
+      {
+        "testName": "Authentication - SUPER_ADMIN",
+        "success": true,
+        "details": "User admin@system.com authenticated successfully",
+        "timestamp": "2025-08-27T17:07:01.232Z"
+      },
+      {
+        "testName": "Admin Stats - SUPER_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/stats - Response received",
+        "timestamp": "2025-08-27T17:07:02.065Z",
+        "responseTime": 207,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Numbers List - SUPER_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/numbers - Response received",
+        "timestamp": "2025-08-27T17:07:02.284Z",
+        "responseTime": 219,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Organizations - SUPER_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/organizations - Response received",
+        "timestamp": "2025-08-27T17:07:02.478Z",
+        "responseTime": 194,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Actions - SUPER_ADMIN",
+        "success": true,
+        "details": "POST /api/admin/actions - Response received",
+        "timestamp": "2025-08-27T17:07:02.689Z",
+        "responseTime": 211,
+        "statusCode": 200
+      }
+    ],
+    "SCHOOL_ADMIN": [
+      {
+        "testName": "Authentication - SCHOOL_ADMIN",
+        "success": true,
+        "details": "User admin@pku.edu.cn authenticated successfully",
+        "timestamp": "2025-08-27T17:07:01.553Z"
+      },
+      {
+        "testName": "Admin Stats - SCHOOL_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/stats - Response received",
+        "timestamp": "2025-08-27T17:07:02.787Z",
+        "responseTime": 97,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Numbers List - SCHOOL_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/numbers - Response received",
+        "timestamp": "2025-08-27T17:07:02.863Z",
+        "responseTime": 76,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Organizations - SCHOOL_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/organizations - Response received",
+        "timestamp": "2025-08-27T17:07:02.937Z",
+        "responseTime": 73,
+        "statusCode": 200
+      }
+    ],
+    "MARKETER": [
+      {
+        "testName": "Authentication - MARKETER",
+        "success": true,
+        "details": "User marketer1@telecom.com authenticated successfully",
+        "timestamp": "2025-08-27T17:07:01.857Z"
+      },
+      {
+        "testName": "Admin Stats - MARKETER",
+        "success": true,
+        "details": "GET /api/admin/stats - Response received",
+        "timestamp": "2025-08-27T17:07:03.012Z",
+        "responseTime": 75,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Numbers List - MARKETER",
+        "success": true,
+        "details": "GET /api/admin/numbers - Response received",
+        "timestamp": "2025-08-27T17:07:03.104Z",
+        "responseTime": 92,
+        "statusCode": 200
+      },
+      {
+        "testName": "Admin Organizations - MARKETER",
+        "success": true,
+        "details": "GET /api/admin/organizations - Response received",
+        "timestamp": "2025-08-27T17:07:03.212Z",
+        "responseTime": 107,
+        "statusCode": 200
+      },
+      {
+        "testName": "Permission Boundary - MARKETER accessing SUPER_ADMIN",
+        "success": true,
+        "details": "POST /api/admin/actions - Response received",
+        "timestamp": "2025-08-27T17:07:03.281Z",
+        "responseTime": 68,
+        "statusCode": 403
+      }
+    ]
+  },
+  "apiCoverage": {
+    "totalEndpoints": 12,
+    "testedEndpoints": 0,
+    "coverage": 0
+  }
+}

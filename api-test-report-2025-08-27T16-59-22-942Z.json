@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "duration": 9397,
+    "timestamp": "2025-08-27T16:59:22.939Z"
+  },
+  "testResults": [
+    {
+      "testName": "Test Execution",
+      "success": false,
+      "errorMessage": "Command failed: npx prisma generate\nEnvironment variables loaded from .env\nError: \nEPERM: operation not permitted, rename 'D:\\Eyre\\Desktop\\telecom\\telecom-select-system\\node_modules\\.prisma\\client\\query_engine-windows.dll.node.tmp46024' -> 'D:\\Eyre\\Desktop\\telecom\\telecom-select-system\\node_modules\\.prisma\\client\\query_engine-windows.dll.node'\n\n\n",
+      "timestamp": "2025-08-27T16:59:22.938Z"
+    }
+  ],
+  "failedTests": [
+    {
+      "testName": "Test Execution",
+      "success": false,
+      "errorMessage": "Command failed: npx prisma generate\nEnvironment variables loaded from .env\nError: \nEPERM: operation not permitted, rename 'D:\\Eyre\\Desktop\\telecom\\telecom-select-system\\node_modules\\.prisma\\client\\query_engine-windows.dll.node.tmp46024' -> 'D:\\Eyre\\Desktop\\telecom\\telecom-select-system\\node_modules\\.prisma\\client\\query_engine-windows.dll.node'\n\n\n",
+      "timestamp": "2025-08-27T16:59:22.938Z"
+    }
+  ],
+  "userTests": {},
+  "apiCoverage": {
+    "totalEndpoints": 15,
+    "testedEndpoints": 0,
+    "coverage": 0
+  }
+}

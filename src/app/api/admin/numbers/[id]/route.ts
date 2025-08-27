@@ -71,30 +71,42 @@ export const PATCH = withAuth(
 );
 
 // DELETE 方法用于删除单个号码记录
-export const DELETE = withAuth(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
-  try {
-    const { user } = request as any;
-    
-    // 检查用户角色权限
-    if (!['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(user.role)) {
-      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+export const DELETE = withAuth(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
+    const { id } = await params;
+    if (!id) {
+      return NextResponse.json(
+        { error: '缺少号码ID' },
+        { status: 400 }
+      );
     }
 
-    const { id } = await params; // 需要await params
-    
-    // 检查资源权限
-    const hasPermission = await checkResourcePermission('phone_number', id, 'delete');
-    if (!hasPermission.hasPermission) {
-      return NextResponse.json({ error: '无权限访问此资源' }, { status: 403 });
+    try {
+      // 检查对该号码的删除权限
+      const permission = await checkResourcePermission('phone_number', id, 'delete');
+      if (!permission.hasPermission) {
+        return NextResponse.json(
+          { error: permission.error || '无权限删除该号码' },
+          { status: 403 }
+        );
+      }
+
+      await prisma.phoneNumber.delete({
+        where: { id }
+      });
+
+      return NextResponse.json({ message: '号码删除成功' });
+    } catch (error) {
+      console.error('删除号码失败:', error);
+      return NextResponse.json({ error: '删除失败' }, { status: 500 });
     }
-
-    await prisma.phoneNumber.delete({
-      where: { id } // 使用string类型的id
-    });
-
-    return NextResponse.json({ message: '号码删除成功' });
-  } catch (error) {
-    console.error('删除号码失败:', error);
-    return NextResponse.json({ error: '删除失败' }, { status: 500 });
+  },
+  {
+    requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN'],
+    resourceType: 'phone_number',
+    action: 'delete'
   }
-});
+);

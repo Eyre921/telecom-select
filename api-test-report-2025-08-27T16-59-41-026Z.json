@@ -1,0 +1,326 @@
+{
+  "summary": {
+    "total": 20,
+    "passed": 0,
+    "failed": 20,
+    "duration": 10483,
+    "timestamp": "2025-08-27T16:59:41.021Z"
+  },
+  "testResults": [
+    {
+      "testName": "Server Connectivity",
+      "success": false,
+      "errorMessage": "GET / failed: ",
+      "timestamp": "2025-08-27T16:59:40.953Z",
+      "responseTime": 56
+    },
+    {
+      "testName": "Public - Phone Numbers List",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:40.959Z",
+      "responseTime": 5
+    },
+    {
+      "testName": "Public - Numbers with Filters",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:40.962Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Auth - CSRF Token",
+      "success": false,
+      "errorMessage": "GET /api/auth/csrf failed: ",
+      "timestamp": "2025-08-27T16:59:40.965Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Auth - Session Check",
+      "success": false,
+      "errorMessage": "GET /api/auth/session failed: ",
+      "timestamp": "2025-08-27T16:59:40.969Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - New User",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.972Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - Duplicate Email",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.975Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - Invalid Data",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.979Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Authentication - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@system.com: ",
+      "timestamp": "2025-08-27T16:59:40.988Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@pku.edu.cn: ",
+      "timestamp": "2025-08-27T16:59:40.995Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@tsinghua.edu.cn: ",
+      "timestamp": "2025-08-27T16:59:40.999Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": false,
+      "errorMessage": "Failed to authenticate marketer1@telecom.com: ",
+      "timestamp": "2025-08-27T16:59:41.002Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": false,
+      "errorMessage": "Failed to authenticate marketer2@telecom.com: ",
+      "timestamp": "2025-08-27T16:59:41.005Z"
+    },
+    {
+      "testName": "Error Handling - 404 Not Found",
+      "success": false,
+      "errorMessage": "GET /api/nonexistent failed: ",
+      "timestamp": "2025-08-27T16:59:41.009Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Error Handling - Unauthorized Admin Access",
+      "success": false,
+      "errorMessage": "POST /api/admin/stats failed: ",
+      "timestamp": "2025-08-27T16:59:41.011Z",
+      "responseTime": 2
+    },
+    {
+      "testName": "Performance Test 1/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.017Z",
+      "responseTime": 5
+    },
+    {
+      "testName": "Performance Test 2/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.018Z",
+      "responseTime": 6
+    },
+    {
+      "testName": "Performance Test 3/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.019Z",
+      "responseTime": 6
+    },
+    {
+      "testName": "Performance Test 4/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.020Z",
+      "responseTime": 7
+    },
+    {
+      "testName": "Performance Test 5/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.021Z",
+      "responseTime": 8
+    }
+  ],
+  "failedTests": [
+    {
+      "testName": "Server Connectivity",
+      "success": false,
+      "errorMessage": "GET / failed: ",
+      "timestamp": "2025-08-27T16:59:40.953Z",
+      "responseTime": 56
+    },
+    {
+      "testName": "Public - Phone Numbers List",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:40.959Z",
+      "responseTime": 5
+    },
+    {
+      "testName": "Public - Numbers with Filters",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:40.962Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Auth - CSRF Token",
+      "success": false,
+      "errorMessage": "GET /api/auth/csrf failed: ",
+      "timestamp": "2025-08-27T16:59:40.965Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Auth - Session Check",
+      "success": false,
+      "errorMessage": "GET /api/auth/session failed: ",
+      "timestamp": "2025-08-27T16:59:40.969Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - New User",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.972Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - Duplicate Email",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.975Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Registration - Invalid Data",
+      "success": false,
+      "errorMessage": "POST /api/register failed: ",
+      "timestamp": "2025-08-27T16:59:40.979Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Authentication - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@system.com: ",
+      "timestamp": "2025-08-27T16:59:40.988Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@pku.edu.cn: ",
+      "timestamp": "2025-08-27T16:59:40.995Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Failed to authenticate admin@tsinghua.edu.cn: ",
+      "timestamp": "2025-08-27T16:59:40.999Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": false,
+      "errorMessage": "Failed to authenticate marketer1@telecom.com: ",
+      "timestamp": "2025-08-27T16:59:41.002Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": false,
+      "errorMessage": "Failed to authenticate marketer2@telecom.com: ",
+      "timestamp": "2025-08-27T16:59:41.005Z"
+    },
+    {
+      "testName": "Error Handling - 404 Not Found",
+      "success": false,
+      "errorMessage": "GET /api/nonexistent failed: ",
+      "timestamp": "2025-08-27T16:59:41.009Z",
+      "responseTime": 3
+    },
+    {
+      "testName": "Error Handling - Unauthorized Admin Access",
+      "success": false,
+      "errorMessage": "POST /api/admin/stats failed: ",
+      "timestamp": "2025-08-27T16:59:41.011Z",
+      "responseTime": 2
+    },
+    {
+      "testName": "Performance Test 1/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.017Z",
+      "responseTime": 5
+    },
+    {
+      "testName": "Performance Test 2/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.018Z",
+      "responseTime": 6
+    },
+    {
+      "testName": "Performance Test 3/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.019Z",
+      "responseTime": 6
+    },
+    {
+      "testName": "Performance Test 4/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.020Z",
+      "responseTime": 7
+    },
+    {
+      "testName": "Performance Test 5/5 - Numbers API",
+      "success": false,
+      "errorMessage": "GET /api/numbers failed: ",
+      "timestamp": "2025-08-27T16:59:41.021Z",
+      "responseTime": 8
+    }
+  ],
+  "userTests": {
+    "SUPER_ADMIN": [
+      {
+        "testName": "Authentication - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Failed to authenticate admin@system.com: ",
+        "timestamp": "2025-08-27T16:59:40.988Z"
+      }
+    ],
+    "SCHOOL_ADMIN": [
+      {
+        "testName": "Authentication - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Failed to authenticate admin@pku.edu.cn: ",
+        "timestamp": "2025-08-27T16:59:40.995Z"
+      },
+      {
+        "testName": "Authentication - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Failed to authenticate admin@tsinghua.edu.cn: ",
+        "timestamp": "2025-08-27T16:59:40.999Z"
+      }
+    ],
+    "MARKETER": [
+      {
+        "testName": "Authentication - MARKETER",
+        "success": false,
+        "errorMessage": "Failed to authenticate marketer1@telecom.com: ",
+        "timestamp": "2025-08-27T16:59:41.002Z"
+      },
+      {
+        "testName": "Authentication - MARKETER",
+        "success": false,
+        "errorMessage": "Failed to authenticate marketer2@telecom.com: ",
+        "timestamp": "2025-08-27T16:59:41.005Z"
+      }
+    ]
+  },
+  "apiCoverage": {
+    "totalEndpoints": 15,
+    "testedEndpoints": 0,
+    "coverage": 0
+  }
+}

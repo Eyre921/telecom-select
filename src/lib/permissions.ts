@@ -35,12 +35,17 @@ export async function getUserPermissions(): Promise<PermissionResult> {
   try {
     const session = await getServerSession(authOptions);
     
+    // 增强session验证
     if (!session?.user?.id) {
+      console.log('Session check failed:', { session: !!session, userId: session?.user?.id });
       return {
         hasPermission: false,
         error: '用户未登录'
       };
     }
+
+    // 添加详细的错误日志
+    console.log('Getting user permissions for:', session.user.id);
 
     // 获取用户详细信息和组织关系
     const user = await prisma.user.findUnique({
@@ -55,11 +60,14 @@ export async function getUserPermissions(): Promise<PermissionResult> {
     });
 
     if (!user) {
+      console.error('User not found in database:', session.user.id);
       return {
         hasPermission: false,
         error: '用户不存在'
       };
     }
+
+    console.log('User found:', { id: user.id, role: user.role, orgCount: user.organizations.length });
 
     return {
       hasPermission: true,

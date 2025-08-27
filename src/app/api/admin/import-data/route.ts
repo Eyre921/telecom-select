@@ -547,10 +547,41 @@ export const POST = withAuth(
       }
 
       const body = await request.json();
-      const { data, type, customFields, forceImport } = body;
+      const { data, type, customFields, forceImport, schoolId, departmentId } = body;
 
       if (!data || !type) {
         return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
+      }
+      
+      // 新增：验证学校选择
+      if (!schoolId) {
+        return NextResponse.json({ error: '请选择要导入数据的学校' }, { status: 400 });
+      }
+      
+      // 新增：验证用户是否有权限导入到指定学校
+      if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
+        if (!dataFilter.schoolIds.includes(schoolId)) {
+          return NextResponse.json({ 
+            error: '权限不足：您无权向该学校导入数据' 
+          }, { status: 403 });
+        }
+      }
+      
+      // 修复：如果指定了院系，验证院系是否属于指定学校
+      if (departmentId) {
+        const department = await prisma.organization.findFirst({
+          where: {
+            id: departmentId,
+            parentId: schoolId,  // 院系的parentId应该是学校ID
+            type: 'DEPARTMENT'   // 确保是院系类型
+          }
+        });
+        
+        if (!department) {
+          return NextResponse.json({ 
+            error: '指定的院系不属于选定的学校' 
+          }, { status: 400 });
+        }
       }
 
       // 智能分割数据行
@@ -637,7 +668,14 @@ export const POST = withAuth(
           }
 
           const {isPremium, reason} = analyzeNumber(parsedData.phoneNumber);
-          let finalData = {...parsedData, isPremium, premiumReason: reason};
+          let finalData = {
+            ...parsedData, 
+            isPremium, 
+            premiumReason: reason,
+            // 新增：强制设置学校和院系
+            schoolId: schoolId,
+            departmentId: departmentId || null
+          };
           
           // 应用多租户数据过滤 - 确保导入的数据属于用户有权限的组织
           if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {

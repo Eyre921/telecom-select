@@ -1,0 +1,990 @@
+{
+  "summary": {
+    "total": 54,
+    "passed": 23,
+    "failed": 31,
+    "duration": 20998,
+    "timestamp": "2025-08-27T16:48:18.009Z"
+  },
+  "testResults": [
+    {
+      "testName": "Server Connectivity",
+      "success": true,
+      "details": "GET / - Response received",
+      "timestamp": "2025-08-27T16:48:09.808Z",
+      "responseTime": 2641,
+      "statusCode": 200
+    },
+    {
+      "testName": "Public - Phone Numbers List",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:10.261Z",
+      "responseTime": 453,
+      "statusCode": 200
+    },
+    {
+      "testName": "Public - Numbers with Filters",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:10.366Z",
+      "responseTime": 105,
+      "statusCode": 200
+    },
+    {
+      "testName": "Auth - CSRF Token",
+      "success": true,
+      "details": "GET /api/auth/csrf - Response received",
+      "timestamp": "2025-08-27T16:48:11.309Z",
+      "responseTime": 942,
+      "statusCode": 200
+    },
+    {
+      "testName": "Auth - Session Check",
+      "success": true,
+      "details": "GET /api/auth/session - Response received",
+      "timestamp": "2025-08-27T16:48:11.392Z",
+      "responseTime": 82,
+      "statusCode": 200
+    },
+    {
+      "testName": "Registration - New User",
+      "success": true,
+      "details": "POST /api/register - Response received",
+      "timestamp": "2025-08-27T16:48:11.770Z",
+      "responseTime": 378,
+      "statusCode": 201
+    },
+    {
+      "testName": "Registration - Duplicate Email",
+      "success": true,
+      "details": "Expected error status 409",
+      "timestamp": "2025-08-27T16:48:11.859Z",
+      "responseTime": 89,
+      "statusCode": 409
+    },
+    {
+      "testName": "Registration - Invalid Data",
+      "success": true,
+      "details": "Expected error status 400",
+      "timestamp": "2025-08-27T16:48:11.927Z",
+      "responseTime": 68,
+      "statusCode": 400
+    },
+    {
+      "testName": "Authentication - SUPER_ADMIN",
+      "success": true,
+      "details": "User admin@system.com authenticated successfully",
+      "timestamp": "2025-08-27T16:48:12.648Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": true,
+      "details": "User admin@pku.edu.cn authenticated successfully",
+      "timestamp": "2025-08-27T16:48:13.078Z"
+    },
+    {
+      "testName": "Authentication - SCHOOL_ADMIN",
+      "success": true,
+      "details": "User admin@tsinghua.edu.cn authenticated successfully",
+      "timestamp": "2025-08-27T16:48:13.444Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": true,
+      "details": "User marketer1@telecom.com authenticated successfully",
+      "timestamp": "2025-08-27T16:48:13.800Z"
+    },
+    {
+      "testName": "Authentication - MARKETER",
+      "success": true,
+      "details": "User marketer2@telecom.com authenticated successfully",
+      "timestamp": "2025-08-27T16:48:14.148Z"
+    },
+    {
+      "testName": "Admin Stats - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.323Z",
+      "responseTime": 175,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.392Z",
+      "responseTime": 69,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.595Z",
+      "responseTime": 203,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.660Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.724Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.907Z",
+      "responseTime": 182,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.975Z",
+      "responseTime": 68,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.070Z",
+      "responseTime": 95,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.259Z",
+      "responseTime": 188,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Import Data Info - SUPER_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/import-data - Response received",
+      "timestamp": "2025-08-27T16:48:15.492Z",
+      "responseTime": 233,
+      "statusCode": 405
+    },
+    {
+      "testName": "Admin Actions - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.657Z",
+      "responseTime": 165,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.754Z",
+      "responseTime": 97,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.827Z",
+      "responseTime": 73,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.891Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.978Z",
+      "responseTime": 87,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.060Z",
+      "responseTime": 82,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.133Z",
+      "responseTime": 73,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.200Z",
+      "responseTime": 67,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.269Z",
+      "responseTime": 68,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.334Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Import Data Info - SCHOOL_ADMIN",
+      "success": true,
+      "details": "GET /api/admin/import-data - Response received",
+      "timestamp": "2025-08-27T16:48:16.397Z",
+      "responseTime": 63,
+      "statusCode": 405
+    },
+    {
+      "testName": "Admin Stats - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.463Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.532Z",
+      "responseTime": 69,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.603Z",
+      "responseTime": 71,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.669Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.734Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.801Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.867Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.933Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:17.010Z",
+      "responseTime": 76,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Import Data Info - MARKETER",
+      "success": true,
+      "details": "GET /api/admin/import-data - Response received",
+      "timestamp": "2025-08-27T16:48:17.075Z",
+      "responseTime": 65,
+      "statusCode": 405
+    },
+    {
+      "testName": "Get Available Numbers for Order",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:17.149Z",
+      "responseTime": 73,
+      "statusCode": 200
+    },
+    {
+      "testName": "Create Order - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 400",
+      "timestamp": "2025-08-27T16:48:17.292Z",
+      "responseTime": 143,
+      "statusCode": 400
+    },
+    {
+      "testName": "Permission Boundary - MARKETER accessing SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status 403, got 401",
+      "timestamp": "2025-08-27T16:48:17.358Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Error Handling - 404 Not Found",
+      "success": true,
+      "details": "Expected error status 404",
+      "timestamp": "2025-08-27T16:48:17.712Z",
+      "responseTime": 354,
+      "statusCode": 404
+    },
+    {
+      "testName": "Error Handling - Unauthorized Admin Access",
+      "success": false,
+      "errorMessage": "POST /api/admin/stats failed: Request failed with status code 405",
+      "timestamp": "2025-08-27T16:48:17.804Z",
+      "responseTime": 91,
+      "statusCode": 405
+    },
+    {
+      "testName": "Performance Test 5/5 - Numbers API",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:17.956Z",
+      "responseTime": 151,
+      "statusCode": 200
+    },
+    {
+      "testName": "Performance Test 1/5 - Numbers API",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:17.967Z",
+      "responseTime": 163,
+      "statusCode": 200
+    },
+    {
+      "testName": "Performance Test 4/5 - Numbers API",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:17.987Z",
+      "responseTime": 182,
+      "statusCode": 200
+    },
+    {
+      "testName": "Performance Test 2/5 - Numbers API",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:18.000Z",
+      "responseTime": 195,
+      "statusCode": 200
+    },
+    {
+      "testName": "Performance Test 3/5 - Numbers API",
+      "success": true,
+      "details": "GET /api/numbers - Response received",
+      "timestamp": "2025-08-27T16:48:18.009Z",
+      "responseTime": 204,
+      "statusCode": 200
+    }
+  ],
+  "failedTests": [
+    {
+      "testName": "Admin Stats - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.323Z",
+      "responseTime": 175,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.392Z",
+      "responseTime": 69,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.595Z",
+      "responseTime": 203,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.660Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.724Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.907Z",
+      "responseTime": 182,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:14.975Z",
+      "responseTime": 68,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.070Z",
+      "responseTime": 95,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.259Z",
+      "responseTime": 188,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Actions - SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.657Z",
+      "responseTime": 165,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.754Z",
+      "responseTime": 97,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.827Z",
+      "responseTime": 73,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.891Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:15.978Z",
+      "responseTime": 87,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.060Z",
+      "responseTime": 82,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.133Z",
+      "responseTime": 73,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.200Z",
+      "responseTime": 67,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.269Z",
+      "responseTime": 68,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - SCHOOL_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.334Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.463Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Stats with Filters - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.532Z",
+      "responseTime": 69,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers List - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.603Z",
+      "responseTime": 71,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Pagination - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.669Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Numbers with Search - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.734Z",
+      "responseTime": 64,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Organizations - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.801Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Schools - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.867Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Departments - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:16.933Z",
+      "responseTime": 66,
+      "statusCode": 401
+    },
+    {
+      "testName": "Admin Pending Orders - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 401",
+      "timestamp": "2025-08-27T16:48:17.010Z",
+      "responseTime": 76,
+      "statusCode": 401
+    },
+    {
+      "testName": "Create Order - MARKETER",
+      "success": false,
+      "errorMessage": "Expected status success, got 400",
+      "timestamp": "2025-08-27T16:48:17.292Z",
+      "responseTime": 143,
+      "statusCode": 400
+    },
+    {
+      "testName": "Permission Boundary - MARKETER accessing SUPER_ADMIN",
+      "success": false,
+      "errorMessage": "Expected status 403, got 401",
+      "timestamp": "2025-08-27T16:48:17.358Z",
+      "responseTime": 65,
+      "statusCode": 401
+    },
+    {
+      "testName": "Error Handling - Unauthorized Admin Access",
+      "success": false,
+      "errorMessage": "POST /api/admin/stats failed: Request failed with status code 405",
+      "timestamp": "2025-08-27T16:48:17.804Z",
+      "responseTime": 91,
+      "statusCode": 405
+    }
+  ],
+  "userTests": {
+    "SUPER_ADMIN": [
+      {
+        "testName": "Authentication - SUPER_ADMIN",
+        "success": true,
+        "details": "User admin@system.com authenticated successfully",
+        "timestamp": "2025-08-27T16:48:12.648Z"
+      },
+      {
+        "testName": "Admin Stats - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.323Z",
+        "responseTime": 175,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Stats with Filters - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.392Z",
+        "responseTime": 69,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers List - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.595Z",
+        "responseTime": 203,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Pagination - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.660Z",
+        "responseTime": 64,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Search - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.724Z",
+        "responseTime": 64,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Organizations - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.907Z",
+        "responseTime": 182,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Schools - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:14.975Z",
+        "responseTime": 68,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Departments - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.070Z",
+        "responseTime": 95,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Pending Orders - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.259Z",
+        "responseTime": 188,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Import Data Info - SUPER_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/import-data - Response received",
+        "timestamp": "2025-08-27T16:48:15.492Z",
+        "responseTime": 233,
+        "statusCode": 405
+      },
+      {
+        "testName": "Admin Actions - SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.657Z",
+        "responseTime": 165,
+        "statusCode": 401
+      }
+    ],
+    "SCHOOL_ADMIN": [
+      {
+        "testName": "Authentication - SCHOOL_ADMIN",
+        "success": true,
+        "details": "User admin@pku.edu.cn authenticated successfully",
+        "timestamp": "2025-08-27T16:48:13.078Z"
+      },
+      {
+        "testName": "Authentication - SCHOOL_ADMIN",
+        "success": true,
+        "details": "User admin@tsinghua.edu.cn authenticated successfully",
+        "timestamp": "2025-08-27T16:48:13.444Z"
+      },
+      {
+        "testName": "Admin Stats - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.754Z",
+        "responseTime": 97,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Stats with Filters - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.827Z",
+        "responseTime": 73,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers List - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.891Z",
+        "responseTime": 64,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Pagination - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:15.978Z",
+        "responseTime": 87,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Search - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.060Z",
+        "responseTime": 82,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Organizations - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.133Z",
+        "responseTime": 73,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Schools - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.200Z",
+        "responseTime": 67,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Departments - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.269Z",
+        "responseTime": 68,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Pending Orders - SCHOOL_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.334Z",
+        "responseTime": 65,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Import Data Info - SCHOOL_ADMIN",
+        "success": true,
+        "details": "GET /api/admin/import-data - Response received",
+        "timestamp": "2025-08-27T16:48:16.397Z",
+        "responseTime": 63,
+        "statusCode": 405
+      }
+    ],
+    "MARKETER": [
+      {
+        "testName": "Authentication - MARKETER",
+        "success": true,
+        "details": "User marketer1@telecom.com authenticated successfully",
+        "timestamp": "2025-08-27T16:48:13.800Z"
+      },
+      {
+        "testName": "Authentication - MARKETER",
+        "success": true,
+        "details": "User marketer2@telecom.com authenticated successfully",
+        "timestamp": "2025-08-27T16:48:14.148Z"
+      },
+      {
+        "testName": "Admin Stats - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.463Z",
+        "responseTime": 65,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Stats with Filters - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.532Z",
+        "responseTime": 69,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers List - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.603Z",
+        "responseTime": 71,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Pagination - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.669Z",
+        "responseTime": 66,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Numbers with Search - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.734Z",
+        "responseTime": 64,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Organizations - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.801Z",
+        "responseTime": 66,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Schools - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.867Z",
+        "responseTime": 66,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Departments - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:16.933Z",
+        "responseTime": 66,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Pending Orders - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 401",
+        "timestamp": "2025-08-27T16:48:17.010Z",
+        "responseTime": 76,
+        "statusCode": 401
+      },
+      {
+        "testName": "Admin Import Data Info - MARKETER",
+        "success": true,
+        "details": "GET /api/admin/import-data - Response received",
+        "timestamp": "2025-08-27T16:48:17.075Z",
+        "responseTime": 65,
+        "statusCode": 405
+      },
+      {
+        "testName": "Create Order - MARKETER",
+        "success": false,
+        "errorMessage": "Expected status success, got 400",
+        "timestamp": "2025-08-27T16:48:17.292Z",
+        "responseTime": 143,
+        "statusCode": 400
+      },
+      {
+        "testName": "Permission Boundary - MARKETER accessing SUPER_ADMIN",
+        "success": false,
+        "errorMessage": "Expected status 403, got 401",
+        "timestamp": "2025-08-27T16:48:17.358Z",
+        "responseTime": 65,
+        "statusCode": 401
+      }
+    ]
+  },
+  "apiCoverage": {
+    "totalEndpoints": 15,
+    "testedEndpoints": 0,
+    "coverage": 0
+  }
+}
