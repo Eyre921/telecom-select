@@ -10,6 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 用户角色枚举
+enum Role {
+  SUPER_ADMIN   // 超级管理员
+  SCHOOL_ADMIN  // 校级管理员
+  SALES_USER    // 销售用户
+}
+
+// 组织类型枚举
+enum OrgType {
+  SCHOOL      // 学校
+  DEPARTMENT  // 院系
+}
+
 // 用户模型 (管理员/营销人员)
 model User {
   id            String    @id @default(cuid())
@@ -18,15 +31,50 @@ model User {
   emailVerified DateTime?
   password      String?   // 用于存储加密后的密码
   image         String?
-  role          Role      @default(MARKETER) // 角色: ADMIN 或 MARKETER
+  role          Role      @default(SALES_USER) // 默认角色改为销售用户
   accounts      Account[]
   sessions      Session[]
+  
+  // 新增：用户组织关系
+  organizations UserOrganization[]
+  
+  // 新增：审计字段
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
-// 用户角色枚举
-enum Role {
-  ADMIN
-  MARKETER
+// 组织表
+model Organization {
+  id        String   @id @default(cuid())
+  name      String   // 组织名称
+  type      OrgType  // 组织类型：学校或院系
+  parentId  String?  // 父级组织ID（院系的父级是学校）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关联关系
+  parent       Organization?       @relation("OrgHierarchy", fields: [parentId], references: [id])
+  children     Organization[]      @relation("OrgHierarchy")
+  userOrgs     UserOrganization[]
+  schoolNumbers    PhoneNumber[]   @relation("SchoolNumbers")
+  departmentNumbers PhoneNumber[]  @relation("DepartmentNumbers")
+}
+
+// 用户组织关系表
+model UserOrganization {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role         // 用户在该组织中的角色
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  // 关联关系
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // 确保用户在同一组织中只有一个角色
+  @@unique([userId, organizationId])
 }
 
 // Next-Auth 必需模型
@@ -64,7 +112,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-
 // 核心业务模型：号码表
 model PhoneNumber {
   id                  String             @id @default(cuid())
@@ -84,6 +131,14 @@ model PhoneNumber {
   deliveryStatus      DeliveryStatus?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
+  
+  // 新增：组织关联字段
+  schoolId            String?            // 所属学校ID
+  departmentId        String?            // 所属院系ID
+  
+  // 新增：组织关联关系
+  school              Organization?      @relation("SchoolNumbers", fields: [schoolId], references: [id])
+  department          Organization?      @relation("DepartmentNumbers", fields: [departmentId], references: [id])
 }
 
 // 枚举类型定义
