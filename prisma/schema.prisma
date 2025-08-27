@@ -14,7 +14,7 @@ datasource db {
 enum Role {
   SUPER_ADMIN   // 超级管理员
   SCHOOL_ADMIN  // 校级管理员
-  SALES_USER    // 销售用户
+  MARKETER      // 销售人员
 }
 
 // 组织类型枚举
@@ -31,7 +31,7 @@ model User {
   emailVerified DateTime?
   password      String?   // 用于存储加密后的密码
   image         String?
-  role          Role      @default(SALES_USER) // 默认角色改为销售用户
+  role          Role      @default(MARKETER) // 默认角色改为销售人员
   accounts      Account[]
   sessions      Session[]
   

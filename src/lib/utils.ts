@@ -1,4 +1,4 @@
-import {DeliveryStatus, PaymentMethod, ReservationStatus} from '@prisma/client';
+import {DeliveryStatus, PaymentMethod, ReservationStatus, Role, OrgType} from '@prisma/client';
 
 // 用于将英文字段名翻译为中文，以便在UI中显示
 export const FIELD_TRANSLATIONS: { [key: string]: string } = {
@@ -18,6 +18,15 @@ export const FIELD_TRANSLATIONS: { [key: string]: string } = {
     emsTrackingNumber: 'EMS单号',
     createdAt: '记录创建时间',
     updatedAt: '记录更新时间',
+    // 新增组织相关字段（这些字段确实存在于 PhoneNumber 模型中）
+    schoolId: '所属学校',
+    departmentId: '所属院系',
+    // 移除以下不属于 PhoneNumber 模型的字段：
+    // role: '用户角色',
+    // orgType: '组织类型',
+    // name: '组织名称',
+    // parentId: '上级组织',
+    // organizations: '关联组织',
 };
 
 // 用于将英文枚举值翻译为中文
@@ -38,5 +47,16 @@ export const ENUM_TRANSLATIONS: { [key: string]: { [key: string]: string } } = {
         [DeliveryStatus.IN_TRANSIT_UNACTIVATED]: '在途未激活',
         [DeliveryStatus.IN_TRANSIT_ACTIVATED]: '在途已激活',
         [DeliveryStatus.RECEIVED_UNACTIVATED]: '已收到未激活',
+    },
+    // 新增角色枚举翻译
+    Role: {
+        [Role.SUPER_ADMIN]: '超级管理员',
+        [Role.SCHOOL_ADMIN]: '学校管理员',
+        [Role.MARKETER]: '营销人员',
+    },
+    // 新增组织类型枚举翻译
+    OrgType: {
+        [OrgType.SCHOOL]: '学校',
+        [OrgType.DEPARTMENT]: '院系',
     }
 };

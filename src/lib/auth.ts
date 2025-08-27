@@ -54,7 +54,7 @@ export const authOptions: AuthOptions = {
         session: async ({ session, token }) => {
             if (token && session.user) {
                 session.user.id = token.id as string;
-                session.user.role = token.role as 'ADMIN' | 'MARKETER';
+                session.user.role = token.role; // 移除强制类型转换
             }
             return session;
         },

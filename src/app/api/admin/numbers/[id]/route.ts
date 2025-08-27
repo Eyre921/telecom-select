@@ -1,66 +1,100 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {getServerSession} from 'next-auth/next';
-import {authOptions} from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { withAuth, checkResourcePermission } from '@/lib/permissions';
 
 // PATCH 方法用于更新单个号码记录
-export async function PATCH(
-    request: NextRequest,
-    {params}: {params: Promise<{id: string}>}
-) {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-        return new NextResponse(JSON.stringify({error: '未授权访问'}), {status: 401});
+export const PATCH = withAuth(
+    async (
+        request: NextRequest,
+        {params}: {params: Promise<{id: string}>}
+    ) => {
+        const {id} = await params;
+        if (!id) {
+            return NextResponse.json(
+                {error: '缺少号码ID'},
+                {status: 400}
+            );
+        }
+
+        try {
+            // 检查对该号码的访问权限
+            const permission = await checkResourcePermission('phone_number', id, 'write');
+            if (!permission.hasPermission) {
+                return NextResponse.json(
+                    { error: permission.error || '无权限修改该号码' },
+                    { status: 403 }
+                );
+            }
+
+            const body = await request.json();
+
+            // 防止关键信息被意外修改
+            delete body.id;
+            delete body.phoneNumber;
+            delete body.createdAt;
+            
+            // 删除关联对象数据，只保留ID字段
+            delete body.school;
+            delete body.department;
+            
+            // 确保日期字段格式正确
+            if (body.orderTimestamp) {
+                body.orderTimestamp = new Date(body.orderTimestamp);
+            }
+            if (body.updatedAt) {
+                body.updatedAt = new Date(body.updatedAt);
+            }
+
+            const updatedPhoneNumber = await prisma.phoneNumber.update({
+                where: {id},
+                data: body,
+                include: {
+                    school: true,
+                    department: true
+                }
+            });
+
+            return NextResponse.json(updatedPhoneNumber, {status: 200});
+        } catch (error: unknown) {
+            console.error(`[ADMIN_UPDATE_NUMBER_API_ERROR] ID: ${id}`, error);
+            return NextResponse.json(
+                {error: '更新失败'},
+                {status: 500}
+            );
+        }
+    },
+    {
+        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'],
+        resourceType: 'phone_number',
+        action: 'write'
     }
-
-    const {id} = await params; // 需要 await params
-    if (!id) {
-        return new NextResponse(JSON.stringify({error: '缺少号码ID'}), {status: 400});
-    }
-
-    try {
-        const body = await request.json();
-
-        // 防止关键信息被意外修改
-        delete body.id;
-        delete body.phoneNumber;
-        delete body.createdAt;
-
-        const updatedPhoneNumber = await prisma.phoneNumber.update({
-            where: {id},
-            data: body,
-        });
-
-        return NextResponse.json(updatedPhoneNumber, {status: 200});
-    } catch (error: unknown) {
-        console.error(`[ADMIN_UPDATE_NUMBER_API_ERROR] ID: ${id}`, error);
-        return new NextResponse(JSON.stringify({error: '更新失败'}), {status: 500});
-    }
-}
+);
 
 // DELETE 方法用于删除单个号码记录
-export async function DELETE(
-    request: NextRequest,
-    {params}: {params: Promise<{id: string}>}
-) {
-    const session = await getServerSession(authOptions);
-    if (session?.user?.role !== 'ADMIN') {
-        return new NextResponse(JSON.stringify({error: '权限不足'}), {status: 403});
+export const DELETE = withAuth(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  try {
+    const { user } = request as any;
+    
+    // 检查用户角色权限
+    if (!['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(user.role)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
     }
 
-    const {id} = await params; // 需要 await params
-    if (!id) {
-        return new NextResponse(JSON.stringify({error: '缺少号码ID'}), {status: 400});
+    const { id } = await params; // 需要await params
+    
+    // 检查资源权限
+    const hasPermission = await checkResourcePermission('phone_number', id, 'delete');
+    if (!hasPermission.hasPermission) {
+      return NextResponse.json({ error: '无权限访问此资源' }, { status: 403 });
     }
 
-    try {
-        await prisma.phoneNumber.delete({
-            where: {id},
-        });
+    await prisma.phoneNumber.delete({
+      where: { id } // 使用string类型的id
+    });
 
-        return new NextResponse(null, {status: 204}); // 204 No Content 表示成功删除
-    } catch (error: unknown) {
-        console.error(`[ADMIN_DELETE_NUMBER_API_ERROR] ID: ${id}`, error);
-        return new NextResponse(JSON.stringify({error: '删除失败'}), {status: 500});
-    }
-}
+    return NextResponse.json({ message: '号码删除成功' });
+  } catch (error) {
+    console.error('删除号码失败:', error);
+    return NextResponse.json({ error: '删除失败' }, { status: 500 });
+  }
+});

@@ -3,7 +3,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {signOut, useSession} from 'next-auth/react';
 import Link from 'next/link';
-import {PhoneNumber} from '@prisma/client';
+import {PhoneNumber, Organization} from '@prisma/client';
 import {StatsCards} from '@/components/admin/StatsCards';
 import {PendingOrdersTable} from '@/components/admin/PendingOrdersTable';
 import {EditOrderModal} from '@/components/admin/EditOrderModal';
@@ -11,6 +11,12 @@ import {ExportModal} from '@/components/admin/ExportModal';
 import {ENUM_TRANSLATIONS, FIELD_TRANSLATIONS} from '@/lib/utils';
 
 // --- 类型定义 ---
+// 扩展PhoneNumber类型，包含关联的组织信息
+type PhoneNumberWithOrganizations = PhoneNumber & {
+    school?: Organization | null;
+    department?: Organization | null;
+};
+
 type SortConfig = { field: keyof PhoneNumber, direction: 'asc' | 'desc' };
 
 // --- 默认配置 ---
@@ -25,9 +31,48 @@ const FullPageSpinner = () => (
     </div>
 );
 
+// 获取字段显示值的辅助函数
+const getFieldDisplayValue = (number: PhoneNumberWithOrganizations, header: keyof PhoneNumber): string => {
+    // 处理学校和院系字段
+    if (header === 'schoolId' && number.school) {
+        return number.school.name;
+    }
+    if (header === 'departmentId' && number.department) {
+        return number.department.name;
+    }
+    
+    const value = number[header];
+    if (value === null || value === undefined) {
+        return '-';
+    }
+    
+    // 处理枚举字段的翻译
+    if (header === 'reservationStatus' && ENUM_TRANSLATIONS.ReservationStatus) {
+        return ENUM_TRANSLATIONS.ReservationStatus[value as string] || String(value);
+    }
+    if (header === 'paymentMethod' && ENUM_TRANSLATIONS.PaymentMethod) {
+        return ENUM_TRANSLATIONS.PaymentMethod[value as string] || String(value);
+    }
+    if (header === 'deliveryStatus' && ENUM_TRANSLATIONS.DeliveryStatus) {
+        return ENUM_TRANSLATIONS.DeliveryStatus[value as string] || String(value);
+    }
+    
+    // 处理布尔值
+    if (typeof value === 'boolean') {
+        return value ? '是' : '否';
+    }
+    
+    // 处理日期
+    if (value instanceof Date) {
+        return value.toLocaleString('zh-CN');
+    }
+    
+    return String(value);
+};
+
 const MainDataTable = ({numbers, onEdit, onDelete, onRelease, onSort, sortConfig, visibleColumns, isAdmin}: {
-    numbers: PhoneNumber[],
-    onEdit: (number: PhoneNumber) => void,
+    numbers: PhoneNumberWithOrganizations[],
+    onEdit: (number: PhoneNumberWithOrganizations) => void,
     onDelete: (id: string) => void,
     onRelease: (id: string) => void,
     onSort: (field: keyof PhoneNumber) => void,
@@ -62,10 +107,8 @@ const MainDataTable = ({numbers, onEdit, onDelete, onRelease, onSort, sortConfig
                     numbers.map((number) => (
                         <tr key={number.id}>
                             {visibleColumns.map(header => (
-                                <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {(header === 'reservationStatus' || header === 'paymentMethod' || header === 'deliveryStatus')
-                                        ? ENUM_TRANSLATIONS[header.charAt(0).toUpperCase() + header.slice(1) as keyof typeof ENUM_TRANSLATIONS]?.[number[header] as string] || number[header]
-                                        : String(number[header] || '-')}
+                                <td key={header} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {getFieldDisplayValue(number, header)}
                                 </td>
                             ))}
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
@@ -119,11 +162,19 @@ const Pagination = ({currentPage, totalPages, onPageChange}: {
 
 
 // --- 主页面组件 ---
+// 在文件顶部添加导入
+import { SchoolSelector } from '@/components/admin/SchoolSelector';
+
 export default function DashboardPage() {
     const {data: session} = useSession();
-    const isAdmin = session?.user?.role === 'ADMIN';
+    const isAdmin = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'SCHOOL_ADMIN';
+    
+    // 根据用户角色显示不同的按钮文案
+    const clearButtonText = session?.user?.role === 'SCHOOL_ADMIN' 
+        ? '【高危】一键清除本校所有号码信息' 
+        : '【高危】一键清除所有号码信息';
 
-    const [allNumbers, setAllNumbers] = useState<PhoneNumber[]>([]);
+    const [allNumbers, setAllNumbers] = useState<PhoneNumberWithOrganizations[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -132,15 +183,47 @@ export default function DashboardPage() {
     const [sortConfig, setSortConfig] = useState<SortConfig>({field: 'createdAt', direction: 'desc'});
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedNumber, setSelectedNumber] = useState<PhoneNumber | null>(null);
+    const [selectedNumber, setSelectedNumber] = useState<PhoneNumberWithOrganizations | null>(null);
     const [deleteSearchTerm, setDeleteSearchTerm] = useState('');
     const [prefixTerm, setPrefixTerm] = useState('');
-    const [pendingOrders, setPendingOrders] = useState<PhoneNumber[]>([]);
+    const [pendingOrders, setPendingOrders] = useState<PhoneNumberWithOrganizations[]>([]);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+    // 新增：筛选相关状态
+    const [schools, setSchools] = useState<Organization[]>([]);
+    const [departments, setDepartments] = useState<Organization[]>([]);
+    const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
 
     // 拖拽状态 - 移到组件内部
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    // 获取学校列表
+    const fetchSchools = useCallback(async () => {
+        try {
+            const response = await fetch('/api/admin/organizations?type=SCHOOL');
+            if (response.ok) {
+                const data = await response.json();
+                setSchools(data);
+            }
+        } catch (err) {
+            console.error('获取学校列表失败:', err);
+        }
+    }, []);
+
+    // 获取院系列表
+    const fetchDepartments = useCallback(async (schoolId: string) => {
+        try {
+            const response = await fetch(`/api/admin/organizations?type=DEPARTMENT&parentId=${schoolId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setDepartments(data);
+            }
+        } catch (err) {
+            console.error('获取院系列表失败:', err);
+        }
+    }, []);
 
     const fetchData = useCallback(async (pageToFetch: number, currentSearchTerm: string) => {
         setIsLoading(true);
@@ -149,6 +232,12 @@ export default function DashboardPage() {
             const params = new URLSearchParams();
             if (currentSearchTerm) {
                 params.append('search', currentSearchTerm);
+            }
+            if (selectedSchoolId) {
+                params.append('schoolId', selectedSchoolId);
+            }
+            if (selectedDepartmentId) {
+                params.append('departmentId', selectedDepartmentId);
             }
             params.append('sort', JSON.stringify(sortConfig));
             params.append('page', String(pageToFetch));
@@ -169,7 +258,7 @@ export default function DashboardPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [sortConfig]);
+    }, [sortConfig, selectedSchoolId, selectedDepartmentId]);
     
     const fetchPendingOrders = useCallback(async () => {
         try {
@@ -202,6 +291,11 @@ export default function DashboardPage() {
         fetchData(1, '');
     };
 
+    // 当筛选条件变化时，重新获取数据
+    useEffect(() => {
+        fetchData(1, searchTerm);
+    }, [selectedSchoolId, selectedDepartmentId]);
+
     const handlePageChange = (newPage: number) => {
         if (newPage > 0 && newPage <= totalPages && newPage !== currentPage) {
             fetchData(newPage, searchTerm);
@@ -213,7 +307,7 @@ export default function DashboardPage() {
     };
 
 
-    const handleEdit = (number: PhoneNumber) => {
+    const handleEdit = (number: PhoneNumberWithOrganizations) => {
         setSelectedNumber(number);
         setIsEditModalOpen(true);
     };
@@ -394,6 +488,13 @@ export default function DashboardPage() {
         }
     };
 
+    // SchoolSelector的重置函数
+    const handleResetFilters = () => {
+        setSelectedSchoolId('');
+        setSelectedDepartmentId('');
+        setCurrentPage(1);
+    };
+
     if (isLoading && totalPages === 0) return <FullPageSpinner/>;
     if (error) return <div className="text-center text-red-500 bg-red-100 p-4 rounded-lg m-8">{error}</div>;
 
@@ -452,6 +553,18 @@ export default function DashboardPage() {
                             </button>
                         </div>
                     </div>
+                    {/* 使用新的SchoolSelector组件替换原有的筛选区域 */}
+                    <SchoolSelector
+                        selectedSchoolId={selectedSchoolId}
+                        selectedDepartmentId={selectedDepartmentId}
+                        onSchoolChange={setSelectedSchoolId}
+                        onDepartmentChange={setSelectedDepartmentId}
+                        showDepartments={true}
+                        showResetButton={true}
+                        onReset={handleResetFilters}
+                        disabled={isLoading}
+                    />
+                    
                     {/* 字段选择区域 - 优化布局 */}
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
@@ -605,41 +718,45 @@ export default function DashboardPage() {
                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange}/>
             </div>
 
+            {/* 管理员危险操作区域 */}
             {isAdmin && (
-                <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
-                    <h3 className="text-lg font-bold text-red-800">管理员危险操作</h3>
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">按号码精确删除</label>
-                            <div className="mt-1 flex rounded-md shadow-sm">
-                                <input type="text" value={deleteSearchTerm}
-                                       onChange={e => setDeleteSearchTerm(e.target.value)} placeholder="输入完整手机号"
-                                       className="flex-1 p-2 border-gray-300 rounded-l-md"/>
-                                <button onClick={handleDeleteByNumber}
-                                        className="px-4 py-2 bg-red-600 text-white font-semibold rounded-r-md hover:bg-red-700">删除
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">按号段禁售/解禁</label>
-                            <div className="mt-1 flex rounded-md shadow-sm">
-                                <input type="text" value={prefixTerm} onChange={e => setPrefixTerm(e.target.value)}
-                                       placeholder="输入号段前缀, 如 190"
-                                       className="flex-1 p-2 border-gray-300 rounded-l-md"/>
-                                <button onClick={() => handleAdminAction('BAN_PREFIX', {prefix: prefixTerm})}
-                                        className="px-4 py-2 bg-yellow-500 text-white font-semibold hover:bg-yellow-600">禁售
-                                </button>
-                                <button onClick={() => handleAdminAction('UNBAN_PREFIX', {prefix: prefixTerm})}
-                                        className="px-4 py-2 bg-green-500 text-white font-semibold rounded-r-md hover:bg-green-600">解禁
-                                </button>
-                            </div>
-                        </div>
-                        <div className="md:col-span-2">
-                            <button onClick={() => handleAdminAction('CLEAR_ALL_NUMBERS')}
-                                    className="w-full px-4 py-2 bg-red-800 text-white font-bold rounded-md hover:bg-red-900">
-                                【高危】一键清除所有号码信息
+                <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 className="text-lg font-semibold text-red-800 mb-4">管理员危险操作区域</h3>
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                            <input
+                                type="text"
+                                placeholder="输入要删除的号码"
+                                value={deleteSearchTerm}
+                                onChange={e => setDeleteSearchTerm(e.target.value)}
+                                className="flex-1 p-2 border rounded-md"
+                            />
+                            <button onClick={handleDeleteByNumber}
+                                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700">
+                                按号码精确删除
                             </button>
                         </div>
+                        <div className="flex items-center space-x-4">
+                            <input
+                                type="text"
+                                placeholder="输入号段前缀（如：1380）"
+                                value={prefixTerm}
+                                onChange={e => setPrefixTerm(e.target.value)}
+                                className="flex-1 p-2 border rounded-md"
+                            />
+                            <button onClick={() => handleAdminAction('BAN_PREFIX', {prefix: prefixTerm})}
+                                    className="px-4 py-2 bg-orange-600 text-white font-semibold rounded-md hover:bg-orange-700">
+                                按号段禁售
+                            </button>
+                            <button onClick={() => handleAdminAction('UNBAN_PREFIX', {prefix: prefixTerm})}
+                                    className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700">
+                                按号段解禁
+                            </button>
+                        </div>
+                        <button onClick={() => handleAdminAction('CLEAR_ALL_NUMBERS')}
+                                className="w-full px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800">
+                            {clearButtonText}
+                        </button>
                     </div>
                 </div>
             )}

@@ -3,6 +3,7 @@ import {getServerSession} from 'next-auth/next';
 import {authOptions} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {PhoneNumber, ReservationStatus, PaymentMethod} from '@prisma/client';
+import { withAuth, getUserDataFilter, getUserPermissions } from '@/lib/permissions';
 
 // 字段映射定义
 const FIELD_MAPPINGS = {
@@ -524,172 +525,201 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
 }
 
 // 修改POST函数
-export async function POST(request: Request) {
-    const session = await getServerSession(authOptions);
-    if (session?.user?.role !== 'ADMIN') {
-        return NextResponse.json({error: '权限不足'}, {status: 403});
-    }
-
+export const POST = withAuth(
+  async (request: Request) => {
     try {
-        const body = await request.json();
-        const {text, type, customFields, forceImport = false} = body;
+      // 获取用户权限信息
+      const userPermission = await getUserPermissions();
+      if (!userPermission.hasPermission) {
+        return new Response(
+          JSON.stringify({ error: '权限不足' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // 获取用户数据过滤条件
+      const dataFilter = await getUserDataFilter();
+      if (!dataFilter) {
+        return new Response(
+          JSON.stringify({ error: '无法获取数据过滤条件' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
 
-        if (!text) return NextResponse.json({error: '导入内容不能为空'}, {status: 400});
+      const body = await request.json();
+      const { data, type, customFields, forceImport } = body;
 
-        // 使用智能分割函数处理数据
-        const lines = type === 'table2' ? smartSplitDataLines(text) : 
-                     text.split('\n').filter((line: string) => line.trim() !== '');
-                     
-        if (lines.length === 0) return NextResponse.json({createdCount: 0, updatedCount: 0, skippedCount: 0});
+      if (!data || !type) {
+        return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
+      }
 
-        // 智能识别数据起始行
-        const { startIndex, hasHeader, error } = findDataStartLine(lines, type, customFields);
-        
-        if (error) {
-            return NextResponse.json({error}, {status: 400});
-        }
-        
-        const dataLines = hasHeader ? lines.slice(startIndex + 1) : lines.slice(startIndex);
-        
-        if (hasHeader && dataLines.length === 0) {
-            return NextResponse.json({error: '表头后没有找到有效的数据行'}, {status: 400});
-        }
+      // 智能分割数据行
+      const lines = smartSplitDataLines(data);
+      if (lines.length === 0) {
+        return NextResponse.json({ error: '未找到有效数据' }, { status: 400 });
+      }
 
-        // 验证字段数量
-        const validation = validateFieldCounts(dataLines, type, customFields, forceImport);
-        
-        // 如果有字段不足的行，直接拒绝导入
-        if (validation.insufficientLines.length > 0) {
-            return NextResponse.json({
-                error: '数据格式错误：以下行字段数量不足',
-                details: validation.insufficientLines,
-                expectedCount: validation.expectedCount
-            }, {status: 400});
-        }
-        
-        // 如果有字段过多的行且未强制导入，返回确认信息
-        if (validation.excessiveLines.length > 0 && !forceImport) {
-            const displayLines = validation.excessiveLines.slice(0, 5); // 只显示前5行
-            return NextResponse.json({
-                needConfirmation: true,
-                message: `发现 ${validation.excessiveLines.length} 行数据字段数量超出预期`,
-                excessiveLines: displayLines,
-                totalExcessiveCount: validation.excessiveLines.length,
-                expectedCount: validation.expectedCount
-            }, {status: 200});
-        }
+      // 查找数据起始行
+      const { startIndex, hasHeader, error: startError } = findDataStartLine(lines, type, customFields);
+      if (startError) {
+        return NextResponse.json({ error: startError }, { status: 400 });
+      }
 
-        // 继续原有的导入逻辑...
-        let skippedCount = 0;
-        const upsertPromises = [];
-        const updateLog: string[] = [];
-        
-        // 添加数据识别日志
-        if (startIndex > 0) {
-            updateLog.push(`🔍 跳过前 ${startIndex} 行非数据内容`);
-        }
-        if (hasHeader) {
-            updateLog.push(`📋 识别到表头: ${lines[startIndex]}`);
-        }
-        if (forceImport && validation.excessiveLines.length > 0) {
-            updateLog.push(`⚠️ 强制导入模式：已截断 ${validation.excessiveLines.length} 行的多余字段`);
-        }
-        updateLog.push(`📊 开始处理 ${dataLines.length} 行数据`);
+      // 获取实际数据行
+      const dataLines = lines.slice(hasHeader ? startIndex + 1 : startIndex);
+      if (dataLines.length === 0) {
+        return NextResponse.json({ error: '未找到有效的数据行' }, { status: 400 });
+      }
 
-        for (const line of dataLines) {
-            let parsedData: Partial<PhoneNumber> | null = null;
-            
-            // 如果是强制导入模式，截断多余字段
-            let processLine = line;
-            if (forceImport) {
-                const parts = line.split('\t').map((p: string) => p.trim());
-                if (parts.length > validation.expectedCount) {
-                    processLine = parts.slice(0, validation.expectedCount).join('\t');
-                }
+      // 验证字段数量
+      const validation = validateFieldCounts(dataLines, type, customFields, forceImport);
+      
+      if (validation.insufficientLines.length > 0) {
+          return NextResponse.json({
+              error: '数据格式错误：以下行字段数量不足',
+              details: validation.insufficientLines,
+              expectedCount: validation.expectedCount
+          }, {status: 400});
+      }
+      
+      // 如果有字段过多的行且未强制导入，返回确认信息
+      if (validation.excessiveLines.length > 0 && !forceImport) {
+          const displayLines = validation.excessiveLines.slice(0, 5); // 只显示前5行
+          return NextResponse.json({
+              needConfirmation: true,
+              message: `发现 ${validation.excessiveLines.length} 行数据字段数量超出预期`,
+              excessiveLines: displayLines,
+              totalExcessiveCount: validation.excessiveLines.length,
+              expectedCount: validation.expectedCount
+          }, {status: 200});
+      }
+
+      // 继续原有的导入逻辑...
+      let skippedCount = 0;
+      const upsertPromises = [];
+      const updateLog: string[] = [];
+      
+      // 添加数据识别日志
+      if (startIndex > 0) {
+          updateLog.push(`🔍 跳过前 ${startIndex} 行非数据内容`);
+      }
+      if (hasHeader) {
+          updateLog.push(`📋 识别到表头: ${lines[startIndex]}`);
+      }
+      if (forceImport && validation.excessiveLines.length > 0) {
+          updateLog.push(`⚠️ 强制导入模式：已截断 ${validation.excessiveLines.length} 行的多余字段`);
+      }
+      updateLog.push(`📊 开始处理 ${dataLines.length} 行数据`);
+
+      for (const line of dataLines) {
+          let parsedData: Partial<PhoneNumber> | null = null;
+          
+          // 如果是强制导入模式，截断多余字段
+          let processLine = line;
+          if (forceImport) {
+              const parts = line.split('\t').map((p: string) => p.trim());
+              if (parts.length > validation.expectedCount) {
+                  processLine = parts.slice(0, validation.expectedCount).join('\t');
+              }
+          }
+          
+          if (type === 'custom' && customFields) {
+              parsedData = parseCustomFormat(processLine, customFields);
+          } else if (type === 'table1') {
+              parsedData = parseTable1(processLine);
+          } else if (type === 'table2') {
+              parsedData = parseTable2(processLine);
+          }
+
+          if (!parsedData || !parsedData.phoneNumber) {
+              skippedCount++;
+              continue;
+          }
+
+          const {isPremium, reason} = analyzeNumber(parsedData.phoneNumber);
+          let finalData = {...parsedData, isPremium, premiumReason: reason};
+          
+          // 应用多租户数据过滤 - 确保导入的数据属于用户有权限的组织
+          if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
+            // 如果用户只能管理特定学校，确保导入的数据分配给这些学校
+            if (!finalData.schoolId || !dataFilter.schoolIds.includes(finalData.schoolId)) {
+              // 如果没有指定学校或指定的学校不在权限范围内，使用用户的第一个学校
+              finalData.schoolId = dataFilter.schoolIds[0];
             }
-            
-            if (type === 'custom' && customFields) {
-                parsedData = parseCustomFormat(processLine, customFields);
-            } else if (type === 'table1') {
-                parsedData = parseTable1(processLine);
-            } else if (type === 'table2') {
-                parsedData = parseTable2(processLine);
-            }
+          }
 
-            if (!parsedData || !parsedData.phoneNumber) {
-                skippedCount++;
-                continue;
-            }
+          // 检查现有记录
+          const existingRecord = await prisma.phoneNumber.findUnique({
+              where: { phoneNumber: finalData.phoneNumber }
+          });
 
-            const {isPremium, reason} = analyzeNumber(parsedData.phoneNumber);
-            const finalData = {...parsedData, isPremium, premiumReason: reason};
+          if (existingRecord) {
+              // 记录将要更新的字段，包含更详细的信息
+              const updatedFields: string[] = [];
+              const recordInfo: string[] = [];
+              
+              Object.entries(finalData).forEach(([key, value]) => {
+                  if (value !== null && value !== undefined && (existingRecord as Record<string, unknown>)[key] !== value) {
+                      const fieldLabel = FIELD_LABELS[key] || key;
+                      const oldValue = formatFieldValue(key, (existingRecord as Record<string, unknown>)[key]);
+                      const newValue = formatFieldValue(key, value);
+                      updatedFields.push(`${fieldLabel}: ${oldValue} → ${newValue}`);
+                  }
+              });
+              
+              // 添加记录的基本信息
+              if (finalData.customerName) recordInfo.push(`客户: ${finalData.customerName}`);
+              if (finalData.customerContact) recordInfo.push(`联系: ${finalData.customerContact}`);
+              if (finalData.assignedMarketer) recordInfo.push(`工作人员: ${finalData.assignedMarketer}`);
+              
+              if (updatedFields.length > 0) {
+                  const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
+                  updateLog.push(`📝 更新 ${finalData.phoneNumber}${basicInfo}: ${updatedFields.join(', ')}`);
+              } else {
+                  const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
+                  updateLog.push(`⏭️ 跳过 ${finalData.phoneNumber}${basicInfo}: 数据无变化`);
+              }
+          } else {
+              // 新增记录的详细信息
+              const recordInfo: string[] = [];
+              if (finalData.customerName) recordInfo.push(`客户: ${finalData.customerName}`);
+              if (finalData.customerContact) recordInfo.push(`联系: ${finalData.customerContact}`);
+              if (finalData.assignedMarketer) recordInfo.push(`工作人员: ${finalData.assignedMarketer}`);
+              if (finalData.paymentAmount) recordInfo.push(`金额: ¥${finalData.paymentAmount}`);
+              if (finalData.isPremium) recordInfo.push(`靓号: ${finalData.premiumReason || '是'}`);
+              
+              const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
+              updateLog.push(`✨ 新增 ${finalData.phoneNumber}${basicInfo}`);
+          }
 
-            // 检查现有记录
-            const existingRecord = await prisma.phoneNumber.findUnique({
-                where: { phoneNumber: finalData.phoneNumber }
-            });
+          const upsertPromise = prisma.phoneNumber.upsert({
+              where: {phoneNumber: finalData.phoneNumber},
+              create: finalData as Omit<PhoneNumber, 'id' | 'createdAt' | 'updatedAt'>,
+              update: Object.fromEntries(
+                  Object.entries(finalData).filter(([, v]) => v !== null && v !== undefined)
+              ),
+          });
+          upsertPromises.push(upsertPromise);
+      }
 
-            if (existingRecord) {
-                // 记录将要更新的字段，包含更详细的信息
-                const updatedFields: string[] = [];
-                const recordInfo: string[] = [];
-                
-                Object.entries(finalData).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined && (existingRecord as Record<string, unknown>)[key] !== value) {
-                        const fieldLabel = FIELD_LABELS[key] || key;
-                        const oldValue = formatFieldValue(key, (existingRecord as Record<string, unknown>)[key]);
-                        const newValue = formatFieldValue(key, value);
-                        updatedFields.push(`${fieldLabel}: ${oldValue} → ${newValue}`);
-                    }
-                });
-                
-                // 添加记录的基本信息
-                if (finalData.customerName) recordInfo.push(`客户: ${finalData.customerName}`);
-                if (finalData.customerContact) recordInfo.push(`联系: ${finalData.customerContact}`);
-                if (finalData.assignedMarketer) recordInfo.push(`工作人员: ${finalData.assignedMarketer}`);
-                
-                if (updatedFields.length > 0) {
-                    const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
-                    updateLog.push(`📝 更新 ${finalData.phoneNumber}${basicInfo}: ${updatedFields.join(', ')}`);
-                } else {
-                    const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
-                    updateLog.push(`⏭️ 跳过 ${finalData.phoneNumber}${basicInfo}: 数据无变化`);
-                }
-            } else {
-                // 新增记录的详细信息
-                const recordInfo: string[] = [];
-                if (finalData.customerName) recordInfo.push(`客户: ${finalData.customerName}`);
-                if (finalData.customerContact) recordInfo.push(`联系: ${finalData.customerContact}`);
-                if (finalData.assignedMarketer) recordInfo.push(`工作人员: ${finalData.assignedMarketer}`);
-                if (finalData.paymentAmount) recordInfo.push(`金额: ¥${finalData.paymentAmount}`);
-                if (finalData.isPremium) recordInfo.push(`靓号: ${finalData.premiumReason || '是'}`);
-                
-                const basicInfo = recordInfo.length > 0 ? ` [${recordInfo.join(', ')}]` : '';
-                updateLog.push(`✨ 新增 ${finalData.phoneNumber}${basicInfo}`);
-            }
+      if (upsertPromises.length === 0) {
+          return NextResponse.json({createdCount: 0, updatedCount: 0, skippedCount, updateLog});
+      }
 
-            const upsertPromise = prisma.phoneNumber.upsert({
-                where: {phoneNumber: finalData.phoneNumber},
-                create: finalData as Omit<PhoneNumber, 'id' | 'createdAt' | 'updatedAt'>,
-                update: Object.fromEntries(
-                    Object.entries(finalData).filter(([, v]) => v !== null && v !== undefined)
-                ),
-            });
-            upsertPromises.push(upsertPromise);
-        }
+      const results = await prisma.$transaction(upsertPromises);
+      const updatedCount = results.filter(r => r.createdAt.getTime() !== r.updatedAt.getTime()).length;
+      const createdCount = results.length - updatedCount;
 
-        if (upsertPromises.length === 0) {
-            return NextResponse.json({createdCount: 0, updatedCount: 0, skippedCount, updateLog});
-        }
-
-        const results = await prisma.$transaction(upsertPromises);
-        const updatedCount = results.filter(r => r.createdAt.getTime() !== r.updatedAt.getTime()).length;
-        const createdCount = results.length - updatedCount;
-
-        return NextResponse.json({createdCount, updatedCount, skippedCount, updateLog});
+      return NextResponse.json({createdCount, updatedCount, skippedCount, updateLog});
 
     } catch (error: unknown) {
-        console.error('[ADMIN_IMPORT_DATA_API_ERROR]', error);
-        return NextResponse.json({error: '服务器内部错误'}, {status: 500});
+        console.error('[IMPORT_DATA_API_ERROR]', error);
+        const errorMessage = error instanceof Error ? error.message : '服务器内部错误';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
-}
+  },
+  {
+    requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN'],
+    action: 'write'
+  }
+);

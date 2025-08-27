@@ -5,27 +5,24 @@ import { ReactNode } from "react";
 import SessionProvider from '@/components/providers/SessionProvider';
 
 export default async function AdminLayout({
-                                              children,
-                                          }: {
-    children: ReactNode;
+  children,
+}: {
+  children: ReactNode;
 }) {
-    // getServerSession 现在会根据我们的类型定义文件，返回带有 role 的 session 对象
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    // 1. 检查用户是否登录
-    if (!session?.user) {
-        // 如果未登录，重定向到自定义登录页面，并附带回调地址
-        redirect("/signin?callbackUrl=/admin/dashboard");
-    }
+  // 1. 检查用户是否登录
+  if (!session?.user) {
+    redirect("/signin?callbackUrl=/admin/dashboard");
+  }
 
-    // 2. 关键修复: 直接从 session.user 中读取 role
-    const userRole = session.user.role;
-    const authorized = userRole === 'ADMIN' || userRole === 'MARKETER';
+  // 2. 修复：使用正确的角色检查
+  const userRole = session.user.role;
+  const authorized = ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'].includes(userRole);
 
-    if (!authorized) {
-        // 如果角色不符，重定向到首页
-        redirect("/");
-    }
+  if (!authorized) {
+    redirect("/");
+  }
 
     return (
         <SessionProvider session={session}>

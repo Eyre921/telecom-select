@@ -1,0 +1,197 @@
+{
+  "summary": {
+    "totalTests": 31,
+    "passedTests": 31,
+    "failedTests": 0,
+    "successRate": 100,
+    "timestamp": "2025-08-27T15:28:25.637Z"
+  },
+  "results": [
+    {
+      "testName": "Server Connectivity",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:21.859Z"
+    },
+    {
+      "testName": "Public - Phone Numbers List",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:22.062Z"
+    },
+    {
+      "testName": "Public - Filtered Numbers",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:22.131Z"
+    },
+    {
+      "testName": "Registration - New User",
+      "success": true,
+      "details": "Status: 201",
+      "timestamp": "2025-08-27T15:28:22.494Z"
+    },
+    {
+      "testName": "Registration - Duplicate Email (Should Fail)",
+      "success": true,
+      "details": "Status: 409",
+      "timestamp": "2025-08-27T15:28:22.562Z"
+    },
+    {
+      "testName": "Auth - Login SUPER_ADMIN",
+      "success": true,
+      "details": "Logged in as admin@system.com",
+      "timestamp": "2025-08-27T15:28:22.889Z"
+    },
+    {
+      "testName": "Auth - Login SCHOOL_ADMIN",
+      "success": true,
+      "details": "Logged in as admin@pku.edu.cn",
+      "timestamp": "2025-08-27T15:28:23.195Z"
+    },
+    {
+      "testName": "Auth - Login MARKETER",
+      "success": true,
+      "details": "Logged in as marketer1@telecom.com",
+      "timestamp": "2025-08-27T15:28:23.537Z"
+    },
+    {
+      "testName": "Admin - Statistics (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:23.608Z"
+    },
+    {
+      "testName": "Admin - Numbers Management (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:23.692Z"
+    },
+    {
+      "testName": "Admin - Organizations (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:23.778Z"
+    },
+    {
+      "testName": "Admin - Pending Orders (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:23.852Z"
+    },
+    {
+      "testName": "Admin - School Organizations (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:23.936Z"
+    },
+    {
+      "testName": "Admin - Department Organizations (SUPER_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.016Z"
+    },
+    {
+      "testName": "Admin - Statistics (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.091Z"
+    },
+    {
+      "testName": "Admin - Numbers Management (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.163Z"
+    },
+    {
+      "testName": "Admin - Organizations (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.236Z"
+    },
+    {
+      "testName": "Admin - Pending Orders (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.305Z"
+    },
+    {
+      "testName": "Admin - School Organizations (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.372Z"
+    },
+    {
+      "testName": "Admin - Department Organizations (SCHOOL_ADMIN)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.448Z"
+    },
+    {
+      "testName": "Admin - Statistics (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.517Z"
+    },
+    {
+      "testName": "Admin - Numbers Management (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.586Z"
+    },
+    {
+      "testName": "Admin - Organizations (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.655Z"
+    },
+    {
+      "testName": "Admin - Pending Orders (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.724Z"
+    },
+    {
+      "testName": "Admin - School Organizations (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.801Z"
+    },
+    {
+      "testName": "Admin - Department Organizations (MARKETER)",
+      "success": true,
+      "details": "Status: 200",
+      "timestamp": "2025-08-27T15:28:24.872Z"
+    },
+    {
+      "testName": "Orders - Create New Order",
+      "success": true,
+      "details": "Status: 201",
+      "timestamp": "2025-08-27T15:28:25.010Z"
+    },
+    {
+      "testName": "Security - Unauthorized Access",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-27T15:28:25.102Z"
+    },
+    {
+      "testName": "Security - Invalid Token",
+      "success": true,
+      "details": "Status: 401",
+      "timestamp": "2025-08-27T15:28:25.163Z"
+    },
+    {
+      "testName": "Error Handling - Non-existent Endpoint",
+      "success": true,
+      "details": "Status: 404",
+      "timestamp": "2025-08-27T15:28:25.571Z"
+    },
+    {
+      "testName": "Error Handling - Malformed Request",
+      "success": true,
+      "details": "Status: 400",
+      "timestamp": "2025-08-27T15:28:25.636Z"
+    }
+  ]
+}

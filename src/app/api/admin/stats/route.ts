@@ -1,39 +1,73 @@
-import {NextResponse} from 'next/server';
-import {getServerSession} from 'next-auth/next';
-import {authOptions} from '@/lib/auth'; // **关键修复**: 从正确的 @/lib/auth 路径导入
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import {ReservationStatus} from '@prisma/client';
+import { ReservationStatus } from '@prisma/client';
+import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
-export async function GET() {
-    // 使用正确的 authOptions 来获取 session
-    const session = await getServerSession(authOptions);
-    if (!session) {
-        return new NextResponse(JSON.stringify({error: '未授权'}), {status: 401});
+export const GET = withAuth(
+    async (request: NextRequest, context: { params: any }) => {
+        try {
+            const startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0);
+            
+            // 获取用户数据过滤条件
+            const dataFilter = await getUserDataFilter();
+            const whereClause: any = {};
+            
+            // 应用多租户数据过滤
+            if (dataFilter) {
+                const orgFilters = [];
+                
+                if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
+                    orgFilters.push({ schoolId: { in: dataFilter.schoolIds } });
+                }
+                
+                if (dataFilter.departmentIds && dataFilter.departmentIds.length > 0) {
+                    orgFilters.push({ departmentId: { in: dataFilter.departmentIds } });
+                }
+                
+                if (orgFilters.length > 0) {
+                    whereClause.OR = orgFilters;
+                }
+            }
+
+            const [totalNumbers, availableNumbers, pendingReview, newOrdersToday] = await prisma.$transaction([
+                prisma.phoneNumber.count({ where: whereClause }),
+                prisma.phoneNumber.count({
+                    where: {
+                        ...whereClause,
+                        reservationStatus: ReservationStatus.UNRESERVED
+                    }
+                }),
+                prisma.phoneNumber.count({
+                    where: {
+                        ...whereClause,
+                        reservationStatus: ReservationStatus.PENDING_REVIEW
+                    }
+                }),
+                prisma.phoneNumber.count({
+                    where: {
+                        ...whereClause,
+                        orderTimestamp: {gte: startOfToday},
+                    },
+                }),
+            ]);
+
+            return NextResponse.json({
+                totalNumbers,
+                availableNumbers,
+                pendingReview,
+                newOrdersToday,
+            });
+        } catch (error) {
+            console.error('[ADMIN_STATS_API_ERROR]', error);
+            return NextResponse.json(
+                { error: '服务器内部错误' },
+                { status: 500 }
+            );
+        }
+    },
+    {
+        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'],
+        action: 'read'
     }
-
-    try {
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-
-        const [totalNumbers, availableNumbers, pendingReview, newOrdersToday] = await prisma.$transaction([
-            prisma.phoneNumber.count(),
-            prisma.phoneNumber.count({where: {reservationStatus: ReservationStatus.UNRESERVED}}),
-            prisma.phoneNumber.count({where: {reservationStatus: ReservationStatus.PENDING_REVIEW}}),
-            prisma.phoneNumber.count({
-                where: {
-                    orderTimestamp: {gte: startOfToday},
-                },
-            }),
-        ]);
-
-        return NextResponse.json({
-            totalNumbers,
-            availableNumbers,
-            pendingReview,
-            newOrdersToday,
-        });
-    } catch (error) {
-        console.error('[ADMIN_STATS_API_ERROR]', error);
-        return new NextResponse(JSON.stringify({error: '服务器内部错误'}), {status: 500});
-    }
-}
+);
