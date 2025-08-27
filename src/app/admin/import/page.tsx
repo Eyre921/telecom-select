@@ -240,16 +240,23 @@ export default function ImportPage() {
         
         setIsLoading(true);
         try {
+            console.log('导入参数检查:', {
+                selectedSchoolId,
+                selectedDepartmentId,
+                format,
+                dataLength: data.length
+            });
+            // 在 handleImport 函数中，修改请求体构建部分
             const requestBody = {
-                text: data,
+                data: data,  // ✅ 修复：使用 'data' 字段而不是 'text'
                 type: format,
                 customFields: format === 'custom' ? selectedFields.map(f => f.key) : undefined,
                 allowEmptyFields: allowEmptyFields,
-                // 新增学校和院系信息
                 schoolId: selectedSchoolId,
-                departmentId: selectedDepartmentId || undefined
+                departmentId: selectedDepartmentId || null
             };
             
+            console.log('发送的请求体:', requestBody);
             const response = await fetch('/api/admin/import-data', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},

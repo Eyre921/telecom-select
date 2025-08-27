@@ -609,3 +609,10 @@ export async function getUserDataFilterEnhanced(): Promise<DataFilter | null> {
     validationWarning: !validation.isValid ? validation.error : undefined
   };
 }
+
+// 检查MARKETER角色是否有释放超时订单权限
+export function canReleaseOverdueOrders(userRole: string): boolean {
+  return userRole === 'SUPER_ADMIN' || 
+         userRole === 'SCHOOL_ADMIN' || 
+         userRole === 'MARKETER'; // 确保包含MARKETER
+}

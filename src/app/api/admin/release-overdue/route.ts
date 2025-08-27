@@ -55,7 +55,7 @@ export const POST = withAuth(
         }
     },
     {
-        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN'],
+        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'], // 添加 MARKETER
         action: 'write'
     }
 );

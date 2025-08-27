@@ -6,7 +6,14 @@ import { getUserDataFilter } from '@/lib/permissions';
 export async function GET(request: NextRequest) {
     try {
         const {searchParams} = new URL(request.url);
-        const page = parseInt(searchParams.get('page') || '1', 10);
+        // 添加页面参数验证
+        const page = parseInt(searchParams.get('page') || '1');
+        if (isNaN(page) || page < 1) {
+          return NextResponse.json(
+            { error: 'Invalid page parameter' }, 
+            { status: 400 }
+          );
+        }
         const hideReserved = searchParams.get('hideReserved') === 'true';
         const schoolId = searchParams.get('schoolId');
         const departmentId = searchParams.get('departmentId');

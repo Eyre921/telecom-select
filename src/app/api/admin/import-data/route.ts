@@ -194,8 +194,13 @@ function parseTable1(line: string): Partial<PhoneNumber> | null {
 
 // 新增：智能数据行分割函数，基于手机号码识别行边界
 function smartSplitDataLines(text: string): string[] {
-    // 手机号码正则表达式
-    const phoneRegex = /1[3-9]\d{9}/g;
+    // 添加调试日志
+    console.log('🔍 smartSplitDataLines 输入数据:', {
+        textLength: text.length,
+        textPreview: text.substring(0, 200),
+        hasPhonePattern: /1[3-9]\d{9}/.test(text)
+    });
+    
     const lines: string[] = [];
     
     // 将所有换行符统一为\n，然后按行分割
@@ -207,26 +212,32 @@ function smartSplitDataLines(text: string): string[] {
         const line = rawLines[i].trim();
         if (!line) continue; // 跳过空行
         
+        // 使用非全局正则表达式避免 lastIndex 问题
+        const hasPhone = /1[3-9]\d{9}/.test(line);
+        
         // 如果当前行包含手机号码，且currentLine不为空，说明上一条记录结束
-        if (phoneRegex.test(line) && currentLine) {
+        if (hasPhone && currentLine) {
             lines.push(currentLine.trim());
             currentLine = line;
-        } else if (phoneRegex.test(line)) {
+        } else if (hasPhone) {
             // 新记录开始
             currentLine = line;
         } else if (currentLine) {
             // 继续拼接到当前记录（处理地址换行的情况）
             currentLine += ' ' + line;
         }
-        
-        // 重置正则表达式的lastIndex
-        phoneRegex.lastIndex = 0;
     }
     
     // 添加最后一条记录
     if (currentLine.trim()) {
         lines.push(currentLine.trim());
     }
+    
+    // 添加调试日志
+    console.log('🔍 smartSplitDataLines 输出结果:', {
+        totalLines: lines.length,
+        firstFewLines: lines.slice(0, 3)
+    });
     
     return lines;
 }
@@ -496,6 +507,29 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
                 insufficientLines.push(`第${index + 1}行: ${line} (第一列不是有效的手机号码)`);
             }
             // 完全移除制表符数量检查
+        } else if (type === 'custom') {
+            // 对于custom格式，采用与table1类似的宽松检测方式
+            const parts = line.split('\t').map(p => p.trim());
+            
+            // 只要有至少一个字段就继续处理，不要求严格的字段数量匹配
+            if (parts.length < 1) {
+                insufficientLines.push(`第${index + 1}行: ${line} (数据为空)`);
+                return;
+            }
+            
+            // 如果自定义字段中包含手机号码字段，检查是否有有效的手机号码
+            const phoneFieldIndex = customFields?.findIndex(field => 
+                field === 'phoneNumber' || field === '手机号码' || field === '号码'
+            );
+            
+            if (phoneFieldIndex !== undefined && phoneFieldIndex >= 0 && phoneFieldIndex < parts.length) {
+                const phoneValue = parts[phoneFieldIndex];
+                if (phoneValue && !/^1[3-9]\d{9}$/.test(phoneValue)) {
+                    insufficientLines.push(`第${index + 1}行: ${line} (手机号码格式无效)`);
+                }
+            }
+            
+            // 移除严格的字段数量检查，允许字段数量灵活变化
         } else {
             // 其他格式保持原有逻辑
             const parts = line.split('\t').map(p => p.trim());
@@ -524,13 +558,21 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
     };
 }
 
-// 修改POST函数
 export const POST = withAuth(
   async (request: Request) => {
     try {
+      console.log('🚀 数据导入API开始处理请求');
+      
       // 获取用户权限信息
       const userPermission = await getUserPermissions();
+      console.log('👤 用户权限:', { 
+        hasPermission: userPermission.hasPermission, 
+        role: userPermission.user?.role,
+        orgCount: userPermission.user?.organizations?.length || 0
+      });
+      
       if (!userPermission.hasPermission) {
+        console.log('❌ 权限验证失败');
         return new Response(
           JSON.stringify({ error: '权限不足' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -539,73 +581,133 @@ export const POST = withAuth(
       
       // 获取用户数据过滤条件
       const dataFilter = await getUserDataFilter();
-      if (!dataFilter) {
-        return new Response(
-          JSON.stringify({ error: '无法获取数据过滤条件' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-
+      console.log('🔍 数据过滤条件:', dataFilter);
+      
       const body = await request.json();
+      console.log('📋 请求参数:', {
+        hasData: !!body.data,
+        dataLength: body.data?.length || 0,
+        type: body.type,
+        schoolId: body.schoolId,
+        departmentId: body.departmentId,
+        forceImport: body.forceImport
+      });
+
       const { data, type, customFields, forceImport, schoolId, departmentId } = body;
 
       if (!data || !type) {
+        console.log('❌ 缺少必要参数:', { data: !!data, type });
         return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
       }
       
-      // 新增：验证学校选择
-      if (!schoolId) {
+      // 修复：正确验证学校选择（排除空字符串）
+      if (!schoolId || schoolId.trim() === '') {
+        console.log('❌ 学校ID为空:', schoolId);
         return NextResponse.json({ error: '请选择要导入数据的学校' }, { status: 400 });
       }
       
       // 新增：验证用户是否有权限导入到指定学校
-      if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
-        if (!dataFilter.schoolIds.includes(schoolId)) {
-          return NextResponse.json({ 
-            error: '权限不足：您无权向该学校导入数据' 
-          }, { status: 403 });
-        }
+      // 修复：添加 null 检查
+      if (dataFilter && dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
+      if (!dataFilter.schoolIds.includes(schoolId)) {
+      return NextResponse.json({ 
+      error: '权限不足：您无权向该学校导入数据' 
+      }, { status: 403 });
+      }
       }
       
-      // 修复：如果指定了院系，验证院系是否属于指定学校
-      if (departmentId) {
-        const department = await prisma.organization.findFirst({
-          where: {
-            id: departmentId,
-            parentId: schoolId,  // 院系的parentId应该是学校ID
-            type: 'DEPARTMENT'   // 确保是院系类型
-          }
+      // 修复：如果指定了院系，验证院系是否属于指定学校（排除空字符串）
+      if (departmentId && departmentId.trim() !== '') {
+        console.log(`🔍 验证院系关系: departmentId=${departmentId}, schoolId=${schoolId}`);
+        
+        // 先查询院系信息
+        const department = await prisma.organization.findUnique({
+          where: { id: departmentId },
+          include: { parent: true }
+        });
+        
+        console.log(`📋 院系查询结果:`, {
+          found: !!department,
+          departmentId: department?.id,
+          parentId: department?.parentId,
+          parentName: department?.parent?.name,
+          type: department?.type
         });
         
         if (!department) {
           return NextResponse.json({ 
-            error: '指定的院系不属于选定的学校' 
+            error: '指定的院系不存在' 
           }, { status: 400 });
         }
+        
+        if (department.parentId !== schoolId) {
+          console.log(`❌ 院系学校不匹配: 期望=${schoolId}, 实际=${department.parentId}`);
+          return NextResponse.json({ 
+            error: `指定的院系不属于选定的学校。院系：${department.name}，所属学校：${department.parent?.name}` 
+          }, { status: 400 });
+        }
+        
+        console.log(`✅ 院系验证通过: ${department.name} 属于 ${department.parent?.name}`);
       }
 
       // 智能分割数据行
+      // 在智能分割数据行之前添加调试日志
+      console.log('📋 准备分割数据:', {
+          dataLength: data.length,
+          dataPreview: data.substring(0, 100),
+          dataType: typeof data
+      });
+      
       const lines = smartSplitDataLines(data);
+      console.log('📋 智能分割结果:', {
+        totalLines: lines.length,
+        firstFewLines: lines.slice(0, 3),
+        lastFewLines: lines.slice(-2)
+      });
+      
       if (lines.length === 0) {
         return NextResponse.json({ error: '未找到有效数据' }, { status: 400 });
       }
-
+      
       // 查找数据起始行
       const { startIndex, hasHeader, error: startError } = findDataStartLine(lines, type, customFields);
+      console.log('🔍 数据起始行分析:', {
+        startIndex,
+        hasHeader,
+        startError,
+        type,
+        firstDataLine: lines[startIndex]
+      });
+      
       if (startError) {
+        console.log('❌ 数据起始行错误:', startError);
         return NextResponse.json({ error: startError }, { status: 400 });
       }
-
+      
       // 获取实际数据行
       const dataLines = lines.slice(hasHeader ? startIndex + 1 : startIndex);
+      console.log('📊 实际数据行:', {
+        dataLinesCount: dataLines.length,
+        firstDataLine: dataLines[0],
+        sampleDataLines: dataLines.slice(0, 2)
+      });
+      
       if (dataLines.length === 0) {
+        console.log('❌ 未找到有效的数据行');
         return NextResponse.json({ error: '未找到有效的数据行' }, { status: 400 });
       }
-
+      
       // 验证字段数量
       const validation = validateFieldCounts(dataLines, type, customFields, forceImport);
+      console.log('🔍 字段验证结果:', {
+        isValid: validation.isValid,
+        insufficientLines: validation.insufficientLines,
+        excessiveLines: validation.excessiveLines.length,
+        expectedCount: validation.expectedCount
+      });
       
       if (validation.insufficientLines.length > 0) {
+          console.log('❌ 字段数量不足:', validation.insufficientLines);
           return NextResponse.json({
               error: '数据格式错误：以下行字段数量不足',
               details: validation.insufficientLines,
@@ -678,7 +780,7 @@ export const POST = withAuth(
           };
           
           // 应用多租户数据过滤 - 确保导入的数据属于用户有权限的组织
-          if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
+          if (dataFilter && dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
             // 如果用户只能管理特定学校，确保导入的数据分配给这些学校
             if (!finalData.schoolId || !dataFilter.schoolIds.includes(finalData.schoolId)) {
               // 如果没有指定学校或指定的学校不在权限范围内，使用用户的第一个学校
