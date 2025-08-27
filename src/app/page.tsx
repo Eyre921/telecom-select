@@ -18,10 +18,16 @@ export default function HomePage() {
 
     // 状态管理
     const [searchTerm, setSearchTerm] = useState('');
-    const [hideReserved, setHideReserved] = useState(true);
+    const [hideReserved, setHideReserved] = useState(true); // 默认隐藏已选号码，无UI控制
     const [selectedNumber, setSelectedNumber] = useState<PhoneNumber | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [logoLoadError, setLogoLoadError] = useState(false);
+
+    // 当logoUrl改变时重置错误状态
+    useEffect(() => {
+        setLogoLoadError(false);
+    }, []);
 
     // 无限滚动状态
     const [page, setPage] = useState(1);
@@ -142,25 +148,69 @@ export default function HomePage() {
     };
 
     return (
-        <main className="min-h-screen" style={{background: 'linear-gradient(135deg, #f8fafc 0%, #e6f4ff 100%)'}}>
-            {/* 顶部品牌横幅 */}
-            <div className="telecom-gradient text-white py-6 mb-8">
-                <div className="container mx-auto px-4 md:px-8">
-                    <div className="flex items-center justify-center space-x-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 2.5c0 .83-.67 1.5-1.5 1.5S12 7.33 12 6.5 12.67 5 13.5 5s1.5.67 1.5 1.5zM12 13c-2.33 0-4.31 1.46-5.11 3.5h10.22c-.8-2.04-2.78-3.5-5.11-3.5z"/>
-                            </svg>
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+            {/* 顶部品牌横幅 - 扩展版本 */}
+            <div className="telecom-gradient text-white py-16 md:py-24 relative overflow-hidden">
+                {/* 背景装饰 */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-10 left-10 w-32 h-32 border border-white rounded-full"></div>
+                    <div className="absolute bottom-10 right-10 w-24 h-24 border border-white rounded-full"></div>
+                    <div className="absolute top-1/2 left-1/4 w-16 h-16 border border-white rounded-full"></div>
+                </div>
+                
+                <div className="container mx-auto px-4 md:px-8 relative z-10">
+                    {/* 主标题区域 */}
+                    <div className="text-center mb-12">
+                        <div className="flex items-center justify-center space-x-4 mb-6">
+                            {/* Logo图片占位符 - 如果没有提供logo链接就显示默认图标 */}
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                                {(() => {
+                                    const logoUrl = "https://tc.nfeyre.top/i/2025/08/27/ugw9o1.png"; // 在这里设置logo图片链接
+                                    const showFallback = !logoUrl || logoLoadError;
+                                    
+                                    return (
+                                        <>
+                                            {logoUrl && !logoLoadError && (
+                                                <img 
+                                                    src={logoUrl} 
+                                                    alt="中国电信Logo" 
+                                                    className="w-10 h-10 object-contain" 
+                                                    onError={() => setLogoLoadError(true)}
+                                                />
+                                            )}
+                                            {showFallback && (
+                                                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 2.5c0 .83-.67 1.5-1.5 1.5S12 7.33 12 6.5 12.67 5 13.5 5s1.5.67 1.5 1.5zM12 13c-2.33 0-4.31 1.46-5.11 3.5h10.22c-.8-2.04-2.78-3.5-5.11-3.5z"/>
+                                                </svg>
+                                            )}
+                                        </>
+                                    );
+                                })()} 
+                            </div>
+                            <div>
+                                <h1 className="text-3xl md:text-5xl font-bold">中国电信</h1>
+                                <p className="text-blue-100 text-lg md:text-xl">校园卡在线选号系统</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold">中国电信</h1>
-                            <p className="text-blue-100 text-sm md:text-base">校园卡在线选号系统</p>
+                        
+                        {/* 介绍内容 */}
+                        <div className="max-w-4xl mx-auto px-4">
+                            <div className="text-center">
+                                <p className="text-blue-50 text-base md:text-xl leading-relaxed mb-6">
+                                    🎓 专为校园用户打造的智能选号平台，提供海量号码实时更新、一键筛选心仪号码、官方认证安全保障，支持定金预定和全款直购两种灵活支付方式，为您的校园生活开启智能通信新体验。
+                                </p>
+                                <p className="text-blue-200 text-xs md:text-base">下滑开始选择您的专属号码 ↓</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
+                {/* 底部渐变过渡，创建平滑的视觉连接 */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-blue-50/80 via-blue-100/40 to-transparent"></div>
             </div>
 
-            <div className="container mx-auto p-4 md:p-8">
+            {/* 选号区域 - 与顶部区域有重叠效果，露出第一行号码 */}
+            <div className="container mx-auto p-4 md:p-8 -mt-32 md:-mt-40 relative z-20">
                 {showSuccessMessage && (
                     <div className="bg-green-50 border-l-4 border-green-400 text-green-800 p-4 mb-6 rounded-md telecom-card-shadow animate-in fade-in-50" role="alert">
                         <div className="flex items-center">
@@ -175,40 +225,24 @@ export default function HomePage() {
                     </div>
                 )}
 
-                <header className="text-center mb-8">
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">选择您心仪的号码</h2>
-                    <p className="text-gray-600">为您的校园生活选择一个专属号码</p>
+                <header className="text-center mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 telecom-card-shadow">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">🔍 开始选号</h2>
+                    <p className="text-gray-600 text-sm md:text-base">从下方号码库中选择您心仪的专属号码</p>
                 </header>
 
-                {/* 搜索和筛选区域 - 使用中国电信风格 */}
-                <div className="bg-white p-6 rounded-xl telecom-card-shadow mb-8 sticky top-4 z-40 border border-blue-100">
-                    <div className="flex flex-col md:flex-row gap-4 items-center">
-                        <div className="relative w-full md:flex-1">
-                            <input
-                                type="text"
-                                placeholder="在当前已加载号码中搜索..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full p-4 pl-12 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            />
-                            <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <label className="flex items-center cursor-pointer select-none">
-                                <span className="mr-3 text-gray-700 font-medium">一键屏蔽已选</span>
-                                <div className="relative">
-                                    <input type="checkbox" className="sr-only" checked={hideReserved} onChange={handleHideReservedToggle} />
-                                    <div className={`block w-14 h-8 rounded-full transition-colors ${
-                                        hideReserved ? 'bg-blue-500' : 'bg-gray-300'
-                                    }`}></div>
-                                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-md ${
-                                        hideReserved ? 'transform translate-x-full' : ''
-                                    }`}></div>
-                                </div>
-                            </label>
-                        </div>
+                {/* 搜索区域 - 使用中国电信风格 */}
+                <div className="bg-white/95 backdrop-blur-sm p-4 md:p-6 rounded-xl telecom-card-shadow mb-6 sticky top-4 z-40 border border-blue-100">
+                    <div className="relative w-full">
+                        <input
+                            type="text"
+                            placeholder="在当前已加载号码中搜索..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full p-4 pl-12 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                        <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
                 </div>
 
@@ -223,7 +257,8 @@ export default function HomePage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {/* 号码网格 - 优化间距和响应式布局 */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                     {filteredNumbers.map(number => (
                         <NumberCard key={number.id} number={number} onClick={handleCardClick} />
                     ))}

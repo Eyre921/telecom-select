@@ -49,16 +49,16 @@ try {
         Write-Host "⚠ Public directory not found, skipping" -ForegroundColor Yellow
     }
 
-    # Package with 7za.exe
+    # Package with PowerShell Compress-Archive (ZIP format)
     Write-Host ""
     Write-Host "Packaging upgrade files..." -ForegroundColor Cyan
-    $zipCommand = "7za.exe a -t7z `"$packageName.7z`" `"./$tempDir/*`" -mx=9"
-    $result = Invoke-Expression $zipCommand
+    $zipPath = "$packageName.zip"
+    Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -CompressionLevel Optimal -Force
     
-    if ($LASTEXITCODE -eq 0) {
+    if (Test-Path $zipPath) {
         Write-Host "✓ Package created successfully" -ForegroundColor Green
     } else {
-        throw "7za.exe packaging failed"
+        throw "ZIP packaging failed"
     }
 
     # Clean up temporary directory
@@ -67,9 +67,9 @@ try {
 
     # Show results
     Write-Host ""
-    Write-Host "Upgrade package created successfully: $packageName.7z" -ForegroundColor Green
-    if (Test-Path "$packageName.7z") {
-        $fileSize = (Get-Item "$packageName.7z").Length
+    Write-Host "Upgrade package created successfully: $packageName.zip" -ForegroundColor Green
+    if (Test-Path "$packageName.zip") {
+        $fileSize = (Get-Item "$packageName.zip").Length
         $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
         Write-Host "File size: $fileSizeMB MB" -ForegroundColor White
     }
