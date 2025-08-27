@@ -444,21 +444,47 @@ class ExtendedAPITester {
       console.log('\n=== 6. 数据导入测试 ===');
       const superAdminClient = this.authenticatedClients.get('SUPER_ADMIN-admin@system.com');
       if (superAdminClient) {
-        // 测试CSV数据导入 - 使用格式二的正确格式
-        const csvData = `客户姓名\t新选号码\t新选号码序号\t联系号码\t邮寄地址\t快递单号\n张乐怡\t19067172615\t294\t13873195044\t湖南省长沙市雨花区万家丽南路27号芙佳花园\t9879616972620\n许仕杰\t19067172095\t10\t13787030565\t湖南省长沙市雨花区左家塘曙光大邸4栋1339\t9879616904980\n田欣宇\t19067172280\t130\t15327001224\t湖北恩施州巴东县北京大道65号德克酒店前台\t9879616943480`;
+        // 测试格式一 (table1) - 号码\t卡板状态\t收款金额\t客户姓名\t工作人员
+        const table1Data = `19067192804\t已预定\t全款200\t罗焱阳\t符航康\n19067192814\t已预定\t全款200\t李晓蕾\t王晓阳\n19067192824\t\t\t\t\n19067192834\t已预定\t定金20\t常栩康\t符航康`;
         
-        await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - CSV Format', {
-          data: csvData,
-          type: 'csv',
+        await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - Format 1 (Table1)', {
+          data: table1Data,
+          type: 'table1',
+          schoolId: 'school-1',
+          departmentId: 'dept-1'
+        }, undefined, 'Data Import');
+        
+        // 测试格式二 (table2) - 序号\t客户姓名\t新选号码\t新选号码序号\t联系号码\t邮寄地址\t快递单号
+        const table2Data = `1\t张乐怡\t19067172615\t294\t13873195044\t湖南省长沙市雨花区万家丽南路27号芙佳花园\t9879616972620\n2\t许仕杰\t19067172095\t10\t13787030565\t湖南省长沙市雨花区左家塘曙光大邸4栋1339\t9879616904980`;
+        
+        await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - Format 2 (Table2)', {
+          data: table2Data,
+          type: 'table2',
+          schoolId: 'school-1',
+          departmentId: 'dept-1'
+        }, undefined, 'Data Import');
+        
+        // 测试智能分割功能 - 包含地址换行的数据
+        const smartSplitData = `1\t张乐怡\t19067172615\t294\t13873195044\t湖南省长沙市雨花区万家丽南路27号\n芙佳花园\t9879616972620\n2\t许仕杰\t19067172095\t10\t13787030565\t湖南省长沙市雨花区左家塘\n曙光大邸4栋1339\t9879616904980`;
+        
+        await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - Smart Split with Address Newlines', {
+          data: smartSplitData,
+          type: 'table2',
           schoolId: 'school-1',
           departmentId: 'dept-1'
         }, undefined, 'Data Import');
         
         // 测试无效数据导入
         await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - Invalid Data', {
-          data: 'invalid data',
-          type: 'csv',
+          data: 'invalid data without proper format',
+          type: 'table1',
           schoolId: 'school-1'
+        }, 400, 'Data Import');
+        
+        // 测试缺少必要参数
+        await this.testApiEndpoint(superAdminClient, 'POST', '/api/admin/import-data', 'Data Import - Missing School ID', {
+          data: table1Data,
+          type: 'table1'
         }, 400, 'Data Import');
       }
       
