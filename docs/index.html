@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电信校园卡在线选号系统 - 智慧校园通信解决方案</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .telecom-gradient {
+            background: linear-gradient(135deg, #0052CC 0%, #1890FF 100%);
+        }
+        .section-title {
+            @apply text-3xl font-bold text-gray-800 text-center sm:text-4xl;
+        }
+        .section-subtitle {
+            @apply mt-4 text-center text-gray-600 max-w-2xl mx-auto;
+        }
+        .feature-card {
+            @apply bg-white p-6 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+        }
+        .cta-button {
+            @apply px-8 py-3 bg-white text-blue-700 font-semibold rounded-full shadow-md hover:bg-gray-100 transition-transform duration-300 transform hover:scale-105;
+        }
+        .nav-link {
+            @apply text-white/80 hover:text-white transition-colors duration-300;
+        }
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- 导航栏 -->
+    <header class="telecom-gradient sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                    <!-- 中国电信 Logo SVG -->
+                    <svg class="w-8 h-8 text-blue-600" viewBox="0 0 49 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24.4999 48C37.4529 48 47.9999 37.2548 47.9999 24C47.9999 10.7452 37.4529 0 24.4999 0C11.5469 0 0.999924 10.7452 0.999924 24C0.999924 37.2548 11.5469 48 24.4999 48Z" fill="#0052CC"/>
+                        <path d="M24.4999 41.1428C20.0369 41.1428 16.3199 39.4285 13.6289 36.6857C13.6289 36.6857 16.3199 33.9428 24.4999 33.9428C32.6799 33.9428 35.3719 36.6857 35.3719 36.6857C32.6799 39.4285 28.9629 41.1428 24.4999 41.1428Z" fill="white"/>
+                        <path d="M32.6799 14.1428C32.6799 18.6857 28.9629 22.2857 24.4999 22.2857C20.0369 22.2857 16.3199 18.6857 16.3199 14.1428C16.3199 9.6 20.0369 6 24.4999 6C28.9629 6 32.6799 9.6 32.6799 14.1428Z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="text-white text-xl font-bold">校园卡在线选号系统</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#features" class="nav-link">核心功能</a>
+                <a href="#showcase" class="nav-link">界面展示</a>
+                <a href="#management" class="nav-link">组织管理</a>
+                <a href="#roles" class="nav-link">适用角色</a>
+                <a href="#contact" class="px-5 py-2 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-all duration-300">获取演示</a>
+            </div>
+            <!-- 移动端菜单按钮 (可选) -->
+        </nav>
+    </header>
+
+    <!-- 主体内容 -->
+    <main>
+        <!-- Hero 区域 -->
+        <section class="telecom-gradient text-white relative overflow-hidden">
+            <div class="container mx-auto px-6 py-24 md:py-32 text-center relative z-10">
+                <h1 class="text-4xl md:text-6xl font-black leading-tight fade-in">
+                    智慧校园通信，从轻松选号开始
+                </h1>
+                <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-white/80 fade-in" style="animation-delay: 0.2s;">
+                    专为高校市场打造的多租户、多角色在线号码管理平台。简化流程，提升效率，赋能您的校园业务。
+                </p>
+                <div class="mt-10 fade-in" style="animation-delay: 0.4s;">
+                    <a href="#contact" class="cta-button">申请免费演示</a>
+                </div>
+            </div>
+            <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-gray-50 to-transparent"></div>
+        </section>
+
+        <!-- 核心功能区域 -->
+        <section id="features" class="py-20 md:py-28 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">为校园营销量身打造的核心功能</h2>
+                <p class="section-subtitle">
+                    我们深入理解校园市场业务痛点，提供一站式、精细化的数字解决方案，让号码管理和销售从未如此简单。
+                </p>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- 功能卡片 1: 多租户管理 -->
+                    <div class="feature-card fade-in">
+                        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0v-4a2 2 0 012-2h5a2 2 0 012 2v4m-6 0h-2"></path></svg>
+                        </div>
+                        <h3 class="mt-6 text-xl font-bold text-gray-800">多租户组织架构</h3>
+                        <p class="mt-2 text-gray-600">支持“学校-院系”两级组织管理，实现数据隔离与精细化运营，完美适配高校市场结构。</p>
+                    </div>
+                    <!-- 功能卡片 2: 角色权限 -->
+                    <div class="feature-card fade-in" style="animation-delay: 0.1s;">
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path></svg>
+                        </div>
+                        <h3 class="mt-6 text-xl font-bold text-gray-800">精细化角色权限</h3>
+                        <p class="mt-2 text-gray-600">预设超级管理员、学校管理员、营销人员三种角色，权责分明，保障数据安全与流程规范。</p>
+                    </div>
+                    <!-- 功能卡片 3: 在线选号 -->
+                    <div class="feature-card fade-in" style="animation-delay: 0.2s;">
+                        <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="mt-6 text-xl font-bold text-gray-800">营销专属链接</h3>
+                        <p class="mt-2 text-gray-600">一键生成包含学校、院系及营销人员信息的推广链接，实现精准营销与业绩追踪。</p>
+                    </div>
+                    <!-- 功能卡片 4: 数据管理 -->
+                    <div class="feature-card fade-in" style="animation-delay: 0.3s;">
+                        <div class="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h3 class="mt-6 text-xl font-bold text-gray-800">强大数据中心</h3>
+                        <p class="mt-2 text-gray-600">实时数据看板、灵活的数据导入导出、自定义列显示与高级筛选，让数据驱动业务增长。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 界面展示区域 -->
+        <section id="showcase" class="py-20 md:py-28 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">直观、现代化的用户界面</h2>
+                <p class="section-subtitle">
+                    无论是面向客户的选号页面，还是功能强大的管理后台，我们都追求极致的用户体验。
+                </p>
+                <div class="mt-16 space-y-16">
+                    <!-- 客户选号端 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="fade-in">
+                            <span class="inline-block px-4 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full text-sm mb-4">客户选号端</span>
+                            <h3 class="text-3xl font-bold text-gray-800">清晰、专属的选号体验</h3>
+                            <p class="mt-4 text-gray-600 leading-relaxed">
+                                学生通过专属链接访问，页面清晰展示其所属院校信息，确保选号的准确性。卡片式号码布局、无限滚动加载和靓号标识，全面提升用户选号体验。
+                            </p>
+                            <ul class="mt-6 space-y-3 text-gray-700">
+                                <li class="flex items-start"><span class="text-blue-600 mr-3 mt-1">✓</span><span><b>机构专属：</b>自动筛选并锁定号码池，防止误选。</span></li>
+                                <li class="flex items-start"><span class="text-blue-600 mr-3 mt-1">✓</span><span><b>流畅浏览：</b>无限滚动加载，无需翻页即可浏览全部号码。</span></li>
+                                <li class="flex items-start"><span class="text-blue-600 mr-3 mt-1">✓</span><span><b>便捷下单：</b>弹窗式下单流程，信息填写、支付一气呵成。</span></li>
+                            </ul>
+                        </div>
+                        <div class="fade-in" style="animation-delay: 0.2s;">
+                            <div class="bg-gray-100 p-4 rounded-2xl shadow-2xl transform rotate-3">
+                                <img src="https://youke1.picui.cn/s1/2025/08/29/68b07f2f13fe1.png" alt="客户选号页面截图" class="rounded-lg">
+                                <p class="text-center text-xs text-gray-500 mt-2">页面数据仅仅供演示使用</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 管理后台端 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div class="fade-in lg:order-2">
+                            <span class="inline-block px-4 py-1 bg-green-100 text-green-700 font-semibold rounded-full text-sm mb-4">管理后台</span>
+                            <h3 class="text-3xl font-bold text-gray-800">信息集中的高效工作台</h3>
+                            <p class="mt-4 text-gray-600 leading-relaxed">
+                                仪表盘集成了实时数据统计、待办事项和常用操作入口。营销人员和管理员都能快速掌握业务动态，高效处理日常工作。
+                            </p>
+                            <ul class="mt-6 space-y-3 text-gray-700">
+                                <li class="flex items-start"><span class="text-green-600 mr-3 mt-1">✓</span><span><b>数据可视化：</b>关键指标以图表形式呈现，一目了然。</span></li>
+                                <li class="flex items-start"><span class="text-green-600 mr-3 mt-1">✓</span><span><b>任务驱动：</b>待审核订单列表突出显示，超时预警，确保订单及时处理。</span></li>
+                                <li class="flex items-start"><span class="text-green-600 mr-3 mt-1">✓</span><span><b>精细管理：</b>强大的数据筛选、排序和自定义视图功能，满足各种管理需求。</span></li>
+                            </ul>
+                        </div>
+                        <div class="fade-in lg:order-1" style="animation-delay: 0.2s;">
+                             <div class="bg-gray-100 p-4 rounded-2xl shadow-2xl transform -rotate-3">
+                                <img src="https://youke1.picui.cn/s1/2025/08/29/68b07f2d63c21.png" alt="管理后台仪表盘截图" class="rounded-lg">
+                                <p class="text-center text-xs text-gray-500 mt-2">页面数据仅仅供演示使用</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 新增：组织管理区域 -->
+        <section id="management" class="py-20 md:py-28 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="fade-in">
+                        <div class="bg-gray-100 p-4 rounded-2xl shadow-2xl transform rotate-3">
+                            <img src="https://youke1.picui.cn/s1/2025/08/29/68b07f2d5efa8.png" alt="组织与用户管理界面截图" class="rounded-lg">
+                            <p class="text-center text-xs text-gray-500 mt-2">页面数据仅仅供演示使用</p>
+                        </div>
+                    </div>
+                    <div class="fade-in" style="animation-delay: 0.2s;">
+                        <span class="inline-block px-4 py-1 bg-purple-100 text-purple-700 font-semibold rounded-full text-sm mb-4">管理员专属</span>
+                        <h3 class="text-3xl font-bold text-gray-800">一体化的组织与人员管理</h3>
+                        <p class="mt-4 text-gray-600 leading-relaxed">
+                            为管理员提供强大的后台支持。通过直观的界面，轻松构建和管理多层级的组织架构，并对系统内的所有用户进行精细化的权限分配和管理。
+                        </p>
+                        <ul class="mt-6 space-y-3 text-gray-700">
+                            <li class="flex items-start"><span class="text-purple-600 mr-3 mt-1">✓</span><span><b>层级化组织：</b>自由创建和编辑“学校-院系”结构，适应业务扩展。</span></li>
+                            <li class="flex items-start"><span class="text-purple-600 mr-3 mt-1">✓</span><span><b>用户全生命周期管理：</b>集中处理用户创建、信息修改、密码重置和删除。</span></li>
+                            <li class="flex items-start"><span class="text-purple-600 mr-3 mt-1">✓</span><span><b>灵活的权限分配：</b>为用户精准分配角色和所能管理的组织范围。</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 适用角色区域 -->
+        <section id="roles" class="py-20 md:py-28 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">赋能团队中的每一个角色</h2>
+                <p class="section-subtitle">
+                    系统为不同职责的用户提供精准的功能支持，促进团队协作，提升整体运营效率。
+                </p>
+                <div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- 营销人员 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-500 fade-in">
+                        <h3 class="text-2xl font-bold text-gray-800">营销人员</h3>
+                        <p class="mt-2 text-gray-500">一线推广的利器</p>
+                        <ul class="mt-6 space-y-4 text-gray-600">
+                            <li class="flex items-start"><span class="text-blue-500 mr-3 mt-1">✓</span><span>一键生成专属推广链接，轻松分享。</span></li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-3 mt-1">✓</span><span>实时查看名下订单，及时跟进客户。</span></li>
+                            <li class="flex items-start"><span class="text-blue-500 mr-3 mt-1">✓</span><span>清晰的数据看板，直观了解个人业绩。</span></li>
+                        </ul>
+                    </div>
+                     <!-- 学校管理员 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-500 transform lg:scale-105 fade-in" style="animation-delay: 0.1s;">
+                        <h3 class="text-2xl font-bold text-gray-800">学校管理员</h3>
+                        <p class="mt-2 text-gray-500">区域运营的核心</p>
+                        <ul class="mt-6 space-y-4 text-gray-600">
+                            <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span>全面掌控校区内所有号码和订单数据。</span></li>
+                            <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span>管理校区内的营销团队和院系组织。</span></li>
+                            <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span>批量导入号码，快速部署业务。</span></li>
+                        </ul>
+                    </div>
+                     <!-- 超级管理员 -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-500 fade-in" style="animation-delay: 0.2s;">
+                        <h3 class="text-2xl font-bold text-gray-800">超级管理员</h3>
+                        <p class="mt-2 text-gray-500">平台的总指挥官</p>
+                        <ul class="mt-6 space-y-4 text-gray-600">
+                            <li class="flex items-start"><span class="text-purple-500 mr-3 mt-1">✓</span><span>拥有最高权限，管理所有组织和用户。</span></li>
+                            <li class="flex items-start"><span class="text-purple-500 mr-3 mt-1">✓</span><span>跨校区查看数据，洞察全局业务动态。</span></li>
+                            <li class="flex items-start"><span class="text-purple-500 mr-3 mt-1">✓</span><span>配置系统，执行平台级高级操作。</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系我们/CTA 区域 -->
+        <section id="contact" class="telecom-gradient">
+            <div class="container mx-auto px-6 py-20 text-center text-white">
+                <h2 class="text-3xl md:text-4xl font-bold fade-in">准备好提升您的校园业务了吗？</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-white/80 fade-in" style="animation-delay: 0.2s;">
+                    点击下方。
+                </p>
+                <div class="mt-8 fade-in" style="animation-delay: 0.4s;">
+                    <a href="https://xh.nfeyre.top/" class="cta-button">
+                        立即体验
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-gray-400">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2024 电信校园卡在线选号系统. All Rights Reserved.</p>
+            <p class="text-sm mt-2">一个为智慧校园通信而生的解决方案</p>
+        </div>
+    </footer>
+
+</body>
+</html>
