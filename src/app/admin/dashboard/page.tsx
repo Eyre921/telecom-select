@@ -11,7 +11,7 @@ import {ExportModal} from '@/components/admin/ExportModal';
 import {ENUM_TRANSLATIONS, FIELD_TRANSLATIONS} from '@/lib/utils';
 
 // --- 类型定义 ---
-// 扩展PhoneNumber类型，包含关联的组织信息
+// 扩展PhoneNumber类型，包含关联的学校信息
 type PhoneNumberWithOrganizations = PhoneNumber & {
     school?: Organization | null;
     department?: Organization | null;
@@ -519,28 +519,76 @@ export default function DashboardPage() {
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
-            {/* --- 新增的功能按钮区域 --- */}
-            <div className="flex justify-end items-center gap-4 mb-6">
-                <button
-                    onClick={() => setIsExportModalOpen(true)}
-                    className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
-                >
-                    导出数据
-                </button>
-                <Link href="/admin/import"
-                      className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
-                    批量导入数据
-                </Link>
-                <button
-                    onClick={async () => {
-                        await signOut({ redirect: false });
-                        window.location.href = '/signin';
-                    }}
-                    className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition-colors"
-                >
-                    登出
-                </button>
+            {/* 用户信息和导航区域 */}
+            <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-blue-600 font-semibold text-lg">
+                                    {session?.user?.name?.charAt(0) || 'U'}
+                                </span>
+                            </div>
+                            <div>
+                                <h1 className="text-lg font-semibold text-gray-900">
+                                    欢迎，{session?.user?.name || '用户'}
+                                </h1>
+                                <div className="flex items-center space-x-2">
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                        session?.user?.role === 'SUPER_ADMIN' ? 'bg-red-100 text-red-800' :
+                                        session?.user?.role === 'SCHOOL_ADMIN' ? 'bg-blue-100 text-blue-800' :
+                                        'bg-green-100 text-green-800'
+                                    }`}>
+                                        {ENUM_TRANSLATIONS.Role[session?.user?.role as string] || session?.user?.role}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                        {session?.user?.email}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                        {/* 管理用户按钮 - 仅对有权限的用户显示 */}
+                        {isAdmin && (
+                            <Link
+                                href="/admin/users"
+                                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                </svg>
+                                管理用户
+                            </Link>
+                        )}
+                        
+                        <button
+                            onClick={() => setIsExportModalOpen(true)}
+                            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                            导出数据
+                        </button>
+                        <Link href="/admin/import"
+                              className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
+                            批量导入数据
+                        </Link>
+                        <button
+                            onClick={async () => {
+                                await signOut({ redirect: false });
+                                window.location.href = '/signin';
+                            }}
+                            className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition-colors"
+                        >
+                            登出
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            {/* 移除原有的功能按钮区域，因为已经整合到上面的用户信息区域 */}
+            {/* --- 新增的功能按钮区域 --- */}
+            {/* <div className="flex justify-end items-center gap-4 mb-6"> ... </div> */}
 
             {isLoading && <FullPageSpinner/>}
             <StatsCards/>
