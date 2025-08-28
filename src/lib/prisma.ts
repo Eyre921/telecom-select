@@ -1,21 +1,27 @@
 import {PrismaClient} from '@prisma/client';
 
-// This is a common pattern to prevent creating too many PrismaClient instances
-// during development due to Next.js hot-reloading.
-
-// Declare a global variable to hold the PrismaClient instance.
 declare global {
     var prisma: PrismaClient | undefined;
 }
 
-// Check if we are in production or if a prisma instance already exists.
-// If not, create a new one. Otherwise, reuse the existing one.
-const client = globalThis.prisma || new PrismaClient();
+const client = globalThis.prisma || new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL + '?connection_limit=1&pool_timeout=20&socket_timeout=20'
+    }
+  },
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+});
 
-// In development, assign the new client to the global variable.
+// SQLite 性能优化
 if (process.env.NODE_ENV !== 'production') {
     globalThis.prisma = client;
+} else {
+  // 生产环境优化
+  client.$executeRaw`PRAGMA journal_mode=WAL;`;
+  client.$executeRaw`PRAGMA synchronous=NORMAL;`;
+  client.$executeRaw`PRAGMA cache_size=10000;`;
+  client.$executeRaw`PRAGMA temp_store=memory;`;
 }
 
-// Export the single, shared PrismaClient instance.
 export default client;
