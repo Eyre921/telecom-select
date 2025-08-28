@@ -273,7 +273,7 @@ class ExtendedAPITester {
 
   private async testApiEndpoint(
     client: AxiosInstance | null,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     endpoint: string,
     testName: string,
     data?: any,
@@ -298,6 +298,9 @@ class ExtendedAPITester {
           break;
         case 'PUT':
           response = await axiosClient.put(endpoint, data);
+          break;
+        case 'PATCH':
+          response = await axiosClient.patch(endpoint, data);
           break;
         case 'DELETE':
           response = await axiosClient.delete(endpoint);
@@ -488,21 +491,112 @@ class ExtendedAPITester {
         }, 400, 'Data Import');
       }
       
-      // 7. 错误处理和边界测试
-      console.log('\n=== 7. 错误处理和边界测试 ===');
+      // 7. 订单管理测试
+      console.log('\n=== 7. 订单管理测试 ===');
+      if (superAdminClient) {
+        // 首先获取一个可用的号码
+        const availableNumbersResult = await this.testApiEndpoint(null, 'GET', '/api/numbers', 'Order Management - Get Available Numbers', { 
+          limit: '1',
+          status: 'UNRESERVED' 
+        }, undefined, 'Order Management');
+        
+        if (availableNumbersResult.success && availableNumbersResult.data && availableNumbersResult.data.length > 0) {
+          const availableNumber = availableNumbersResult.data[0];
+          
+          // 创建测试订单
+          const orderData = {
+            numberId: availableNumber.id, // 使用真实的可用号码ID
+            customerName: '测试客户',
+            customerContact: '13800138000',
+            shippingAddress: '测试地址',
+            paymentAmount: 200
+          };
+          
+          await this.testApiEndpoint(null, 'POST', '/api/orders', 'Order Management - Create Test Order', orderData, 201, 'Order Management');
+          
+          // 获取待审核订单列表
+          const pendingOrdersResult = await this.testApiEndpoint(superAdminClient, 'GET', '/api/admin/pending-orders', 'Order Management - Get Pending Orders', undefined, undefined, 'Order Management');
+          
+          // 如果有待审核订单，进行审核和拒绝测试
+          if (pendingOrdersResult.success && pendingOrdersResult.data && pendingOrdersResult.data.length > 0) {
+            const testOrder = pendingOrdersResult.data[0];
+            const numberId = testOrder.id;
+            
+            // 测试订单审核（通过）
+            await this.testApiEndpoint(superAdminClient, 'PATCH', `/api/admin/numbers/${numberId}`, 'Order Management - Approve Order', {
+              reservationStatus: 'RESERVED',
+              customerName: testOrder.customerName,
+              customerContact: testOrder.customerContact,
+              shippingAddress: testOrder.shippingAddress,
+              paymentAmount: testOrder.paymentAmount,
+              orderTimestamp: new Date().toISOString()
+              // 移除 approvedAt 和 approvedBy 字段
+            }, undefined, 'Order Management');
+          }
+        } else {
+          console.log('⚠️  没有可用号码，跳过订单创建测试');
+          this.logResult('Order Management - Create Test Order', false, undefined, '没有可用号码进行测试');
+        }
+      }
+      
+      // 8. 号码更新和删除测试
+      console.log('\n=== 8. 号码更新和删除测试 ===');
+      if (superAdminClient) {
+        // 获取测试号码
+        const numbersResult = await this.testApiEndpoint(superAdminClient, 'GET', '/api/admin/numbers', 'Number CRUD - Get Numbers for Testing', { limit: '1' }, undefined, 'Number CRUD');
+        
+        if (numbersResult.success && numbersResult.data && numbersResult.data.length > 0) {
+          const testNumber = numbersResult.data[0];
+          const numberId = testNumber.id;
+          
+          // 超级管理员更新号码信息
+          await this.testApiEndpoint(superAdminClient, 'PATCH', `/api/admin/numbers/${numberId}`, 'Number CRUD - Super Admin Update Number', {
+            isPremium: !testNumber.isPremium,
+            reservationStatus: 'UNRESERVED',
+            notes: '测试更新备注'
+          }, undefined, 'Number CRUD');
+          
+          // 测试不存在的号码更新
+          await this.testApiEndpoint(superAdminClient, 'PATCH', '/api/admin/numbers/nonexistent-id', 'Number CRUD - Update Nonexistent Number', {
+            isPremium: true
+          }, 404, 'Number CRUD');
+        }
+      }
+      
+      // 学校管理员权限测试
+      const schoolAdminClient = this.authenticatedClients.get('SCHOOL_ADMIN-admin@pku.edu.cn');
+      if (schoolAdminClient) {
+        // 学校管理员尝试访问其他学校号码
+        await this.testApiEndpoint(schoolAdminClient, 'PATCH', '/api/admin/numbers/other-school-number-id', 'Number CRUD - School Admin Cross School Access', {
+          notes: '跨校访问测试'
+        }, 403, 'Number CRUD');
+      }
+      
+      // 销售员权限测试
+      const marketerClient = this.authenticatedClients.get('MARKETER-marketer1@telecom.com');
+      if (marketerClient) {
+        // 销售员尝试更新号码（应该失败）
+        await this.testApiEndpoint(marketerClient, 'PATCH', '/api/admin/numbers/any-number-id', 'Number CRUD - Marketer Update Number (Should Fail)', {
+          notes: '销售员尝试更新'
+        }, 403, 'Number CRUD');
+        
+        // 销售员尝试删除号码（应该失败）
+        await this.testApiEndpoint(marketerClient, 'DELETE', '/api/admin/numbers/any-number-id', 'Number CRUD - Marketer Delete Number (Should Fail)', undefined, 403, 'Number CRUD');
+      }
+      
+      // 9. 错误处理和边界测试
+      console.log('\n=== 9. 错误处理和边界测试 ===');
       await this.testApiEndpoint(null, 'GET', '/api/nonexistent', 'Error Handling - 404 Not Found', undefined, 404, 'Error Handling');
       await this.testApiEndpoint(null, 'GET', '/api/admin/stats', 'Error Handling - Unauthorized Admin Access', undefined, 401, 'Error Handling');
       await this.testApiEndpoint(null, 'POST', '/api/admin/stats', 'Error Handling - Method Not Allowed', {}, 405, 'Error Handling');
-      
-      // 测试无效参数 - 修复期望状态码
       await this.testApiEndpoint(null, 'GET', '/api/numbers', 'Error Handling - Invalid Page Parameter', { page: 'invalid' }, 400, 'Error Handling');
       
-      // 8. 并发测试
-      console.log('\n=== 8. 并发测试 ===');
+      // 10. 并发测试
+      console.log('\n=== 10. 并发测试 ===');
       await this.runConcurrentTests();
       
-      // 9. 性能测试
-      console.log('\n=== 9. 性能测试 ===');
+      // 11. 性能测试
+      console.log('\n=== 11. 性能测试 ===');
       await this.runPerformanceTests();
       
     } catch (error: any) {
@@ -552,7 +646,7 @@ class ExtendedAPITester {
     // 按用户角色分组测试结果
     const userTests: Record<string, TestResult[]> = {};
     this.testResults.forEach(result => {
-      const roleMatch = result.testName.match(/- (SUPER_ADMIN|SCHOOL_ADMIN|MARKETER)/);;
+      const roleMatch = result.testName.match(/- (SUPER_ADMIN|SCHOOL_ADMIN|MARKETER)/);
       if (roleMatch) {
         const role = roleMatch[1];
         if (!userTests[role]) userTests[role] = [];
@@ -598,7 +692,7 @@ class ExtendedAPITester {
       'GET /', 'GET /api/numbers', 'GET /api/auth/csrf', 'GET /api/auth/session',
       'GET /api/admin/stats', 'GET /api/admin/numbers', 'GET /api/admin/organizations',
       'GET /api/admin/pending-orders', 'POST /api/admin/actions', 'POST /api/admin/release-overdue',
-      'POST /api/admin/import-data'
+      'POST /api/admin/import-data', 'POST /api/orders', 'PATCH /api/admin/numbers/[id]', 'DELETE /api/admin/numbers/[id]'
     ];
     
     const endpointDetails: Record<string, { tested: boolean; methods: string[] }> = {};
@@ -700,9 +794,123 @@ class ExtendedAPITester {
   private saveExtendedJsonReport(report: ExtendedTestReport) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     
-    const jsonReportPath = path.join(process.cwd(), `extended-api-test-report-${timestamp}.json`);
+    // 创建测试结果目录
+    const testResultsDir = path.join(process.cwd(), 'test-results');
+    if (!fs.existsSync(testResultsDir)) {
+      fs.mkdirSync(testResultsDir, { recursive: true });
+    }
+    
+    // 保存JSON报告到测试结果目录
+    const jsonReportPath = path.join(testResultsDir, `extended-api-test-report-${timestamp}.json`);
     fs.writeFileSync(jsonReportPath, JSON.stringify(report, null, 2));
-    console.log(`📄 扩展测试报告已保存: ${jsonReportPath}`);
+    
+    // 同时生成HTML报告
+    const htmlReportPath = path.join(testResultsDir, `extended-api-test-report-${timestamp}.html`);
+    this.generateHtmlReport(report, htmlReportPath);
+    
+    console.log(`📄 扩展测试报告已保存:`);
+    console.log(`   JSON: ${jsonReportPath}`);
+    console.log(`   HTML: ${htmlReportPath}`);
+  }
+  
+  private generateHtmlReport(report: ExtendedTestReport, filePath: string) {
+    const html = `
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>扩展API测试报告</title>
+      <style>
+          body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+          .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          .header { text-align: center; margin-bottom: 30px; }
+          .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+          .metric { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; }
+          .metric h3 { margin: 0 0 10px 0; color: #333; }
+          .metric .value { font-size: 24px; font-weight: bold; }
+          .success { color: #28a745; }
+          .error { color: #dc3545; }
+          .warning { color: #ffc107; }
+          .section { margin-bottom: 30px; }
+          .test-result { padding: 10px; margin: 5px 0; border-radius: 4px; }
+          .test-success { background-color: #d4edda; border-left: 4px solid #28a745; }
+          .test-failure { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #ddd; }
+          th { background-color: #f8f9fa; font-weight: bold; }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">
+              <h1>📊 扩展API测试报告</h1>
+              <p>生成时间: ${report.summary.timestamp}</p>
+          </div>
+          
+          <div class="summary">
+              <div class="metric">
+                  <h3>总测试数</h3>
+                  <div class="value">${report.summary.total}</div>
+              </div>
+              <div class="metric">
+                  <h3>通过测试</h3>
+                  <div class="value success">${report.summary.passed}</div>
+              </div>
+              <div class="metric">
+                  <h3>失败测试</h3>
+                  <div class="value error">${report.summary.failed}</div>
+              </div>
+              <div class="metric">
+                  <h3>成功率</h3>
+                  <div class="value ${report.summary.failed === 0 ? 'success' : 'warning'}">${((report.summary.passed / report.summary.total) * 100).toFixed(1)}%</div>
+              </div>
+              <div class="metric">
+                  <h3>API覆盖率</h3>
+                  <div class="value">${report.apiCoverage.coverage}%</div>
+              </div>
+              <div class="metric">
+                  <h3>平均响应时间</h3>
+                  <div class="value">${report.performanceMetrics.averageResponseTime}ms</div>
+              </div>
+          </div>
+          
+          ${report.failedTests.length > 0 ? `
+          <div class="section">
+              <h2>❌ 失败的测试</h2>
+              ${report.failedTests.map(test => `
+              <div class="test-result test-failure">
+                  <strong>${test.testName}</strong><br>
+                  <small>错误: ${test.errorMessage}</small>
+              </div>
+              `).join('')}
+          </div>
+          ` : ''}
+          
+          <div class="section">
+              <h2>📊 按类别统计</h2>
+              <table>
+                  <thead>
+                      <tr><th>测试类别</th><th>通过</th><th>总数</th><th>成功率</th></tr>
+                  </thead>
+                  <tbody>
+                      ${Object.entries(report.summary.testCategories).map(([category, stats]) => `
+                      <tr>
+                          <td>${category}</td>
+                          <td class="success">${stats.passed}</td>
+                          <td>${stats.total}</td>
+                          <td>${((stats.passed / stats.total) * 100).toFixed(1)}%</td>
+                      </tr>
+                      `).join('')}
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </body>
+  </html>
+    `;
+    
+    fs.writeFileSync(filePath, html);
   }
 }
 
