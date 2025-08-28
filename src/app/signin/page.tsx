@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 // 将使用 useSearchParams 的逻辑分离到单独的组件中
 function SignInForm() {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ function SignInForm() {
         try {
             const result = await signIn('credentials', {
                 redirect: false, // 我们将手动处理跳转
-                email,
+                identifier,
                 password,
                 callbackUrl,
             });
@@ -55,20 +55,23 @@ function SignInForm() {
                     </div>
                 )}
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                        邮箱地址
+                    <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
+                        账号
                     </label>
                     <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
+                        id="identifier"
+                        name="identifier"
+                        type="text"
+                        autoComplete="username"
                         required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
                         className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                        placeholder="请输入邮箱地址"
+                        placeholder="请输入用户名、手机号或邮箱"
                     />
+                    <p className="mt-1 text-xs text-gray-500">
+                        支持用户名、手机号或邮箱登录
+                    </p>
                 </div>
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">

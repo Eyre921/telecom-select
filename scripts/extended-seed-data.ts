@@ -18,6 +18,7 @@ async function createExtendedTestData() {
           id: 'school-1',
           name: '北京大学',
           type: OrgType.SCHOOL,
+          description: '中国顶尖综合性大学，以文理基础学科见长',
           parentId: null
         }
       }),
@@ -28,6 +29,7 @@ async function createExtendedTestData() {
           id: 'school-2',
           name: '清华大学',
           type: OrgType.SCHOOL,
+          description: '中国顶尖理工科大学，工程技术领域领先',
           parentId: null
         }
       }),
@@ -38,6 +40,7 @@ async function createExtendedTestData() {
           id: 'school-3',
           name: '中国人民大学',
           type: OrgType.SCHOOL,
+          description: '人文社会科学高等教育的重要基地',
           parentId: null
         }
       }),
@@ -49,6 +52,7 @@ async function createExtendedTestData() {
           id: 'school-4',
           name: '北京师范大学',
           type: OrgType.SCHOOL,
+          description: '师范教育的领军学府，教育学心理学优势突出',
           parentId: null
         }
       }),
@@ -59,6 +63,7 @@ async function createExtendedTestData() {
           id: 'school-5',
           name: '北京理工大学',
           type: OrgType.SCHOOL,
+          description: '理工科强校，国防科技特色鲜明',
           parentId: null
         }
       }),
@@ -69,6 +74,7 @@ async function createExtendedTestData() {
           id: 'school-6',
           name: '北京航空航天大学',
           type: OrgType.SCHOOL,
+          description: '航空航天领域的顶尖学府',
           parentId: null
         }
       })
@@ -86,6 +92,7 @@ async function createExtendedTestData() {
           id: 'dept-1',
           name: '计算机学院',
           type: OrgType.DEPARTMENT,
+          description: '计算机科学与技术专业教学研究',
           parentId: schools[0].id
         }
       }),
@@ -96,6 +103,7 @@ async function createExtendedTestData() {
           id: 'dept-2',
           name: '数学学院',
           type: OrgType.DEPARTMENT,
+          description: '数学基础学科教学与研究',
           parentId: schools[0].id
         }
       }),
@@ -106,6 +114,7 @@ async function createExtendedTestData() {
           id: 'dept-3',
           name: '物理学院',
           type: OrgType.DEPARTMENT,
+          description: '物理学基础与应用研究',
           parentId: schools[0].id
         }
       }),
@@ -117,6 +126,7 @@ async function createExtendedTestData() {
           id: 'dept-4',
           name: '软件学院',
           type: OrgType.DEPARTMENT,
+          description: '软件工程与技术专业教育',
           parentId: schools[1].id
         }
       }),
@@ -127,6 +137,7 @@ async function createExtendedTestData() {
           id: 'dept-5',
           name: '电子工程系',
           type: OrgType.DEPARTMENT,
+          description: '电子信息工程技术研究',
           parentId: schools[1].id
         }
       }),
@@ -137,6 +148,7 @@ async function createExtendedTestData() {
           id: 'dept-6',
           name: '自动化系',
           type: OrgType.DEPARTMENT,
+          description: '自动化控制技术与系统',
           parentId: schools[1].id
         }
       }),
@@ -148,6 +160,7 @@ async function createExtendedTestData() {
           id: 'dept-7',
           name: '信息学院',
           type: OrgType.DEPARTMENT,
+          description: '信息管理与信息系统专业',
           parentId: schools[2].id
         }
       }),
@@ -158,6 +171,7 @@ async function createExtendedTestData() {
           id: 'dept-8',
           name: '心理学院',
           type: OrgType.DEPARTMENT,
+          description: '心理学理论与应用研究',
           parentId: schools[3].id
         }
       }),
@@ -168,6 +182,7 @@ async function createExtendedTestData() {
           id: 'dept-9',
           name: '机械工程学院',
           type: OrgType.DEPARTMENT,
+          description: '机械设计制造及自动化',
           parentId: schools[4].id
         }
       }),
@@ -178,13 +193,14 @@ async function createExtendedTestData() {
           id: 'dept-10',
           name: '航空学院',
           type: OrgType.DEPARTMENT,
+          description: '航空航天工程技术',
           parentId: schools[5].id
         }
       })
     ]);
     console.log('✅ 扩展院系组织创建完成');
 
-    // 3. 创建扩展用户
+    // 3. 创建扩展用户（适配新的数据库结构）
     console.log('👥 创建扩展用户...');
     const hashedPassword = await bcrypt.hash('123456', 10);
     
@@ -194,7 +210,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@system.com' },
         update: {},
         create: {
+          username: 'superadmin',
           name: '系统管理员',
+          phone: '13800000001',
           email: 'admin@system.com',
           password: hashedPassword,
           role: Role.SUPER_ADMIN
@@ -205,7 +223,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@pku.edu.cn' },
         update: {},
         create: {
+          username: 'pkuadmin',
           name: '北大管理员',
+          phone: '13800000002',
           email: 'admin@pku.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -215,7 +235,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@tsinghua.edu.cn' },
         update: {},
         create: {
+          username: 'thuadmin',
           name: '清华管理员',
+          phone: '13800000003',
           email: 'admin@tsinghua.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -225,7 +247,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@ruc.edu.cn' },
         update: {},
         create: {
+          username: 'rucadmin',
           name: '人大管理员',
+          phone: '13800000004',
           email: 'admin@ruc.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -235,7 +259,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@bnu.edu.cn' },
         update: {},
         create: {
+          username: 'bnuadmin',
           name: '师大管理员',
+          phone: '13800000005',
           email: 'admin@bnu.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -245,7 +271,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@bit.edu.cn' },
         update: {},
         create: {
+          username: 'bitadmin',
           name: '理工管理员',
+          phone: '13800000006',
           email: 'admin@bit.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -255,7 +283,9 @@ async function createExtendedTestData() {
         where: { email: 'admin@buaa.edu.cn' },
         update: {},
         create: {
+          username: 'buaaadmin',
           name: '航天管理员',
+          phone: '13800000007',
           email: 'admin@buaa.edu.cn',
           password: hashedPassword,
           role: Role.SCHOOL_ADMIN
@@ -266,7 +296,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer1@telecom.com' },
         update: {},
         create: {
+          username: 'marketer001',
           name: '销售员张三',
+          phone: '13900000001',
           email: 'marketer1@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -276,7 +308,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer2@telecom.com' },
         update: {},
         create: {
+          username: 'marketer002',
           name: '销售员李四',
+          phone: '13900000002',
           email: 'marketer2@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -286,7 +320,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer3@telecom.com' },
         update: {},
         create: {
+          username: 'marketer003',
           name: '销售员王五',
+          phone: '13900000003',
           email: 'marketer3@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -296,7 +332,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer4@telecom.com' },
         update: {},
         create: {
+          username: 'marketer004',
           name: '销售员赵六',
+          phone: '13900000004',
           email: 'marketer4@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -306,7 +344,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer5@telecom.com' },
         update: {},
         create: {
+          username: 'marketer005',
           name: '销售员钱七',
+          phone: '13900000005',
           email: 'marketer5@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -316,7 +356,9 @@ async function createExtendedTestData() {
         where: { email: 'marketer6@telecom.com' },
         update: {},
         create: {
+          username: 'marketer006',
           name: '销售员孙八',
+          phone: '13900000006',
           email: 'marketer6@telecom.com',
           password: hashedPassword,
           role: Role.MARKETER
@@ -336,32 +378,24 @@ async function createExtendedTestData() {
       { userId: users[5].id, organizationId: schools[4].id, role: Role.SCHOOL_ADMIN }, // 理工
       { userId: users[6].id, organizationId: schools[5].id, role: Role.SCHOOL_ADMIN }, // 航天
       
-      // 销售员关联 - 多学校多院系
-      // 销售员1：北大计算机+数学
+      // 销售员关联 - 只分配到学校级别
+      // 销售员1：北大
       { userId: users[7].id, organizationId: schools[0].id, role: Role.MARKETER },
-      { userId: users[7].id, organizationId: departments[0].id, role: Role.MARKETER },
-      { userId: users[7].id, organizationId: departments[1].id, role: Role.MARKETER },
       
-      // 销售员2：清华软件+电子
+      // 销售员2：清华
       { userId: users[8].id, organizationId: schools[1].id, role: Role.MARKETER },
-      { userId: users[8].id, organizationId: departments[3].id, role: Role.MARKETER },
-      { userId: users[8].id, organizationId: departments[4].id, role: Role.MARKETER },
       
-      // 销售员3：人大信息
+      // 销售员3：人大
       { userId: users[9].id, organizationId: schools[2].id, role: Role.MARKETER },
-      { userId: users[9].id, organizationId: departments[6].id, role: Role.MARKETER },
       
-      // 销售员4：师大心理
+      // 销售员4：师大
       { userId: users[10].id, organizationId: schools[3].id, role: Role.MARKETER },
-      { userId: users[10].id, organizationId: departments[7].id, role: Role.MARKETER },
       
-      // 销售员5：理工机械
+      // 销售员5：理工
       { userId: users[11].id, organizationId: schools[4].id, role: Role.MARKETER },
-      { userId: users[11].id, organizationId: departments[8].id, role: Role.MARKETER },
       
-      // 销售员6：航天航空
-      { userId: users[12].id, organizationId: schools[5].id, role: Role.MARKETER },
-      { userId: users[12].id, organizationId: departments[9].id, role: Role.MARKETER }
+      // 销售员6：航天
+      { userId: users[12].id, organizationId: schools[5].id, role: Role.MARKETER }
     ];
     
     for (const relation of userOrgRelations) {
@@ -462,21 +496,21 @@ async function createExtendedTestData() {
     
     console.log('\n👥 扩展测试账号信息:');
     console.log('=== 管理员账号 ===');
-    console.log('超级管理员: admin@system.com / 123456');
-    console.log('北大管理员: admin@pku.edu.cn / 123456');
-    console.log('清华管理员: admin@tsinghua.edu.cn / 123456');
-    console.log('人大管理员: admin@ruc.edu.cn / 123456');
-    console.log('师大管理员: admin@bnu.edu.cn / 123456');
-    console.log('理工管理员: admin@bit.edu.cn / 123456');
-    console.log('航天管理员: admin@buaa.edu.cn / 123456');
+    console.log('超级管理员: superadmin / admin@system.com / 123456');
+    console.log('北大管理员: pkuadmin / admin@pku.edu.cn / 123456');
+    console.log('清华管理员: thuadmin / admin@tsinghua.edu.cn / 123456');
+    console.log('人大管理员: rucadmin / admin@ruc.edu.cn / 123456');
+    console.log('师大管理员: bnuadmin / admin@bnu.edu.cn / 123456');
+    console.log('理工管理员: bitadmin / admin@bit.edu.cn / 123456');
+    console.log('航天管理员: buaaadmin / admin@buaa.edu.cn / 123456');
     
     console.log('\n=== 销售员账号 ===');
-    console.log('销售员1(北大): marketer1@telecom.com / 123456');
-    console.log('销售员2(清华): marketer2@telecom.com / 123456');
-    console.log('销售员3(人大): marketer3@telecom.com / 123456');
-    console.log('销售员4(师大): marketer4@telecom.com / 123456');
-    console.log('销售员5(理工): marketer5@telecom.com / 123456');
-    console.log('销售员6(航天): marketer6@telecom.com / 123456');
+    console.log('销售员1(北大): marketer001 / marketer1@telecom.com / 123456');
+    console.log('销售员2(清华): marketer002 / marketer2@telecom.com / 123456');
+    console.log('销售员3(人大): marketer003 / marketer3@telecom.com / 123456');
+    console.log('销售员4(师大): marketer004 / marketer4@telecom.com / 123456');
+    console.log('销售员5(理工): marketer005 / marketer5@telecom.com / 123456');
+    console.log('销售员6(航天): marketer006 / marketer6@telecom.com / 123456');
     
     console.log('\n🎉 扩展测试数据创建完成！');
     

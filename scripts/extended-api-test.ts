@@ -10,6 +10,8 @@ const execAsync = promisify(exec);
 
 interface ExtendedTestUser {
   email: string;
+  username: string;  // 新增：用户名字段
+  phone: string;     // 新增：手机号字段
   password: string;
   role: string;
   name: string;
@@ -66,10 +68,12 @@ class ExtendedAPITester {
     this.baseUrl = baseUrl;
     this.startTime = new Date();
     
-    // 扩展的测试用户列表
+    // 更新测试用户列表，与 extended-seed-data.ts 完全一致
     this.extendedTestUsers = [
       {
         email: 'admin@system.com',
+        username: 'superadmin',
+        phone: '13800000001',
         password: '123456',
         role: 'SUPER_ADMIN',
         name: '系统管理员',
@@ -77,6 +81,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@pku.edu.cn',
+        username: 'pkuadmin',
+        phone: '13800000002',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '北大管理员',
@@ -85,6 +91,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@tsinghua.edu.cn',
+        username: 'thuadmin',
+        phone: '13800000003',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '清华管理员',
@@ -93,6 +101,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@ruc.edu.cn',
+        username: 'rucadmin',
+        phone: '13800000004',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '人大管理员',
@@ -101,6 +111,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@bnu.edu.cn',
+        username: 'bnuadmin',
+        phone: '13800000005',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '师大管理员',
@@ -109,6 +121,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@bit.edu.cn',
+        username: 'bitadmin',
+        phone: '13800000006',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '理工管理员',
@@ -117,6 +131,8 @@ class ExtendedAPITester {
       },
       {
         email: 'admin@buaa.edu.cn',
+        username: 'buaaadmin',
+        phone: '13800000007',
         password: '123456',
         role: 'SCHOOL_ADMIN',
         name: '航天管理员',
@@ -125,6 +141,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer1@telecom.com',
+        username: 'marketer001',
+        phone: '13900000001',
         password: '123456',
         role: 'MARKETER',
         name: '销售员张三',
@@ -134,6 +152,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer2@telecom.com',
+        username: 'marketer002',
+        phone: '13900000002',
         password: '123456',
         role: 'MARKETER',
         name: '销售员李四',
@@ -143,6 +163,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer3@telecom.com',
+        username: 'marketer003',
+        phone: '13900000003',
         password: '123456',
         role: 'MARKETER',
         name: '销售员王五',
@@ -152,6 +174,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer4@telecom.com',
+        username: 'marketer004',
+        phone: '13900000004',
         password: '123456',
         role: 'MARKETER',
         name: '销售员赵六',
@@ -161,6 +185,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer5@telecom.com',
+        username: 'marketer005',
+        phone: '13900000005',
         password: '123456',
         role: 'MARKETER',
         name: '销售员钱七',
@@ -170,6 +196,8 @@ class ExtendedAPITester {
       },
       {
         email: 'marketer6@telecom.com',
+        username: 'marketer006',
+        phone: '13900000006',
         password: '123456',
         role: 'MARKETER',
         name: '销售员孙八',
@@ -240,7 +268,7 @@ class ExtendedAPITester {
       
       // 2. 使用正确的 NextAuth credentials provider 登录方式
       const loginData = new URLSearchParams({
-        email: user.email,
+        identifier: user.email,  // 修改：从 email 改为 identifier
         password: user.password,
         csrfToken: csrfToken,
         callbackUrl: `${this.baseUrl}/admin/dashboard`,

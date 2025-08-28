@@ -1,0 +1,2391 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多租户API测试报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #333; }
+        .summary-card .value { font-size: 24px; font-weight: bold; color: #007bff; }
+        .test-results { margin-top: 20px; }
+        .test-item { margin-bottom: 15px; padding: 15px; border-radius: 6px; border-left: 4px solid #ddd; }
+        .test-success { background-color: #d4edda; border-left-color: #28a745; }
+        .test-failure { background-color: #f8d7da; border-left-color: #dc3545; }
+        .test-name { font-weight: bold; margin-bottom: 5px; }
+        .test-details { font-size: 14px; color: #666; }
+        .test-error { color: #dc3545; margin-top: 10px; }
+        .response-data { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>多租户API测试报告</h1>
+            <p>生成时间: 2025-08-28T04:58:23.101Z</p>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-card">
+                <h3>总测试数</h3>
+                <div class="value">36</div>
+            </div>
+            <div class="summary-card">
+                <h3>成功数</h3>
+                <div class="value" style="color: #28a745;">34</div>
+            </div>
+            <div class="summary-card">
+                <h3>失败数</h3>
+                <div class="value" style="color: #dc3545;">2</div>
+            </div>
+            <div class="summary-card">
+                <h3>成功率</h3>
+                <div class="value">94.44%</div>
+            </div>
+            <div class="summary-card">
+                <h3>总耗时</h3>
+                <div class="value">4523ms</div>
+            </div>
+            <div class="summary-card">
+                <h3>平均响应时间</h3>
+                <div class="value">91.36ms</div>
+            </div>
+        </div>
+        
+        <div class="test-results">
+            <h2>详细测试结果</h2>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">超级管理员获取组织层级</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations/hierarchy - 
+                        状态码: 200 - 
+                        响应时间: 112ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "success": true,
+  "data": [
+    {
+      "id": "school-3",
+      "name": "中国人民大学",
+      "type": "SCHOOL",
+      "description": "人文社会科学高等教育的重要基地",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-7",
+          "name": "信息学院",
+          "type": "DEPARTMENT",
+          "description": "信息管理与信息系统专业",
+          "parentId": "school-3",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 0,
+        "availableNumbers": 0,
+        "pendingReview": 0
+      }
+    },
+    {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL",
+      "description": "中国顶尖综合性大学，以文理基础学科见长",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-2",
+          "name": "数学学院",
+          "type": "DEPARTMENT",
+          "description": "数学基础学科教学与研究",
+          "parentId": "school-1",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        },
+        {
+          "id": "dept-3",
+          "name": "物理学院",
+          "type": "DEPARTMENT",
+          "description": "物理学基础与应用研究",
+          "parentId": "school-1",
+          "children": [],
+          "stats": {
+            "userCount": 0,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        },
+        {
+          "id": "dept-1",
+          "name": "计算机学院",
+          "type": "DEPARTMENT",
+          "description": "计算机科学与技术专业教学研究",
+          "parentId": "school-1",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 6,
+            "availableNumbers": 2,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 6,
+        "availableNumbers": 2,
+        "pendingReview": 0
+      }
+    },
+    {
+      "id": "school-4",
+      "name": "北京师范大学",
+      "type": "SCHOOL",
+      "description": "师范教育的领军学府，教育学心理学优势突出",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-8",
+          "name": "心理学院",
+          "type": "DEPARTMENT",
+          "description": "心理学理论与应用研究",
+          "parentId": "school-4",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 0,
+        "availableNumbers": 0,
+        "pendingReview": 0
+      }
+    },
+    {
+      "id": "school-5",
+      "name": "北京理工大学",
+      "type": "SCHOOL",
+      "description": "理工科强校，国防科技特色鲜明",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-9",
+          "name": "机械工程学院",
+          "type": "DEPARTMENT",
+          "description": "机械设计制造及自动化",
+          "parentId": "school-5",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 0,
+        "availableNumbers": 0,
+        "pendingReview": 0
+      }
+    },
+    {
+      "id": "school-6",
+      "name": "北京航空航天大学",
+      "type": "SCHOOL",
+      "description": "航空航天领域的顶尖学府",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-10",
+          "name": "航空学院",
+          "type": "DEPARTMENT",
+          "description": "航空航天工程技术",
+          "parentId": "school-6",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 0,
+        "availableNumbers": 0,
+        "pendingReview": 0
+      }
+    },
+    {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL",
+      "description": "中国顶尖理工科大学，工程技术领域领先",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-5",
+          "name": "电子工程系",
+          "type": "DEPARTMENT",
+          "description": "电子信息工程技术研究",
+          "parentId": "school-2",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        },
+        {
+          "id": "dept-6",
+          "name": "自动化系",
+          "type": "DEPARTMENT",
+          "description": "自动化控制技术与系统",
+          "parentId": "school-2",
+          "children": [],
+          "stats": {
+            "userCount": 0,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        },
+        {
+          "id": "dept-4",
+          "name": "软件学院",
+          "type": "DEPARTMENT",
+          "description": "软件工程与技术专业教育",
+          "parentId": "school-2",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 0,
+        "availableNumbers": 0,
+        "pendingReview": 0
+      }
+    }
+  ],
+  "meta": {
+    "totalOrganizations": 16,
+    "timestamp": "2025-08-28T04:58:19.841Z"
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">学校管理员获取组织层级</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations/hierarchy - 
+                        状态码: 200 - 
+                        响应时间: 81ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "success": true,
+  "data": [
+    {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL",
+      "description": "中国顶尖综合性大学，以文理基础学科见长",
+      "parentId": null,
+      "children": [],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 6,
+        "availableNumbers": 2,
+        "pendingReview": 0
+      }
+    }
+  ],
+  "meta": {
+    "totalOrganizations": 1,
+    "timestamp": "2025-08-28T04:58:19.922Z"
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">销售员获取组织层级</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations/hierarchy - 
+                        状态码: 200 - 
+                        响应时间: 104ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "success": true,
+  "data": [
+    {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL",
+      "description": "中国顶尖综合性大学，以文理基础学科见长",
+      "parentId": null,
+      "children": [
+        {
+          "id": "dept-2",
+          "name": "数学学院",
+          "type": "DEPARTMENT",
+          "description": "数学基础学科教学与研究",
+          "parentId": "school-1",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 0,
+            "availableNumbers": 0,
+            "pendingReview": 0
+          }
+        },
+        {
+          "id": "dept-1",
+          "name": "计算机学院",
+          "type": "DEPARTMENT",
+          "description": "计算机科学与技术专业教学研究",
+          "parentId": "school-1",
+          "children": [],
+          "stats": {
+            "userCount": 1,
+            "numberCount": 6,
+            "availableNumbers": 2,
+            "pendingReview": 0
+          }
+        }
+      ],
+      "stats": {
+        "userCount": 2,
+        "numberCount": 6,
+        "availableNumbers": 2,
+        "pendingReview": 0
+      }
+    }
+  ],
+  "meta": {
+    "totalOrganizations": 3,
+    "timestamp": "2025-08-28T04:58:20.026Z"
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">超级管理员获取用户列表</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 200 - 
+                        响应时间: 68ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "users": [
+    {
+      "id": "cmeux7fyr000jcdgk1jbpkm13",
+      "username": "Eyre",
+      "name": "符航康",
+      "phone": "19073126356",
+      "email": "eyre@hnu.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$Z.J1hP0AsXJySFqyK8o6kObYgpd.NrXzkFkWFKdNEyAttMnzYPs/S",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:45:22.708Z",
+      "updatedAt": "2025-08-28T04:53:05.667Z",
+      "organizations": []
+    },
+    {
+      "id": "cmeuwy1ll0000cd309sc1vo9p",
+      "username": "rucadmin",
+      "name": "人大管理员",
+      "phone": "13800000004",
+      "email": "admin@ruc.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1rp000icd305vsr0tio",
+          "userId": "cmeuwy1ll0000cd309sc1vo9p",
+          "organizationId": "school-3",
+          "role": "SCHOOL_ADMIN",
+          "createdAt": "2025-08-28T04:38:04.406Z",
+          "updatedAt": "2025-08-28T04:38:04.406Z",
+          "organization": {
+            "id": "school-3",
+            "name": "中国人民大学",
+            "type": "SCHOOL",
+            "description": "人文社会科学高等教育的重要基地",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0008cd30xdfud0nz",
+      "username": "buaaadmin",
+      "name": "航天管理员",
+      "phone": "13800000007",
+      "email": "admin@buaa.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1rz000ocd30odnbt05d",
+          "userId": "cmeuwy1lm0008cd30xdfud0nz",
+          "organizationId": "school-6",
+          "role": "SCHOOL_ADMIN",
+          "createdAt": "2025-08-28T04:38:04.416Z",
+          "updatedAt": "2025-08-28T04:38:04.416Z",
+          "organization": {
+            "id": "school-6",
+            "name": "北京航空航天大学",
+            "type": "SCHOOL",
+            "description": "航空航天领域的顶尖学府",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.889Z",
+            "updatedAt": "2025-08-28T04:38:03.889Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0007cd30c9f5gm93",
+      "username": "marketer002",
+      "name": "销售员李四",
+      "phone": "13900000002",
+      "email": "marketer2@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1sh000ycd30z8q642p8",
+          "userId": "cmeuwy1lm0007cd30c9f5gm93",
+          "organizationId": "dept-4",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.433Z",
+          "updatedAt": "2025-08-28T04:38:04.433Z",
+          "organization": {
+            "id": "dept-4",
+            "name": "软件学院",
+            "type": "DEPARTMENT",
+            "description": "软件工程与技术专业教育",
+            "parentId": "school-2",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sk0010cd30hvhar353",
+          "userId": "cmeuwy1lm0007cd30c9f5gm93",
+          "organizationId": "dept-5",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.436Z",
+          "updatedAt": "2025-08-28T04:38:04.436Z",
+          "organization": {
+            "id": "dept-5",
+            "name": "电子工程系",
+            "type": "DEPARTMENT",
+            "description": "电子信息工程技术研究",
+            "parentId": "school-2",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sd000wcd306h7qldau",
+          "userId": "cmeuwy1lm0007cd30c9f5gm93",
+          "organizationId": "school-2",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.430Z",
+          "updatedAt": "2025-08-28T04:38:04.430Z",
+          "organization": {
+            "id": "school-2",
+            "name": "清华大学",
+            "type": "SCHOOL",
+            "description": "中国顶尖理工科大学，工程技术领域领先",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0009cd30ornbfaco",
+      "username": "marketer001",
+      "name": "销售员张三",
+      "phone": "13900000001",
+      "email": "marketer1@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1s7000scd30fxg8zifk",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "dept-1",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.423Z",
+          "updatedAt": "2025-08-28T04:38:04.423Z",
+          "organization": {
+            "id": "dept-1",
+            "name": "计算机学院",
+            "type": "DEPARTMENT",
+            "description": "计算机科学与技术专业教学研究",
+            "parentId": "school-1",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sa000ucd30pr3imgrk",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "dept-2",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.427Z",
+          "updatedAt": "2025-08-28T04:38:04.427Z",
+          "organization": {
+            "id": "dept-2",
+            "name": "数学学院",
+            "type": "DEPARTMENT",
+            "description": "数学基础学科教学与研究",
+            "parentId": "school-1",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1s3000qcd30jox06bv0",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "school-1",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.419Z",
+          "updatedAt": "2025-08-28T04:38:04.419Z",
+          "organization": {
+            "id": "school-1",
+            "name": "北京大学",
+            "type": "SCHOOL",
+            "description": "中国顶尖综合性大学，以文理基础学科见长",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lo000acd3053ypyfsh",
+      "username": "marketer004",
+      "name": "销售员赵六",
+      "phone": "13900000004",
+      "email": "marketer4@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1sz0018cd30d2w7q7ky",
+          "userId": "cmeuwy1lo000acd3053ypyfsh",
+          "organizationId": "dept-8",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.451Z",
+          "updatedAt": "2025-08-28T04:38:04.451Z",
+          "organization": {
+            "id": "dept-8",
+            "name": "心理学院",
+            "type": "DEPARTMENT",
+            "description": "心理学理论与应用研究",
+            "parentId": "school-4",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sv0016cd30x6ty2ti9",
+          "userId": "cmeuwy1lo000acd3053ypyfsh",
+          "organizationId": "school-4",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.447Z",
+          "updatedAt": "2025-08-28T04:38:04.447Z",
+          "organization": {
+            "id": "school-4",
+            "name": "北京师范大学",
+            "type": "SCHOOL",
+            "description": "师范教育的领军学府，教育学心理学优势突出",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0006cd30fosf4lxa",
+      "username": "bnuadmin",
+      "name": "师大管理员",
+      "phone": "13800000005",
+      "email": "admin@bnu.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1rt000kcd30aghqi0rk",
+          "userId": "cmeuwy1lm0006cd30fosf4lxa",
+          "organizationId": "school-4",
+          "role": "SCHOOL_ADMIN",
+          "createdAt": "2025-08-28T04:38:04.409Z",
+          "updatedAt": "2025-08-28T04:38:04.409Z",
+          "organization": {
+            "id": "school-4",
+            "name": "北京师范大学",
+            "type": "SCHOOL",
+            "description": "师范教育的领军学府，教育学心理学优势突出",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lo000bcd309g9deb9w",
+      "username": "marketer006",
+      "name": "销售员孙八",
+      "phone": "13900000006",
+      "email": "marketer6@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1te001gcd30g9r6tk08",
+          "userId": "cmeuwy1lo000bcd309g9deb9w",
+          "organizationId": "dept-10",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.467Z",
+          "updatedAt": "2025-08-28T04:38:04.467Z",
+          "organization": {
+            "id": "dept-10",
+            "name": "航空学院",
+            "type": "DEPARTMENT",
+            "description": "航空航天工程技术",
+            "parentId": "school-6",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1tb001ecd30klvg2z5j",
+          "userId": "cmeuwy1lo000bcd309g9deb9w",
+          "organizationId": "school-6",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.463Z",
+          "updatedAt": "2025-08-28T04:38:04.463Z",
+          "organization": {
+            "id": "school-6",
+            "name": "北京航空航天大学",
+            "type": "SCHOOL",
+            "description": "航空航天领域的顶尖学府",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.889Z",
+            "updatedAt": "2025-08-28T04:38:03.889Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0004cd308utozlqo",
+      "username": "thuadmin",
+      "name": "清华管理员",
+      "phone": "13800000003",
+      "email": "admin@tsinghua.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1rm000gcd309ot55m7r",
+          "userId": "cmeuwy1lm0004cd308utozlqo",
+          "organizationId": "school-2",
+          "role": "SCHOOL_ADMIN",
+          "createdAt": "2025-08-28T04:38:04.403Z",
+          "updatedAt": "2025-08-28T04:38:04.403Z",
+          "organization": {
+            "id": "school-2",
+            "name": "清华大学",
+            "type": "SCHOOL",
+            "description": "中国顶尖理工科大学，工程技术领域领先",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1lm0005cd304t1066mt",
+      "username": "marketer003",
+      "name": "销售员王五",
+      "phone": "13900000003",
+      "email": "marketer3@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1ss0014cd30qt4lq7yl",
+          "userId": "cmeuwy1lm0005cd304t1066mt",
+          "organizationId": "dept-7",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.444Z",
+          "updatedAt": "2025-08-28T04:38:04.444Z",
+          "organization": {
+            "id": "dept-7",
+            "name": "信息学院",
+            "type": "DEPARTMENT",
+            "description": "信息管理与信息系统专业",
+            "parentId": "school-3",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sn0012cd302yjl4yt0",
+          "userId": "cmeuwy1lm0005cd304t1066mt",
+          "organizationId": "school-3",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.440Z",
+          "updatedAt": "2025-08-28T04:38:04.440Z",
+          "organization": {
+            "id": "school-3",
+            "name": "中国人民大学",
+            "type": "SCHOOL",
+            "description": "人文社会科学高等教育的重要基地",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 14,
+    "totalPages": 2
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">学校管理员获取用户列表</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 200 - 
+                        响应时间: 72ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "users": [
+    {
+      "id": "cmeuwy1lm0009cd30ornbfaco",
+      "username": "marketer001",
+      "name": "销售员张三",
+      "phone": "13900000001",
+      "email": "marketer1@telecom.com",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1s7000scd30fxg8zifk",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "dept-1",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.423Z",
+          "updatedAt": "2025-08-28T04:38:04.423Z",
+          "organization": {
+            "id": "dept-1",
+            "name": "计算机学院",
+            "type": "DEPARTMENT",
+            "description": "计算机科学与技术专业教学研究",
+            "parentId": "school-1",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1sa000ucd30pr3imgrk",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "dept-2",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.427Z",
+          "updatedAt": "2025-08-28T04:38:04.427Z",
+          "organization": {
+            "id": "dept-2",
+            "name": "数学学院",
+            "type": "DEPARTMENT",
+            "description": "数学基础学科教学与研究",
+            "parentId": "school-1",
+            "createdAt": "2025-08-28T04:38:03.964Z",
+            "updatedAt": "2025-08-28T04:38:03.964Z"
+          }
+        },
+        {
+          "id": "cmeuwy1s3000qcd30jox06bv0",
+          "userId": "cmeuwy1lm0009cd30ornbfaco",
+          "organizationId": "school-1",
+          "role": "MARKETER",
+          "createdAt": "2025-08-28T04:38:04.419Z",
+          "updatedAt": "2025-08-28T04:38:04.419Z",
+          "organization": {
+            "id": "school-1",
+            "name": "北京大学",
+            "type": "SCHOOL",
+            "description": "中国顶尖综合性大学，以文理基础学科见长",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cmeuwy1ll0001cd303xjtb8g0",
+      "username": "pkuadmin",
+      "name": "北大管理员",
+      "phone": "13800000002",
+      "email": "admin@pku.edu.cn",
+      "emailVerified": null,
+      "password": "$2b$10$1jmvE5PHqIewEAPq64UGdO0ZJ8rwO2mCduERqUkWnYhojr.p7cKTS",
+      "image": null,
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.186Z",
+      "updatedAt": "2025-08-28T04:38:04.186Z",
+      "organizations": [
+        {
+          "id": "cmeuwy1rj000ecd30m23u6rg7",
+          "userId": "cmeuwy1ll0001cd303xjtb8g0",
+          "organizationId": "school-1",
+          "role": "SCHOOL_ADMIN",
+          "createdAt": "2025-08-28T04:38:04.399Z",
+          "updatedAt": "2025-08-28T04:38:04.399Z",
+          "organization": {
+            "id": "school-1",
+            "name": "北京大学",
+            "type": "SCHOOL",
+            "description": "中国顶尖综合性大学，以文理基础学科见长",
+            "parentId": null,
+            "createdAt": "2025-08-28T04:38:03.888Z",
+            "updatedAt": "2025-08-28T04:38:03.888Z"
+          }
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 2,
+    "totalPages": 1
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建新用户</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 201 - 
+                        响应时间: 133ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "user": {
+    "id": "cmeuxo3ye000kcdgk1m7ttlul",
+    "username": "testuser001",
+    "name": "测试用户",
+    "phone": "13999999999",
+    "email": "testuser@example.com",
+    "emailVerified": null,
+    "image": null,
+    "role": "MARKETER",
+    "createdAt": "2025-08-28T04:58:20.295Z",
+    "updatedAt": "2025-08-28T04:58:20.295Z",
+    "organizations": []
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">更新用户信息</div>
+                    <div class="test-details">
+                        <strong>PATCH</strong> http://localhost:3000/api/admin/users/cmeuxo3ye000kcdgk1m7ttlul - 
+                        状态码: 200 - 
+                        响应时间: 111ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "id": "cmeuxo3ye000kcdgk1m7ttlul",
+  "username": "testuser001",
+  "name": "测试用户（已更新）",
+  "phone": "13999999999",
+  "email": "testuser_updated@example.com",
+  "emailVerified": null,
+  "password": "$2b$10$SrvQRiE1xzfWWR470bGThO5CzMWg/cYkVPjGZO2Y3cfFwYAPtlUTO",
+  "image": null,
+  "role": "MARKETER",
+  "createdAt": "2025-08-28T04:58:20.295Z",
+  "updatedAt": "2025-08-28T04:58:20.408Z",
+  "organizations": []
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取单个用户信息</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users/cmeuxo3ye000kcdgk1m7ttlul - 
+                        状态码: 200 - 
+                        响应时间: 72ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "id": "cmeuxo3ye000kcdgk1m7ttlul",
+  "username": "testuser001",
+  "name": "测试用户（已更新）",
+  "phone": "13999999999",
+  "email": "testuser_updated@example.com",
+  "emailVerified": null,
+  "password": "$2b$10$SrvQRiE1xzfWWR470bGThO5CzMWg/cYkVPjGZO2Y3cfFwYAPtlUTO",
+  "image": null,
+  "role": "MARKETER",
+  "createdAt": "2025-08-28T04:58:20.295Z",
+  "updatedAt": "2025-08-28T04:58:20.408Z",
+  "organizations": []
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取所有组织</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations - 
+                        状态码: 200 - 
+                        响应时间: 92ms
+                    </div>
+                    
+                    <div class="response-data">[
+  {
+    "id": "school-3",
+    "name": "中国人民大学",
+    "type": "SCHOOL",
+    "description": "人文社会科学高等教育的重要基地",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-7",
+        "name": "信息学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "dept-7",
+    "name": "信息学院",
+    "type": "DEPARTMENT",
+    "description": "信息管理与信息系统专业",
+    "parentId": "school-3",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-3",
+      "name": "中国人民大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "school-1",
+    "name": "北京大学",
+    "type": "SCHOOL",
+    "description": "中国顶尖综合性大学，以文理基础学科见长",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-2",
+        "name": "数学学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-3",
+        "name": "物理学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-1",
+        "name": "计算机学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-4",
+    "name": "北京师范大学",
+    "type": "SCHOOL",
+    "description": "师范教育的领军学府，教育学心理学优势突出",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-8",
+        "name": "心理学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-5",
+    "name": "北京理工大学",
+    "type": "SCHOOL",
+    "description": "理工科强校，国防科技特色鲜明",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-9",
+        "name": "机械工程学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-6",
+    "name": "北京航空航天大学",
+    "type": "SCHOOL",
+    "description": "航空航天领域的顶尖学府",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.889Z",
+    "updatedAt": "2025-08-28T04:38:03.889Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-10",
+        "name": "航空学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "dept-8",
+    "name": "心理学院",
+    "type": "DEPARTMENT",
+    "description": "心理学理论与应用研究",
+    "parentId": "school-4",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-4",
+      "name": "北京师范大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-2",
+    "name": "数学学院",
+    "type": "DEPARTMENT",
+    "description": "数学基础学科教学与研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-9",
+    "name": "机械工程学院",
+    "type": "DEPARTMENT",
+    "description": "机械设计制造及自动化",
+    "parentId": "school-5",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-5",
+      "name": "北京理工大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "school-2",
+    "name": "清华大学",
+    "type": "SCHOOL",
+    "description": "中国顶尖理工科大学，工程技术领域领先",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-4",
+        "name": "软件学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-6",
+        "name": "自动化系",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-5",
+        "name": "电子工程系",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "dept-3",
+    "name": "物理学院",
+    "type": "DEPARTMENT",
+    "description": "物理学基础与应用研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-5",
+    "name": "电子工程系",
+    "type": "DEPARTMENT",
+    "description": "电子信息工程技术研究",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-6",
+    "name": "自动化系",
+    "type": "DEPARTMENT",
+    "description": "自动化控制技术与系统",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-10",
+    "name": "航空学院",
+    "type": "DEPARTMENT",
+    "description": "航空航天工程技术",
+    "parentId": "school-6",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-6",
+      "name": "北京航空航天大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-1",
+    "name": "计算机学院",
+    "type": "DEPARTMENT",
+    "description": "计算机科学与技术专业教学研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-4",
+    "name": "软件学院",
+    "type": "DEPARTMENT",
+    "description": "软件工程与技术专业教育",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  }
+]</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取学校组织</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations - 
+                        状态码: 200 - 
+                        响应时间: 92ms
+                    </div>
+                    
+                    <div class="response-data">[
+  {
+    "id": "school-3",
+    "name": "中国人民大学",
+    "type": "SCHOOL",
+    "description": "人文社会科学高等教育的重要基地",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-7",
+        "name": "信息学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-1",
+    "name": "北京大学",
+    "type": "SCHOOL",
+    "description": "中国顶尖综合性大学，以文理基础学科见长",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-2",
+        "name": "数学学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-3",
+        "name": "物理学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-1",
+        "name": "计算机学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-4",
+    "name": "北京师范大学",
+    "type": "SCHOOL",
+    "description": "师范教育的领军学府，教育学心理学优势突出",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-8",
+        "name": "心理学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-5",
+    "name": "北京理工大学",
+    "type": "SCHOOL",
+    "description": "理工科强校，国防科技特色鲜明",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-9",
+        "name": "机械工程学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-6",
+    "name": "北京航空航天大学",
+    "type": "SCHOOL",
+    "description": "航空航天领域的顶尖学府",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.889Z",
+    "updatedAt": "2025-08-28T04:38:03.889Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-10",
+        "name": "航空学院",
+        "type": "DEPARTMENT"
+      }
+    ]
+  },
+  {
+    "id": "school-2",
+    "name": "清华大学",
+    "type": "SCHOOL",
+    "description": "中国顶尖理工科大学，工程技术领域领先",
+    "parentId": null,
+    "createdAt": "2025-08-28T04:38:03.888Z",
+    "updatedAt": "2025-08-28T04:38:03.888Z",
+    "parent": null,
+    "children": [
+      {
+        "id": "dept-4",
+        "name": "软件学院",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-6",
+        "name": "自动化系",
+        "type": "DEPARTMENT"
+      },
+      {
+        "id": "dept-5",
+        "name": "电子工程系",
+        "type": "DEPARTMENT"
+      }
+    ]
+  }
+]</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取院系组织</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/organizations - 
+                        状态码: 200 - 
+                        响应时间: 94ms
+                    </div>
+                    
+                    <div class="response-data">[
+  {
+    "id": "dept-7",
+    "name": "信息学院",
+    "type": "DEPARTMENT",
+    "description": "信息管理与信息系统专业",
+    "parentId": "school-3",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-3",
+      "name": "中国人民大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-8",
+    "name": "心理学院",
+    "type": "DEPARTMENT",
+    "description": "心理学理论与应用研究",
+    "parentId": "school-4",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-4",
+      "name": "北京师范大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-2",
+    "name": "数学学院",
+    "type": "DEPARTMENT",
+    "description": "数学基础学科教学与研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-9",
+    "name": "机械工程学院",
+    "type": "DEPARTMENT",
+    "description": "机械设计制造及自动化",
+    "parentId": "school-5",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-5",
+      "name": "北京理工大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-3",
+    "name": "物理学院",
+    "type": "DEPARTMENT",
+    "description": "物理学基础与应用研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-5",
+    "name": "电子工程系",
+    "type": "DEPARTMENT",
+    "description": "电子信息工程技术研究",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-6",
+    "name": "自动化系",
+    "type": "DEPARTMENT",
+    "description": "自动化控制技术与系统",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-10",
+    "name": "航空学院",
+    "type": "DEPARTMENT",
+    "description": "航空航天工程技术",
+    "parentId": "school-6",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-6",
+      "name": "北京航空航天大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-1",
+    "name": "计算机学院",
+    "type": "DEPARTMENT",
+    "description": "计算机科学与技术专业教学研究",
+    "parentId": "school-1",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-1",
+      "name": "北京大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  },
+  {
+    "id": "dept-4",
+    "name": "软件学院",
+    "type": "DEPARTMENT",
+    "description": "软件工程与技术专业教育",
+    "parentId": "school-2",
+    "createdAt": "2025-08-28T04:38:03.964Z",
+    "updatedAt": "2025-08-28T04:38:03.964Z",
+    "parent": {
+      "id": "school-2",
+      "name": "清华大学",
+      "type": "SCHOOL"
+    },
+    "children": []
+  }
+]</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">为用户分配组织</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 201 - 
+                        响应时间: 222ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "success": true,
+  "userOrganizations": [
+    {
+      "id": "cmeuxo4hd000mcdgkl40ijbdl",
+      "userId": "cmeuxo3ye000kcdgk1m7ttlul",
+      "organizationId": "school-1",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:58:20.978Z",
+      "updatedAt": "2025-08-28T04:58:20.978Z",
+      "organization": {
+        "id": "school-1",
+        "name": "北京大学",
+        "type": "SCHOOL",
+        "parentId": null
+      }
+    }
+  ],
+  "message": "用户组织关系分配成功"
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取用户组织关系</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 200 - 
+                        响应时间: 83ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "userOrganizations": [
+    {
+      "id": "cmeuxo4hd000mcdgkl40ijbdl",
+      "userId": "cmeuxo3ye000kcdgk1m7ttlul",
+      "organizationId": "school-1",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:58:20.978Z",
+      "updatedAt": "2025-08-28T04:58:20.978Z",
+      "user": {
+        "id": "cmeuxo3ye000kcdgk1m7ttlul",
+        "name": "测试用户（已更新）",
+        "email": "testuser_updated@example.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-1",
+        "name": "北京大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1te001gcd30g9r6tk08",
+      "userId": "cmeuwy1lo000bcd309g9deb9w",
+      "organizationId": "dept-10",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.467Z",
+      "updatedAt": "2025-08-28T04:38:04.467Z",
+      "user": {
+        "id": "cmeuwy1lo000bcd309g9deb9w",
+        "name": "销售员孙八",
+        "email": "marketer6@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-10",
+        "name": "航空学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-6",
+        "parent": {
+          "id": "school-6",
+          "name": "北京航空航天大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1tb001ecd30klvg2z5j",
+      "userId": "cmeuwy1lo000bcd309g9deb9w",
+      "organizationId": "school-6",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.463Z",
+      "updatedAt": "2025-08-28T04:38:04.463Z",
+      "user": {
+        "id": "cmeuwy1lo000bcd309g9deb9w",
+        "name": "销售员孙八",
+        "email": "marketer6@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-6",
+        "name": "北京航空航天大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1t7001ccd304tppmfq1",
+      "userId": "cmeuwy1lo000ccd30jw2uhtsx",
+      "organizationId": "dept-9",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.459Z",
+      "updatedAt": "2025-08-28T04:38:04.459Z",
+      "user": {
+        "id": "cmeuwy1lo000ccd30jw2uhtsx",
+        "name": "销售员钱七",
+        "email": "marketer5@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-9",
+        "name": "机械工程学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-5",
+        "parent": {
+          "id": "school-5",
+          "name": "北京理工大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1t3001acd30c8kuw7eg",
+      "userId": "cmeuwy1lo000ccd30jw2uhtsx",
+      "organizationId": "school-5",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.455Z",
+      "updatedAt": "2025-08-28T04:38:04.455Z",
+      "user": {
+        "id": "cmeuwy1lo000ccd30jw2uhtsx",
+        "name": "销售员钱七",
+        "email": "marketer5@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-5",
+        "name": "北京理工大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1sz0018cd30d2w7q7ky",
+      "userId": "cmeuwy1lo000acd3053ypyfsh",
+      "organizationId": "dept-8",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.451Z",
+      "updatedAt": "2025-08-28T04:38:04.451Z",
+      "user": {
+        "id": "cmeuwy1lo000acd3053ypyfsh",
+        "name": "销售员赵六",
+        "email": "marketer4@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-8",
+        "name": "心理学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-4",
+        "parent": {
+          "id": "school-4",
+          "name": "北京师范大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1sv0016cd30x6ty2ti9",
+      "userId": "cmeuwy1lo000acd3053ypyfsh",
+      "organizationId": "school-4",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.447Z",
+      "updatedAt": "2025-08-28T04:38:04.447Z",
+      "user": {
+        "id": "cmeuwy1lo000acd3053ypyfsh",
+        "name": "销售员赵六",
+        "email": "marketer4@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-4",
+        "name": "北京师范大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1ss0014cd30qt4lq7yl",
+      "userId": "cmeuwy1lm0005cd304t1066mt",
+      "organizationId": "dept-7",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.444Z",
+      "updatedAt": "2025-08-28T04:38:04.444Z",
+      "user": {
+        "id": "cmeuwy1lm0005cd304t1066mt",
+        "name": "销售员王五",
+        "email": "marketer3@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-7",
+        "name": "信息学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-3",
+        "parent": {
+          "id": "school-3",
+          "name": "中国人民大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1sn0012cd302yjl4yt0",
+      "userId": "cmeuwy1lm0005cd304t1066mt",
+      "organizationId": "school-3",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.440Z",
+      "updatedAt": "2025-08-28T04:38:04.440Z",
+      "user": {
+        "id": "cmeuwy1lm0005cd304t1066mt",
+        "name": "销售员王五",
+        "email": "marketer3@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-3",
+        "name": "中国人民大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1sk0010cd30hvhar353",
+      "userId": "cmeuwy1lm0007cd30c9f5gm93",
+      "organizationId": "dept-5",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.436Z",
+      "updatedAt": "2025-08-28T04:38:04.436Z",
+      "user": {
+        "id": "cmeuwy1lm0007cd30c9f5gm93",
+        "name": "销售员李四",
+        "email": "marketer2@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-5",
+        "name": "电子工程系",
+        "type": "DEPARTMENT",
+        "parentId": "school-2",
+        "parent": {
+          "id": "school-2",
+          "name": "清华大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1sh000ycd30z8q642p8",
+      "userId": "cmeuwy1lm0007cd30c9f5gm93",
+      "organizationId": "dept-4",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.433Z",
+      "updatedAt": "2025-08-28T04:38:04.433Z",
+      "user": {
+        "id": "cmeuwy1lm0007cd30c9f5gm93",
+        "name": "销售员李四",
+        "email": "marketer2@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-4",
+        "name": "软件学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-2",
+        "parent": {
+          "id": "school-2",
+          "name": "清华大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1sd000wcd306h7qldau",
+      "userId": "cmeuwy1lm0007cd30c9f5gm93",
+      "organizationId": "school-2",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.430Z",
+      "updatedAt": "2025-08-28T04:38:04.430Z",
+      "user": {
+        "id": "cmeuwy1lm0007cd30c9f5gm93",
+        "name": "销售员李四",
+        "email": "marketer2@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-2",
+        "name": "清华大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1sa000ucd30pr3imgrk",
+      "userId": "cmeuwy1lm0009cd30ornbfaco",
+      "organizationId": "dept-2",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.427Z",
+      "updatedAt": "2025-08-28T04:38:04.427Z",
+      "user": {
+        "id": "cmeuwy1lm0009cd30ornbfaco",
+        "name": "销售员张三",
+        "email": "marketer1@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-2",
+        "name": "数学学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-1",
+        "parent": {
+          "id": "school-1",
+          "name": "北京大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1s7000scd30fxg8zifk",
+      "userId": "cmeuwy1lm0009cd30ornbfaco",
+      "organizationId": "dept-1",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.423Z",
+      "updatedAt": "2025-08-28T04:38:04.423Z",
+      "user": {
+        "id": "cmeuwy1lm0009cd30ornbfaco",
+        "name": "销售员张三",
+        "email": "marketer1@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "dept-1",
+        "name": "计算机学院",
+        "type": "DEPARTMENT",
+        "parentId": "school-1",
+        "parent": {
+          "id": "school-1",
+          "name": "北京大学",
+          "type": "SCHOOL"
+        }
+      }
+    },
+    {
+      "id": "cmeuwy1s3000qcd30jox06bv0",
+      "userId": "cmeuwy1lm0009cd30ornbfaco",
+      "organizationId": "school-1",
+      "role": "MARKETER",
+      "createdAt": "2025-08-28T04:38:04.419Z",
+      "updatedAt": "2025-08-28T04:38:04.419Z",
+      "user": {
+        "id": "cmeuwy1lm0009cd30ornbfaco",
+        "name": "销售员张三",
+        "email": "marketer1@telecom.com",
+        "role": "MARKETER"
+      },
+      "organization": {
+        "id": "school-1",
+        "name": "北京大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1rz000ocd30odnbt05d",
+      "userId": "cmeuwy1lm0008cd30xdfud0nz",
+      "organizationId": "school-6",
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.416Z",
+      "updatedAt": "2025-08-28T04:38:04.416Z",
+      "user": {
+        "id": "cmeuwy1lm0008cd30xdfud0nz",
+        "name": "航天管理员",
+        "email": "admin@buaa.edu.cn",
+        "role": "SCHOOL_ADMIN"
+      },
+      "organization": {
+        "id": "school-6",
+        "name": "北京航空航天大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1rw000mcd302jgpk5wv",
+      "userId": "cmeuwy1lm0003cd30arenl5nx",
+      "organizationId": "school-5",
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.413Z",
+      "updatedAt": "2025-08-28T04:38:04.413Z",
+      "user": {
+        "id": "cmeuwy1lm0003cd30arenl5nx",
+        "name": "理工管理员",
+        "email": "admin@bit.edu.cn",
+        "role": "SCHOOL_ADMIN"
+      },
+      "organization": {
+        "id": "school-5",
+        "name": "北京理工大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1rt000kcd30aghqi0rk",
+      "userId": "cmeuwy1lm0006cd30fosf4lxa",
+      "organizationId": "school-4",
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.409Z",
+      "updatedAt": "2025-08-28T04:38:04.409Z",
+      "user": {
+        "id": "cmeuwy1lm0006cd30fosf4lxa",
+        "name": "师大管理员",
+        "email": "admin@bnu.edu.cn",
+        "role": "SCHOOL_ADMIN"
+      },
+      "organization": {
+        "id": "school-4",
+        "name": "北京师范大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1rp000icd305vsr0tio",
+      "userId": "cmeuwy1ll0000cd309sc1vo9p",
+      "organizationId": "school-3",
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.406Z",
+      "updatedAt": "2025-08-28T04:38:04.406Z",
+      "user": {
+        "id": "cmeuwy1ll0000cd309sc1vo9p",
+        "name": "人大管理员",
+        "email": "admin@ruc.edu.cn",
+        "role": "SCHOOL_ADMIN"
+      },
+      "organization": {
+        "id": "school-3",
+        "name": "中国人民大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    },
+    {
+      "id": "cmeuwy1rm000gcd309ot55m7r",
+      "userId": "cmeuwy1lm0004cd308utozlqo",
+      "organizationId": "school-2",
+      "role": "SCHOOL_ADMIN",
+      "createdAt": "2025-08-28T04:38:04.403Z",
+      "updatedAt": "2025-08-28T04:38:04.403Z",
+      "user": {
+        "id": "cmeuwy1lm0004cd308utozlqo",
+        "name": "清华管理员",
+        "email": "admin@tsinghua.edu.cn",
+        "role": "SCHOOL_ADMIN"
+      },
+      "organization": {
+        "id": "school-2",
+        "name": "清华大学",
+        "type": "SCHOOL",
+        "parentId": null,
+        "parent": null
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 21,
+    "totalPages": 2
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取系统统计信息</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/stats - 
+                        状态码: 200 - 
+                        响应时间: 70ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "totalNumbers": 6,
+  "availableNumbers": 2,
+  "pendingReview": 0,
+  "newOrdersToday": 1
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">销售员尝试创建用户（权限不足）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 403 - 
+                        响应时间: 65ms
+                    </div>
+                    
+                    <div class="response-data">"权限不足"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">未登录访问用户API（未授权）</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 401 - 
+                        响应时间: 77ms
+                    </div>
+                    
+                    
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">删除测试用户</div>
+                    <div class="test-details">
+                        <strong>DELETE</strong> http://localhost:3000/api/admin/users/cmeuxo3ye000kcdgk1m7ttlul - 
+                        状态码: 204 - 
+                        响应时间: 109ms
+                    </div>
+                    
+                    
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建用户缺少用户名（数据验证）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 400 - 
+                        响应时间: 84ms
+                    </div>
+                    
+                    <div class="response-data">"用户名、姓名、手机号和邮箱为必填项"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建用户邮箱格式错误（数据验证）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 400 - 
+                        响应时间: 85ms
+                    </div>
+                    
+                    <div class="response-data">"邮箱格式不正确"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建用户手机号格式错误（数据验证）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 400 - 
+                        响应时间: 71ms
+                    </div>
+                    
+                    <div class="response-data">"手机号格式不正确"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建重复用户名的用户（唯一性约束）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 409 - 
+                        响应时间: 79ms
+                    </div>
+                    
+                    <div class="response-data">"该用户名已被使用"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建重复邮箱的用户（唯一性约束）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 409 - 
+                        响应时间: 93ms
+                    </div>
+                    
+                    <div class="response-data">"该邮箱已被使用"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">学校管理员访问其他学校用户（权限边界）</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users?organizationId=school-2 - 
+                        状态码: 403 - 
+                        响应时间: 83ms
+                    </div>
+                    
+                    <div class="response-data">"无权限访问该组织的用户数据"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">销售员尝试删除用户（权限不足）</div>
+                    <div class="test-details">
+                        <strong>DELETE</strong> http://localhost:3000/api/admin/users/cmeuw1c1k0009cdlwlob7syor - 
+                        状态码: 403 - 
+                        响应时间: 83ms
+                    </div>
+                    
+                    <div class="response-data">"权限不足"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">销售员尝试修改其他用户（权限不足）</div>
+                    <div class="test-details">
+                        <strong>PATCH</strong> http://localhost:3000/api/admin/users/cmeuw1c1k0002cdlwvrsjtz2n - 
+                        状态码: 403 - 
+                        响应时间: 142ms
+                    </div>
+                    
+                    <div class="response-data">"权限不足"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取不存在的用户信息</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users/nonexistent-user-id - 
+                        状态码: 404 - 
+                        响应时间: 95ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">更新不存在的用户信息</div>
+                    <div class="test-details">
+                        <strong>PATCH</strong> http://localhost:3000/api/admin/users/nonexistent-user-id - 
+                        状态码: 404 - 
+                        响应时间: 93ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">删除不存在的用户</div>
+                    <div class="test-details">
+                        <strong>DELETE</strong> http://localhost:3000/api/admin/users/nonexistent-user-id - 
+                        状态码: 404 - 
+                        响应时间: 90ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">为不存在的用户分配组织</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 404 - 
+                        响应时间: 92ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-failure">
+                    <div class="test-name">为用户分配不存在的组织</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 404 - 
+                        响应时间: 103ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-failure">
+                    <div class="test-name">学校管理员跨校分配用户（权限边界）</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 404 - 
+                        响应时间: 94ms
+                    </div>
+                    
+                    <div class="response-data">"用户不存在"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建用户时发送空请求体</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 400 - 
+                        响应时间: 94ms
+                    </div>
+                    
+                    <div class="response-data">"用户名、姓名、手机号和邮箱为必填项"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">用户组织关系参数类型错误</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/user-organizations - 
+                        状态码: 400 - 
+                        响应时间: 79ms
+                    </div>
+                    
+                    <div class="response-data">"参数不完整"</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">使用无效会话访问API</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 401 - 
+                        响应时间: 0ms
+                    </div>
+                    
+                    
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">获取用户列表大分页参数</div>
+                    <div class="test-details">
+                        <strong>GET</strong> http://localhost:3000/api/admin/users?page=999&limit=1000 - 
+                        状态码: 200 - 
+                        响应时间: 73ms
+                    </div>
+                    
+                    <div class="response-data">{
+  "users": [],
+  "pagination": {
+    "page": 999,
+    "limit": 1000,
+    "total": 14,
+    "totalPages": 1
+  }
+}</div>
+                </div>
+            
+                <div class="test-item test-success">
+                    <div class="test-name">创建包含特殊字符的用户名</div>
+                    <div class="test-details">
+                        <strong>POST</strong> http://localhost:3000/api/admin/users - 
+                        状态码: 400 - 
+                        响应时间: 99ms
+                    </div>
+                    
+                    <div class="response-data">"用户名只能包含字母、数字、下划线和中文字符"</div>
+                </div>
+            
+        </div>
+    </div>
+</body>
+</html>
+    

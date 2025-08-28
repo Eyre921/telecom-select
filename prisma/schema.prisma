@@ -26,31 +26,34 @@ enum OrgType {
 // 用户模型 (管理员/营销人员)
 model User {
   id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
+  username      String?   @unique  // 新增：用户名，用于登录
+  name          String    // 修改：姓名改为必需字段
+  phone         String    @unique  // 新增：手机号，必需且唯一
+  email         String?   @unique  // 邮箱保持可选但唯一
   emailVerified DateTime?
-  password      String?   // 用于存储加密后的密码
+  password      String    // 密码改为必需字段
   image         String?
-  role          Role      @default(MARKETER) // 默认角色改为销售人员
+  role          Role      @default(MARKETER)
   accounts      Account[]
   sessions      Session[]
   
-  // 新增：用户组织关系
+  // 用户组织关系
   organizations UserOrganization[]
   
-  // 新增：审计字段
+  // 审计字段
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
 
 // 组织表
 model Organization {
-  id        String   @id @default(cuid())
-  name      String   // 组织名称
-  type      OrgType  // 组织类型：学校或院系
-  parentId  String?  // 父级组织ID（院系的父级是学校）
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String   // 组织名称
+  type        OrgType  // 组织类型：学校或院系
+  description String?  // 新增：组织描述，可选字段
+  parentId    String?  // 父级组织ID（院系的父级是学校）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
   // 关联关系
   parent       Organization?       @relation("OrgHierarchy", fields: [parentId], references: [id])
