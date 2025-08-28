@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PhoneNumber } from '@prisma/client';
 import { NumberCard } from '@/components/ui/NumberCard';
 import { OrderModal } from '@/components/ui/OrderModal';
+import Image from 'next/image';
 
 // 加载动画组件 - 使用中国电信蓝色
 const Spinner = () => (
@@ -171,10 +172,12 @@ export default function HomePage() {
                                     return (
                                         <>
                                             {logoUrl && !logoLoadError && (
-                                                <img 
+                                                <Image 
                                                     src={logoUrl} 
                                                     alt="中国电信Logo" 
-                                                    className="w-10 h-10 object-contain" 
+                                                    width={40}
+                                                    height={40}
+                                                    className="object-contain" 
                                                     onError={() => setLogoLoadError(true)}
                                                 />
                                             )}

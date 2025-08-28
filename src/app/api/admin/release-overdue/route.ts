@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAuth, getUserDataFilter } from '@/lib/permissions';
+import { Prisma } from '@prisma/client';
 
 export const POST = withAuth(
     async () => {
@@ -9,8 +10,8 @@ export const POST = withAuth(
             const dataFilter = await getUserDataFilter();
             const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
             
-            // 构建查询条件
-            const whereClause: any = {
+            // 构建查询条件 - 使用正确的 Prisma 类型
+            const whereClause: Prisma.PhoneNumberWhereInput = {
                 reservationStatus: 'PENDING_REVIEW',
                 orderTimestamp: {
                     lt: thirtyMinutesAgo,
@@ -19,7 +20,7 @@ export const POST = withAuth(
             
             // 应用多租户数据过滤
             if (dataFilter) {
-                const orgFilters = [];
+                const orgFilters: Prisma.PhoneNumberWhereInput[] = [];
                 
                 if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
                     orgFilters.push({ schoolId: { in: dataFilter.schoolIds } });
@@ -55,7 +56,7 @@ export const POST = withAuth(
         }
     },
     {
-        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'], // 添加 MARKETER
+        requiredRole: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'],
         action: 'write'
     }
 );

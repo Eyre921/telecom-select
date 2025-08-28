@@ -6,7 +6,7 @@ import { Role } from '@prisma/client';
 // GET /api/admin/user-organizations/[id] - 获取单个用户组织关系详情
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 权限检查
   const userPermission = await getUserPermissions();
@@ -21,7 +21,7 @@ export async function GET(
     return new NextResponse('权限不足', { status: 403 });
   }
 
-  const { id } = params;
+  const { id } = await params; // 注意这里需要 await
 
   if (!id) {
     return new NextResponse('关系ID不能为空', { status: 400 });
@@ -77,7 +77,7 @@ export async function GET(
 // PATCH /api/admin/user-organizations/[id] - 更新用户在组织中的角色
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 权限检查
   const userPermission = await getUserPermissions();
@@ -92,7 +92,7 @@ export async function PATCH(
     return new NextResponse('权限不足', { status: 403 });
   }
 
-  const { id } = params;
+  const { id } = await params; // 注意这里需要 await
 
   if (!id) {
     return new NextResponse('关系ID不能为空', { status: 400 });
@@ -162,7 +162,7 @@ export async function PATCH(
 // DELETE /api/admin/user-organizations/[id] - 删除单个用户组织关系
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 权限检查
   const userPermission = await getUserPermissions();
@@ -177,7 +177,7 @@ export async function DELETE(
     return new NextResponse('权限不足', { status: 403 });
   }
 
-  const { id } = params;
+  const { id } = await params; // 注意这里需要 await
 
   if (!id) {
     return new NextResponse('关系ID不能为空', { status: 400 });

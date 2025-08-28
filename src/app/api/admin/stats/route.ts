@@ -1,21 +1,21 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { ReservationStatus } from '@prisma/client';
+import { ReservationStatus, Prisma } from '@prisma/client';
 import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
 export const GET = withAuth(
-    async (request: NextRequest, context: { params: any }) => {
+    async (request: NextRequest) => {
         try {
             const startOfToday = new Date();
             startOfToday.setHours(0, 0, 0, 0);
             
             // 获取用户数据过滤条件
             const dataFilter = await getUserDataFilter();
-            const whereClause: any = {};
+            const whereClause: Prisma.PhoneNumberWhereInput = {};
             
             // 应用多租户数据过滤
             if (dataFilter) {
-                const orgFilters = [];
+                const orgFilters: Prisma.PhoneNumberWhereInput[] = [];
                 
                 if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
                     orgFilters.push({ schoolId: { in: dataFilter.schoolIds } });

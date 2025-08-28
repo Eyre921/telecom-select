@@ -1,9 +1,8 @@
-import {NextResponse} from 'next/server';
-import {getServerSession} from 'next-auth/next';
-import {authOptions} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {PhoneNumber, ReservationStatus, PaymentMethod} from '@prisma/client';
 import { withAuth, getUserDataFilter, getUserPermissions } from '@/lib/permissions';
+import { NextRequest, NextResponse } from 'next/server';
+
 
 // 字段映射定义
 const FIELD_MAPPINGS = {
@@ -468,16 +467,17 @@ function findDataStartLine(lines: string[], type: string, customFields?: string[
 }
 
 // 获取格式示例
-function getFormatExample(type: string): string {
-    switch (type) {
-        case 'table1':
-            return '格式一示例：号码\t状态\t金额\t客户姓名\t工作人员';
-        case 'table2':
-            return '格式二示例：序号\t客户姓名\t号码\t序号\t联系号码\t地址\t快递单号';
-        default:
-            return '请确保数据格式与选择的导入类型匹配。';
-    }
-}
+// 移除这个未使用的函数
+// function getFormatExample(type: string): string {
+//     switch (type) {
+//         case 'table1':
+//             return '格式一示例：号码\t状态\t金额\t客户姓名\t工作人员';
+//         case 'table2':
+//             return '格式二示例：序号\t客户姓名\t号码\t序号\t联系号码\t地址\t快递单号';
+//         default:
+//             return '请确保数据格式与选择的导入类型匹配。';
+//     }
+// }
 
 // 添加字段验证函数
 function validateFieldCounts(lines: string[], type: string, customFields?: string[], forceImport?: boolean): {
@@ -559,7 +559,7 @@ function validateFieldCounts(lines: string[], type: string, customFields?: strin
 }
 
 export const POST = withAuth(
-  async (request: Request) => {
+  async (request: NextRequest, context: { params: Promise<Record<string, string>> }) => {
     try {
       console.log('🚀 数据导入API开始处理请求');
       
@@ -770,7 +770,7 @@ export const POST = withAuth(
           }
 
           const {isPremium, reason} = analyzeNumber(parsedData.phoneNumber);
-          let finalData = {
+          const finalData = {
             ...parsedData, 
             isPremium, 
             premiumReason: reason,

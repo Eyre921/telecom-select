@@ -100,7 +100,14 @@ export const EditUserModal = ({ isOpen, onClose, user, onSave }: EditUserModalPr
 
     try {
       setIsLoading(true);
-      const updateData: any = {
+      const updateData: {
+        name: string;
+        username: string;
+        email: string;
+        phone: string;
+        role: Role;
+        password?: string;
+      } = {
         name: formData.name.trim(),
         username: formData.username.trim(),
         email: formData.email.trim(),

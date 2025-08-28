@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OrgType } from '@prisma/client';
+import { Prisma, OrgType } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
@@ -23,7 +23,8 @@ export const GET = withAuth(
     try {
       // 获取用户数据过滤条件
       const dataFilter = await getUserDataFilter();
-      const whereClause: any = {};
+      // 构建查询条件
+      const whereClause: Prisma.OrganizationWhereInput = {};
       
       // 应用多租户数据过滤
       if (dataFilter && dataFilter.organizationIds) {
@@ -56,7 +57,7 @@ export const GET = withAuth(
       
       for (const org of organizations) {
         // 构建号码查询条件
-        const numberWhereClause: any = {};
+        const numberWhereClause: Prisma.PhoneNumberWhereInput = {};
         if (org.type === 'SCHOOL') {
           numberWhereClause.schoolId = org.id;
         } else if (org.type === 'DEPARTMENT') {

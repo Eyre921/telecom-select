@@ -1,7 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserPermissions, getUserDataFilter, validateAndFixUserOrganizations } from '@/lib/permissions';
 import prisma from '@/lib/prisma';
-import { Role } from '@prisma/client';
+import { Role, Prisma } from '@prisma/client';
+
+// 定义查询条件类型
+type UserOrganizationWhereInput = {
+  userId?: string;
+  organizationId?: string | { in: string[] };
+};
+
+// 定义响应类型
+type PostResponseType = {
+  success: boolean;
+  userOrganizations: Prisma.UserOrganizationGetPayload<{
+    include: {
+      user: {
+        select: {
+          id: true;
+          name: true;
+          email: true;
+          role: true;
+        }
+      };
+      organization: {
+        select: {
+          id: true;
+          name: true;
+          type: true;
+        }
+      };
+    }
+  }>[];
+  message: string;
+  autoAddedSchools?: string[];
+};
 
 // GET /api/admin/user-organizations - 获取用户组织关系列表
 export async function GET(request: NextRequest) {
@@ -28,7 +60,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 构建查询条件
-    const where: any = {};
+    const where: UserOrganizationWhereInput = {};
     
     if (userId) {
       where.userId = userId;
@@ -206,12 +238,19 @@ export async function POST(request: NextRequest) {
           role: role as Role
         },
         include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true
+            }
+          },
           organization: {
             select: {
               id: true,
               name: true,
-              type: true,
-              parentId: true
+              type: true
             }
           }
         }
@@ -219,7 +258,7 @@ export async function POST(request: NextRequest) {
       userOrganizations.push(userOrg);
     }
 
-    const response: any = {
+    const response: PostResponseType = {
       success: true,
       userOrganizations,
       message: '用户组织关系分配成功'

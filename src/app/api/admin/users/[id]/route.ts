@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserPermissions, getUserDataFilter } from '@/lib/permissions';
 import prisma from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 // GET /api/admin/users/[id] - 获取单个用户详情
 export async function GET(
@@ -64,7 +65,7 @@ export async function GET(
 // PATCH /api/admin/users/[id] - 更新用户信息
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  // 修改类型
+  { params }: { params: Promise<{ id: string }> }  // 修改这里的类型定义
 ) {
   // 权限检查
   const userPermission = await getUserPermissions();
@@ -79,7 +80,7 @@ export async function PATCH(
     return new NextResponse('权限不足', { status: 403 });
   }
 
-  const { id } = await params;  // 添加 await
+  const { id } = await params;  // 这里已经正确使用了 await
 
   if (!id) {
     return new NextResponse('用户ID不能为空', { status: 400 });
@@ -117,7 +118,7 @@ export async function PATCH(
     }
 
     // 构建更新数据
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
     
     if (name !== undefined) {
       if (!name.trim()) {

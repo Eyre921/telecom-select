@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, getUserDataFilter, getUserPermissions } from '@/lib/permissions';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { ReservationStatus } from '@prisma/client';
+import { withAuth, getUserPermissions, getUserDataFilter } from '@/lib/permissions';
 
 export const POST = withAuth(
-  async (request: NextRequest) => {
+  async (request: NextRequest, context: { params: Promise<Record<string, string>> }) => {
     try {
       const body = await request.json();
       const { action, payload } = body;
@@ -58,9 +59,8 @@ export const POST = withAuth(
             );
           }
           
-          let banWhereCondition: any = {
-            phoneNumber: { startsWith: payload.prefix },
-            reservationStatus: ReservationStatus.UNRESERVED
+          const banWhereCondition: Prisma.PhoneNumberWhereInput = {
+            phoneNumber: { startsWith: payload.prefix }
           };
           
           // 应用多租户数据过滤
@@ -91,7 +91,7 @@ export const POST = withAuth(
             );
           }
           
-          let unbanWhereCondition: any = {
+          const unbanWhereCondition: Prisma.PhoneNumberWhereInput = {
             phoneNumber: { startsWith: payload.prefix },
             customerName: '系统锁定(禁售)'
           };

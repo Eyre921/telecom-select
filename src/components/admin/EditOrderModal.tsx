@@ -1,18 +1,26 @@
 "use client";
 
 import {useEffect, useState} from 'react';
-import {PhoneNumber} from '@prisma/client';
+import {PhoneNumber, Organization} from '@prisma/client';
 import {ENUM_TRANSLATIONS, FIELD_TRANSLATIONS} from '@/lib/utils';
+
+// 扩展类型定义以包含关联的组织信息
+type PhoneNumberWithOrganizations = PhoneNumber & {
+    school?: Organization | null;
+    department?: Organization | null;
+};
 
 interface EditOrderModalProps {
     isOpen: boolean;
     onClose: () => void;
-    numberData: PhoneNumber | null;
+    numberData: PhoneNumberWithOrganizations | null;
     onSave: (id: string, updatedData: Partial<PhoneNumber>) => Promise<void>;
 }
 
 // 定义不需要在表单中编辑的字段
-const EXCLUDED_FIELDS = ['id', 'createdAt', 'updatedAt'];
+const EXCLUDED_FIELDS = ['id', 'createdAt', 'updatedAt', 'school', 'department'];
+// 定义只读字段（显示但不可编辑）
+const READONLY_FIELDS = ['schoolId', 'departmentId', 'phoneNumber'];
 
 export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderModalProps) => {
     const [formData, setFormData] = useState<Partial<PhoneNumber>>({});
@@ -39,10 +47,52 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
         setFormData(prev => ({...prev, [name]: processedValue}));
     };
 
+    // 获取字段显示值
+    const getDisplayValue = (key: string, value: unknown): string => {
+        // 处理学校和院系字段，显示实际名称
+        if (key === 'schoolId' && numberData.school) {
+            return numberData.school.name;
+        }
+        if (key === 'departmentId' && numberData.department) {
+            return numberData.department.name;
+        }
+        
+        if (value === null || value === undefined) {
+            return '';
+        }
+        
+        // 处理日期
+        if (value instanceof Date) {
+            return value.toISOString().slice(0, 16); // 格式化为 datetime-local 输入格式
+        }
+        
+        return String(value);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        await onSave(numberData.id, formData);
+        
+        // 创建一个新的对象，只包含PhoneNumber的有效字段
+        const cleanedData: Partial<PhoneNumber> = {};
+        
+        // 只复制PhoneNumber类型中存在的字段
+        Object.keys(formData).forEach(key => {
+            if (key !== 'id' && key !== 'createdAt' && key !== 'updatedAt' && 
+                key !== 'school' && key !== 'department') {
+                const value = formData[key as keyof typeof formData];
+                if (value !== undefined) {
+                    (cleanedData as Record<string, unknown>)[key] = value;
+                }
+            }
+        });
+        
+        // 确保日期字段格式正确
+        if (cleanedData.orderTimestamp && typeof cleanedData.orderTimestamp === 'string') {
+            cleanedData.orderTimestamp = new Date(cleanedData.orderTimestamp);
+        }
+        
+        await onSave(numberData.id, cleanedData);
         setIsLoading(false);
         onClose();
     };
@@ -50,13 +100,21 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
     // 动态生成表单字段
     const renderFormField = (key: string, value: string | number | boolean | null) => {
         const label = FIELD_TRANSLATIONS[key] || key;
+        const isReadonly = READONLY_FIELDS.includes(key);
+        const displayValue = getDisplayValue(key, value);
 
         // 根据字段名选择不同的输入类型
         if (key === 'isPremium') {
             return (
                 <div key={key} className="md:col-span-2 flex items-center">
-                    <input type="checkbox" name={key} id={key} checked={!!value} onChange={handleChange}
-                           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                    <input 
+                        type="checkbox" 
+                        name={key} 
+                        id={key} 
+                        checked={!!value} 
+                        onChange={handleChange}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
                     <label htmlFor={key} className="ml-2 block text-sm font-medium text-gray-700">{label}</label>
                 </div>
             );
@@ -67,12 +125,35 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
             return (
                 <div key={key}>
                     <label htmlFor={key} className="block text-sm font-medium text-gray-700">{label}</label>
-                    <select name={key} id={key} value={value?.toString() || ''} onChange={handleChange}
-                            className="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                    <select 
+                        name={key} 
+                        id={key} 
+                        value={value?.toString() || ''} 
+                        onChange={handleChange}
+                        className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                    >
                         <option value="">未指定</option>
-                        {Object.entries(enumOptions).map(([enumKey, enumValue]) => <option key={enumKey}
-                                                                                           value={enumKey}>{enumValue}</option>)}
+                        {Object.entries(enumOptions).map(([enumKey, enumValue]) => 
+                            <option key={enumKey} value={enumKey}>{enumValue}</option>
+                        )}
                     </select>
+                </div>
+            );
+        }
+
+        // 处理日期时间字段
+        if (key === 'orderTimestamp') {
+            return (
+                <div key={key}>
+                    <label htmlFor={key} className="block text-sm font-medium text-gray-700">{label}</label>
+                    <input
+                        type="datetime-local"
+                        name={key}
+                        id={key}
+                        value={displayValue}
+                        onChange={handleChange}
+                        className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                    />
                 </div>
             );
         }
@@ -84,9 +165,13 @@ export const EditOrderModal = ({isOpen, onClose, numberData, onSave}: EditOrderM
                     type={typeof value === 'number' ? 'number' : 'text'}
                     name={key}
                     id={key}
-                    value={value?.toString() || ''}
+                    value={displayValue}
                     onChange={handleChange}
-                    className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                    readOnly={isReadonly}
+                    className={`mt-1 w-full p-2 border border-gray-300 rounded-md ${
+                        isReadonly ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''
+                    }`}
+                    placeholder={isReadonly ? '不可编辑' : ''}
                 />
             </div>
         );

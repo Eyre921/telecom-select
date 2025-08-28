@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OrgType } from '@prisma/client';
+import { Prisma, OrgType } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
 export const GET = withAuth(
-    async (request: NextRequest, context: { params: any }) => {
+    async (request: NextRequest) => {
         try {
             const { searchParams } = new URL(request.url);
             const type = searchParams.get('type') as OrgType | null;
@@ -12,7 +12,8 @@ export const GET = withAuth(
 
             // 获取用户数据过滤条件
             const dataFilter = await getUserDataFilter();
-            const whereClause: any = {};
+            // 构建查询条件
+            const whereClause: Prisma.OrganizationWhereInput = {};
             
             if (type) {
                 whereClause.type = type;

@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import prisma from '@/lib/prisma';
-import {ReservationStatus} from '@prisma/client';
+import {ReservationStatus, Prisma} from '@prisma/client';
 import { getUserDataFilter } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         const dataFilter = await getUserDataFilter();
         
         // 构建动态查询条件
-        const where: any = {};
+        const where: Prisma.PhoneNumberWhereInput = {};
         
         if (hideReserved) {
             where.reservationStatus = 'UNRESERVED';

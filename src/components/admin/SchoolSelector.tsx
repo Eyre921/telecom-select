@@ -71,7 +71,7 @@ export function SchoolSelector({
     if (selectedSchoolId && selectedDepartmentId) {
       // 这里可以添加验证逻辑，确保院系属于选中的学校
     }
-  }, [selectedSchoolId, fetchDepartments]);
+}, [selectedSchoolId, selectedDepartmentId, fetchDepartments]);
 
   const handleSchoolChange = (schoolId: string) => {
     onSchoolChange(schoolId);

@@ -5,9 +5,9 @@ import { withAuth } from '@/lib/permissions';
 
 // 更新组织
 export const PUT = withAuth(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
         try {
-            const { id } = params;
+            const { id } = await params;
             const body = await request.json();
             const { name, description } = body;
 
@@ -84,9 +84,9 @@ export const PUT = withAuth(
 
 // 删除组织
 export const DELETE = withAuth(
-    async (request: NextRequest, { params }: { params: { id: string } }) => {
+    async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
         try {
-            const { id } = params;
+            const { id } = await params;
 
             // 检查组织是否存在
             const existingOrg = await prisma.organization.findUnique({

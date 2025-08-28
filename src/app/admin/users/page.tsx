@@ -207,35 +207,8 @@ const Pagination = ({
 export default function UsersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isAdmin = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'SCHOOL_ADMIN';
-
-  // 权限检查
-  useEffect(() => {
-    if (status === 'loading') return; // 还在加载中
-    
-    if (status === 'unauthenticated') {
-      // 未登录，重定向到登录页
-      router.push('/signin?callbackUrl=/admin/users');
-      return;
-    }
-    
-    if (session && !isAdmin) {
-      // 已登录但无权限，重定向到dashboard
-      router.push('/admin/dashboard');
-      return;
-    }
-  }, [session, status, isAdmin, router]);
-
-  // 如果正在检查权限或重定向中，显示加载状态
-  if (status === 'loading' || (session && !isAdmin)) {
-    return <FullPageSpinner />;
-  }
-
-  // 如果未登录，不渲染任何内容（将重定向）
-  if (!session) {
-    return null;
-  }
-
+  
+  // 将所有 useState 移到最顶部
   const [users, setUsers] = useState<UserWithOrganizations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -254,6 +227,8 @@ export default function UsersPage() {
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [isOrgManagementModalOpen, setIsOrgManagementModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithOrganizations | null>(null);
+
+  const isAdmin = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'SCHOOL_ADMIN';
 
   // 获取学校列表
   const fetchSchools = useCallback(async () => {
@@ -323,36 +298,15 @@ export default function UsersPage() {
     setCurrentPage(1);
     fetchUsers(1, '', '', '');
   }, [fetchUsers]);
-  
-  // 初始化数据
-  useEffect(() => {
-    fetchSchools();
-    fetchUsers();
-  }, [fetchSchools]);
-  
-  // 移除学校和角色筛选条件变化时的实时更新
-  // 删除这个 useEffect：
-  // useEffect(() => {
-  //   if (currentPage !== 1) {
-  //     setCurrentPage(1);
-  //   } else {
-  //     fetchUsers();
-  //   }
-  // }, [selectedSchoolId, selectedRole]);
-  
-  // 页码变化时获取数据
-  useEffect(() => {
-    fetchUsers(currentPage, searchTerm, selectedSchoolId, selectedRole);
-  }, [currentPage]);
-  
+
   // 处理编辑用户
-  const handleEdit = (user: UserWithOrganizations) => {
+  const handleEdit = useCallback((user: UserWithOrganizations) => {
     setSelectedUser(user);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
   // 处理删除用户
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm('确定要删除这个用户吗？此操作不可撤销。')) {
       return;
     }
@@ -371,37 +325,79 @@ export default function UsersPage() {
       console.error('Error deleting user:', err);
       alert(err instanceof Error ? err.message : '删除用户失败');
     }
-  };
+  }, [fetchUsers]);
 
   // 处理组织管理
-  const handleManageOrganizations = (user: UserWithOrganizations) => {
+  const handleManageOrganizations = useCallback((user: UserWithOrganizations) => {
     setSelectedUser(user);
     setIsOrgModalOpen(true);
-  };
+  }, []);
 
   // 处理整体组织管理
-  const handleOrganizationManagement = () => {
+  const handleOrganizationManagement = useCallback(() => {
     setIsOrgManagementModalOpen(true);
-  };
+  }, []);
 
   // 处理用户保存
-  const handleUserSave = async () => {
+  const handleUserSave = useCallback(async () => {
     setIsCreateModalOpen(false);
     setIsEditModalOpen(false);
     await fetchUsers();
-  };
+  }, [fetchUsers]);
 
   // 处理组织关系保存
-  const handleOrgSave = async () => {
+  const handleOrgSave = useCallback(async () => {
     setIsOrgModalOpen(false);
     await fetchUsers();
-  };
+  }, [fetchUsers]);
 
   // 处理组织管理保存
-  const handleOrgManagementSave = async () => {
+  const handleOrgManagementSave = useCallback(async () => {
     setIsOrgManagementModalOpen(false);
     // 可能需要刷新相关数据
-  };
+  }, []);
+
+  // 权限检查 - 移到 Hooks 之后
+  useEffect(() => {
+    if (status === 'loading') return; // 还在加载中
+    
+    if (status === 'unauthenticated') {
+      // 未登录，重定向到登录页
+      router.push('/signin?callbackUrl=/admin/users');
+      return;
+    }
+    
+    if (session && !isAdmin) {
+      // 已登录但无权限，重定向到dashboard
+      router.push('/admin/dashboard');
+      return;
+    }
+  }, [session, status, isAdmin, router]);
+  
+  // 初始化数据
+  useEffect(() => {
+    if (session && isAdmin) {
+      fetchSchools();
+      fetchUsers();
+    }
+  }, [session, isAdmin, fetchSchools, fetchUsers]);
+  
+  // 页码变化时获取数据
+  useEffect(() => {
+    if (session && isAdmin) {
+      fetchUsers(currentPage, searchTerm, selectedSchoolId, selectedRole);
+    }
+  }, [currentPage, session, isAdmin, fetchUsers, searchTerm, selectedSchoolId, selectedRole]);
+
+  // 如果正在检查权限或重定向中，显示加载状态
+  if (status === 'loading' || (session && !isAdmin)) {
+    return <FullPageSpinner />;
+  }
+
+  // 如果未登录，不渲染任何内容（将重定向）
+  if (!session) {
+    return null;
+  }
 
   if (isLoading && users.length === 0) {
     return <FullPageSpinner />;

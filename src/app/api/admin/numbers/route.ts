@@ -1,12 +1,10 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {getServerSession} from 'next-auth/next';
-import {authOptions} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
 export const GET = withAuth(
-    async (request: NextRequest, context: { params: any }) => {
+    async (request: NextRequest) => {
         try {
             const { searchParams } = new URL(request.url);
             const search = searchParams.get('search');
@@ -17,22 +15,22 @@ export const GET = withAuth(
             const limit = parseInt(searchParams.get('limit') || '50');
             const skip = (page - 1) * limit;
 
-            let sortConfig = { field: 'createdAt', direction: 'desc' };
+            let sortConfig = { field: 'createdAt', direction: 'desc' as const };
             if (sortParam) {
                 try {
                     sortConfig = JSON.parse(sortParam);
-                } catch (e) {
+                } catch {
                     console.warn('Invalid sort parameter:', sortParam);
                 }
             }
 
             // 获取用户数据过滤条件
             const dataFilter = await getUserDataFilter();
-            const whereClause: any = {};
+            const whereClause: Prisma.PhoneNumberWhereInput = {};
             
             // 应用多租户数据过滤
             if (dataFilter) {
-                const orgFilters = [];
+                const orgFilters: Prisma.PhoneNumberWhereInput[] = [];
                 
                 if (dataFilter.schoolIds && dataFilter.schoolIds.length > 0) {
                     orgFilters.push({ schoolId: { in: dataFilter.schoolIds } });
@@ -59,7 +57,21 @@ export const GET = withAuth(
             
             if (departmentId) {
                 if (whereClause.OR || whereClause.AND) {
-                    const existingConditions = whereClause.AND || [{ OR: whereClause.OR }];
+                    // 确保类型安全的条件处理
+                    const existingConditions: Prisma.PhoneNumberWhereInput[] = [];
+                    
+                    if (whereClause.AND) {
+                        if (Array.isArray(whereClause.AND)) {
+                            existingConditions.push(...whereClause.AND);
+                        } else {
+                            existingConditions.push(whereClause.AND);
+                        }
+                    }
+                    
+                    if (whereClause.OR) {
+                        existingConditions.push({ OR: whereClause.OR });
+                    }
+                    
                     whereClause.AND = [...existingConditions, { departmentId }];
                     delete whereClause.OR;
                 } else {
@@ -68,7 +80,7 @@ export const GET = withAuth(
             }
 
             if (search) {
-                const searchCondition = {
+                const searchCondition: Prisma.PhoneNumberWhereInput = {
                     OR: [
                         { phoneNumber: { contains: search } },
                         { customerName: { contains: search } },
@@ -78,7 +90,12 @@ export const GET = withAuth(
                 };
                 
                 if (whereClause.AND) {
-                    whereClause.AND.push(searchCondition);
+                    // 确保 whereClause.AND 是数组类型
+                    const existingAndConditions: Prisma.PhoneNumberWhereInput[] = 
+                        Array.isArray(whereClause.AND) 
+                            ? whereClause.AND 
+                            : [whereClause.AND];
+                    whereClause.AND = [...existingAndConditions, searchCondition];
                 } else if (whereClause.OR) {
                     whereClause.AND = [{ OR: whereClause.OR }, searchCondition];
                     delete whereClause.OR;
@@ -87,7 +104,7 @@ export const GET = withAuth(
                 }
             }
 
-            const findManyOptions: any = {
+            const findManyOptions: Prisma.PhoneNumberFindManyArgs = {
                 where: whereClause,
                 include: {
                     school: true,
@@ -96,7 +113,7 @@ export const GET = withAuth(
                 skip,
                 take: limit,
                 orderBy: {
-                    [sortConfig.field]: sortConfig.direction
+                    [sortConfig.field]: sortConfig.direction as Prisma.SortOrder
                 }
             };
 

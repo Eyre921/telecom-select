@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserPermissions, getUserDataFilter } from '@/lib/permissions';
 import prisma from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 // GET /api/admin/users - 获取用户列表
 export async function GET(request: NextRequest) {
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit;
 
   // 构建查询条件
-  const where: any = {};
+  const where: Prisma.UserWhereInput = {};
 
   // 应用多租户数据过滤
   const dataFilter = await getUserDataFilter();
@@ -45,8 +47,8 @@ export async function GET(request: NextRequest) {
   // 搜索条件
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } }
+      { name: { contains: search } },
+      { email: { contains: search } }
     ];
   }
 
@@ -213,7 +215,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 密码哈希处理
-    const bcrypt = require('bcrypt');
     const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash('123456', 10);
 
     // 创建用户

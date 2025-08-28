@@ -189,41 +189,13 @@ export default function DashboardPage() {
     const [pendingOrders, setPendingOrders] = useState<PhoneNumberWithOrganizations[]>([]);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-    // 新增：筛选相关状态
-    const [schools, setSchools] = useState<Organization[]>([]);
-    const [departments, setDepartments] = useState<Organization[]>([]);
+    // 筛选相关状态
     const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
 
     // 拖拽状态 - 移到组件内部
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-    // 获取学校列表
-    const fetchSchools = useCallback(async () => {
-        try {
-            const response = await fetch('/api/admin/organizations?type=SCHOOL');
-            if (response.ok) {
-                const data = await response.json();
-                setSchools(data);
-            }
-        } catch (err) {
-            console.error('获取学校列表失败:', err);
-        }
-    }, []);
-
-    // 获取院系列表
-    const fetchDepartments = useCallback(async (schoolId: string) => {
-        try {
-            const response = await fetch(`/api/admin/organizations?type=DEPARTMENT&parentId=${schoolId}`);
-            if (response.ok) {
-                const data = await response.json();
-                setDepartments(data);
-            }
-        } catch (err) {
-            console.error('获取院系列表失败:', err);
-        }
-    }, []);
 
     const fetchData = useCallback(async (pageToFetch: number, currentSearchTerm: string) => {
         setIsLoading(true);
@@ -287,11 +259,11 @@ export default function DashboardPage() {
         }
     }, []);
     
-    // 移除 searchTerm 从 useEffect 依赖中
+    // 修复第266行的 useEffect
     useEffect(() => {
         fetchData(1, '');
         fetchPendingOrders();
-    }, [sortConfig, fetchData, fetchPendingOrders]); // 移除 searchTerm
+    }, [fetchData, fetchPendingOrders]); // 保持原有依赖项，不添加 searchTerm
     
     // 修改 handleSearch 函数，确保从第一页开始搜索
     const handleSearch = () => {

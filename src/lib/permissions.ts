@@ -351,17 +351,20 @@ export async function getUserDataFilter(): Promise<DataFilter | null> {
 }
 
 /**
- * API路由权限中间件 - 修复版本
+ * API路由权限中间件 - 支持静态和动态路由
  */
-export function withAuth<T = any>(
-  handler: (req: NextRequest, context: { params: T }) => Promise<Response>,
+export function withAuth<T = Record<string, string>>(
+  handler: (req: NextRequest, context: { params: Promise<T> }) => Promise<Response>,
   options: {
     requiredRole?: Role[];
     resourceType?: 'phone_number' | 'organization' | 'user';
     action?: 'read' | 'write' | 'delete';
   } = {}
 ) {
-  return async function(req: NextRequest, context: { params: T }): Promise<Response> {
+  return async function(
+    req: NextRequest, 
+    context: { params: Promise<T> }
+  ): Promise<Response> {
     try {
       const userPermission = await getUserPermissions();
       

@@ -8,22 +8,31 @@ import prisma from '@/lib/prisma';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const {email, password} = body;
+        const { email, password, name, phone } = body;  // 添加 name 和 phone
 
         // 1. Validate input
-        if (!email || !password) {
-            return new NextResponse(JSON.stringify({error: '缺少邮箱或密码'}), {status: 400});
+        if (!email || !password || !name || !phone) {  // 添加 name 和 phone 验证
+            return new NextResponse(JSON.stringify({error: '缺少必填字段：邮箱、密码、姓名或手机号'}), {status: 400});
+        }
+
+        // 手机号格式验证
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        if (!phoneRegex.test(phone)) {
+            return new NextResponse(JSON.stringify({error: '手机号格式不正确'}), {status: 400});
         }
 
         // 2. Check if user already exists
-        const existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findFirst({
             where: {
-                email: email,
+                OR: [
+                    { email: email },
+                    { phone: phone }  // 检查手机号是否已存在
+                ]
             },
         });
 
         if (existingUser) {
-            return new NextResponse(JSON.stringify({error: '该邮箱已被注册'}), {status: 409});
+            return new NextResponse(JSON.stringify({error: '该邮箱或手机号已被注册'}), {status: 409});
         }
 
         // 3. Hash the password
@@ -33,8 +42,10 @@ export async function POST(request: Request) {
         const user = await prisma.user.create({
             data: {
                 email,
+                name,     // 添加 name
+                phone,    // 添加 phone
                 password: hashedPassword,
-                role: 'MARKETER', // Default role is MARKETER
+                role: 'MARKETER',
             },
         });
 
