@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
       if (!org) {
         return NextResponse.json(
           { error: `组织 ${orgId} 不存在` },
-          { status: 400 }
+          { status: 404 }  // ✅ 修复：资源不存在应该返回 404
         );
       }
       

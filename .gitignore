@@ -45,5 +45,6 @@ next-env.d.ts
 /node_modules/
 /.idea
 /test-results
-/multi-tenant-test-results
+/multi-tenant-test-reports
+
 
