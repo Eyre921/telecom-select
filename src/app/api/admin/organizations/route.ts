@@ -13,7 +13,12 @@ export const GET = withAuth(
             // 获取用户数据过滤条件
             const dataFilter = await getUserDataFilter();
             // 构建查询条件
-            const whereClause: Prisma.OrganizationWhereInput = {};
+            const whereClause: Prisma.OrganizationWhereInput = {
+                // 过滤掉超级管理员组，防止手动选择
+                NOT: {
+                    id: 'super-admin-org'
+                }
+            };
             
             if (type) {
                 whereClause.type = type;

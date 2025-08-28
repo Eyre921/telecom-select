@@ -1,26 +1,39 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { PhoneNumber } from '@prisma/client';
+import { PhoneNumber, Organization } from '@prisma/client';
 import { FIELD_TRANSLATIONS, ENUM_TRANSLATIONS } from '@/lib/utils';
 
+// 扩展PhoneNumber类型以包含关联的组织信息
+type PhoneNumberWithOrganizations = PhoneNumber & {
+  school?: Organization | null;
+  department?: Organization | null;
+};
+
+// 在ExportModal组件中添加props接收dashboard筛选参数
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: PhoneNumber[];
   allColumns: (keyof PhoneNumber)[];
+  // 新增：dashboard筛选参数
+  dashboardFilters?: {
+    selectedSchoolId?: string;
+    selectedDepartmentId?: string;
+    searchTerm?: string;
+  };
 }
 
 type ExportFormat = 'csv' | 'excel';
 
-export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) => {
+export const ExportModal = ({ isOpen, onClose, allColumns, dashboardFilters }: ExportModalProps) => {
   // 状态管理
   const [exportFormat, setExportFormat] = useState<ExportFormat>('excel');
   const [selectedColumns, setSelectedColumns] = useState<(keyof PhoneNumber)[]>([
     'phoneNumber', 'customerName', 'assignedMarketer', 'reservationStatus', 'paymentAmount'
   ]);
   const [isExporting, setIsExporting] = useState(false);
-  const [allData, setAllData] = useState<PhoneNumber[]>([]);
+  const [allData, setAllData] = useState<PhoneNumberWithOrganizations[]>([]);
   const [isLoadingAllData, setIsLoadingAllData] = useState(false);
   
   // 筛选条件
@@ -28,16 +41,36 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
   const [assignedMarketer, setAssignedMarketer] = useState('');
   const [reservationStatus, setReservationStatus] = useState('');
   
-  const [filteredData, setFilteredData] = useState<PhoneNumber[]>([]);
+  const [filteredData, setFilteredData] = useState<PhoneNumberWithOrganizations[]>([]);
 
-  // 获取所有数据
+  // 修改fetchAllData函数使用新的导出API
   const fetchAllData = async () => {
     setIsLoadingAllData(true);
     try {
-      const response = await fetch('/api/admin/numbers?all=true');
+      const params = new URLSearchParams();
+      
+      // 应用dashboard筛选条件
+      if (dashboardFilters?.selectedSchoolId) {
+        params.append('schoolId', dashboardFilters.selectedSchoolId);
+      }
+      if (dashboardFilters?.selectedDepartmentId) {
+        params.append('departmentId', dashboardFilters.selectedDepartmentId);
+      }
+      if (dashboardFilters?.searchTerm) {
+        params.append('search', dashboardFilters.searchTerm);
+      }
+      
+      // 应用导出模态框的筛选条件
+      if (phonePrefix) params.append('phonePrefix', phonePrefix);
+      if (assignedMarketer) params.append('assignedMarketer', assignedMarketer);
+      if (reservationStatus) params.append('reservationStatus', reservationStatus);
+      
+      const response = await fetch(`/api/admin/export?${params.toString()}`);
       if (response.ok) {
         const result = await response.json();
-        setAllData(result.data || result);
+        setAllData(result.data || []);
+      } else {
+        throw new Error('获取导出数据失败');
       }
     } catch (error) {
       console.error('获取全部数据失败:', error);
@@ -94,9 +127,17 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
 
   if (!isOpen) return null;
 
-  // 格式化数据
-  const formatCellValue = (value: unknown, field: keyof PhoneNumber): string => {
+  // 格式化数据 - 修改以支持学校和院系名称显示
+  const formatCellValue = (value: unknown, field: keyof PhoneNumber, row?: PhoneNumberWithOrganizations): string => {
     if (value === null || value === undefined) return '';
+    
+    // 处理学校和院系字段 - 显示名称而不是ID
+    if (field === 'schoolId' && row?.school) {
+      return row.school.name;
+    }
+    if (field === 'departmentId' && row?.department) {
+      return row.department.name;
+    }
     
     if (field === 'reservationStatus' || field === 'paymentMethod' || field === 'deliveryStatus') {
       const enumKey = field.charAt(0).toUpperCase() + field.slice(1) as keyof typeof ENUM_TRANSLATIONS;
@@ -119,8 +160,8 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
   };
 
   // 为Excel格式化数据（防止长数字被转换为科学计数法）
-  const formatCellValueForExcel = (value: unknown, field: keyof PhoneNumber): string => {
-    const formattedValue = formatCellValue(value, field);
+  const formatCellValueForExcel = (value: unknown, field: keyof PhoneNumber, row?: PhoneNumberWithOrganizations): string => {
+    const formattedValue = formatCellValue(value, field, row);
     
     // 对于可能是长数字字符串的字段，在前面添加制表符强制为文本格式
     if (field === 'emsTrackingNumber' || field === 'phoneNumber' || field === 'transactionId') {
@@ -158,7 +199,7 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
             <tbody>
               ${filteredData.map(row => 
                 `<tr>${selectedColumns.map(col => {
-                  const value = formatCellValueForExcel(row[col], col);
+                  const value = formatCellValueForExcel(row[col], col, row);
                   let className = '';
                   if (col === 'paymentAmount') className = 'number';
                   if (col === 'createdAt' || col === 'updatedAt' || col === 'orderTimestamp') className = 'date';
@@ -202,7 +243,7 @@ export const ExportModal = ({ isOpen, onClose, allColumns }: ExportModalProps) =
         const headers = selectedColumns.map(col => FIELD_TRANSLATIONS[col] || col).join(',');
         const rows = filteredData.map(row => 
           selectedColumns.map(col => {
-            const value = formatCellValue(row[col], col);
+            const value = formatCellValue(row[col], col, row);
             // 如果值包含逗号、换行或引号，需要用引号包裹并转义引号
             return value.includes(',') || value.includes('\n') || value.includes('"') 
               ? `"${value.replace(/"/g, '""')}"` 

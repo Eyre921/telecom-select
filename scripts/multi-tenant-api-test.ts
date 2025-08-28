@@ -322,7 +322,9 @@ class MultiTenantAPITester {
       phone: '13999999999',
       email: 'testuser@example.com',
       password: '123456',
-      role: 'MARKETER'
+      role: 'MARKETER',
+      organizationId: 'school-1',  // 添加组织分配
+      organizationRole: 'MARKETER'  // 添加组织内角色
     };
 
     const createUserResult = await this.runTest(
@@ -540,7 +542,9 @@ class MultiTenantAPITester {
         phone: '13999999996',
         email: 'duplicate@example.com',
         password: '123456',
-        role: 'MARKETER'
+        role: 'MARKETER',
+        organizationId: 'school-1',  // 添加组织分配
+        organizationRole: 'MARKETER'  // 添加组织内角色
       },
       'superadmin',
       409
@@ -557,7 +561,9 @@ class MultiTenantAPITester {
         phone: '13999999995',
         email: 'marketer1@telecom.com',  // 已存在的邮箱
         password: '123456',
-        role: 'MARKETER'
+        role: 'MARKETER',
+        organizationId: 'school-1',  // 添加组织分配
+        organizationRole: 'MARKETER'  // 添加组织内角色
       },
       'superadmin',
       409

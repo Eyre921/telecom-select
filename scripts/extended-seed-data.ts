@@ -10,6 +10,18 @@ async function createExtendedTestData() {
     // 1. 创建更多学校组织
     console.log('📚 创建扩展学校组织...');
     const schools = await Promise.all([
+      // 超级管理员组 - 新增
+      prisma.organization.upsert({
+        where: { id: 'super-admin-org' },
+        update: {},
+        create: {
+          id: 'super-admin-org',
+          name: '超级管理员组',
+          type: OrgType.SCHOOL,
+          description: '系统超级管理员专用组织，用于管理超级管理员权限',
+          parentId: null
+        }
+      }),
       // 原有学校
       prisma.organization.upsert({
         where: { id: 'school-1' },
@@ -84,7 +96,7 @@ async function createExtendedTestData() {
     // 2. 创建更多院系组织
     console.log('🏛️ 创建扩展院系组织...');
     const departments = await Promise.all([
-      // 北京大学院系
+      // 北京大学院系 (schools[1])
       prisma.organization.upsert({
         where: { id: 'dept-1' },
         update: {},
@@ -93,7 +105,7 @@ async function createExtendedTestData() {
           name: '计算机学院',
           type: OrgType.DEPARTMENT,
           description: '计算机科学与技术专业教学研究',
-          parentId: schools[0].id
+          parentId: schools[1].id  // 修复：北京大学
         }
       }),
       prisma.organization.upsert({
@@ -104,7 +116,7 @@ async function createExtendedTestData() {
           name: '数学学院',
           type: OrgType.DEPARTMENT,
           description: '数学基础学科教学与研究',
-          parentId: schools[0].id
+          parentId: schools[1].id  // 修复：北京大学
         }
       }),
       prisma.organization.upsert({
@@ -115,10 +127,10 @@ async function createExtendedTestData() {
           name: '物理学院',
           type: OrgType.DEPARTMENT,
           description: '物理学基础与应用研究',
-          parentId: schools[0].id
+          parentId: schools[1].id  // 修复：北京大学
         }
       }),
-      // 清华大学院系
+      // 清华大学院系 (schools[2])
       prisma.organization.upsert({
         where: { id: 'dept-4' },
         update: {},
@@ -127,7 +139,7 @@ async function createExtendedTestData() {
           name: '软件学院',
           type: OrgType.DEPARTMENT,
           description: '软件工程与技术专业教育',
-          parentId: schools[1].id
+          parentId: schools[2].id  // 修复：清华大学
         }
       }),
       prisma.organization.upsert({
@@ -138,7 +150,7 @@ async function createExtendedTestData() {
           name: '电子工程系',
           type: OrgType.DEPARTMENT,
           description: '电子信息工程技术研究',
-          parentId: schools[1].id
+          parentId: schools[2].id  // 修复：清华大学
         }
       }),
       prisma.organization.upsert({
@@ -149,10 +161,10 @@ async function createExtendedTestData() {
           name: '自动化系',
           type: OrgType.DEPARTMENT,
           description: '自动化控制技术与系统',
-          parentId: schools[1].id
+          parentId: schools[2].id  // 修复：清华大学
         }
       }),
-      // 其他学校院系
+      // 中国人民大学院系 (schools[3])
       prisma.organization.upsert({
         where: { id: 'dept-7' },
         update: {},
@@ -161,9 +173,10 @@ async function createExtendedTestData() {
           name: '信息学院',
           type: OrgType.DEPARTMENT,
           description: '信息管理与信息系统专业',
-          parentId: schools[2].id
+          parentId: schools[3].id  // 修复：中国人民大学
         }
       }),
+      // 北京师范大学院系 (schools[4])
       prisma.organization.upsert({
         where: { id: 'dept-8' },
         update: {},
@@ -172,9 +185,10 @@ async function createExtendedTestData() {
           name: '心理学院',
           type: OrgType.DEPARTMENT,
           description: '心理学理论与应用研究',
-          parentId: schools[3].id
+          parentId: schools[4].id  // 修复：北京师范大学
         }
       }),
+      // 北京理工大学院系 (schools[5])
       prisma.organization.upsert({
         where: { id: 'dept-9' },
         update: {},
@@ -183,9 +197,10 @@ async function createExtendedTestData() {
           name: '机械工程学院',
           type: OrgType.DEPARTMENT,
           description: '机械设计制造及自动化',
-          parentId: schools[4].id
+          parentId: schools[5].id  // 修复：北京理工大学
         }
       }),
+      // 北京航空航天大学院系 (schools[6])
       prisma.organization.upsert({
         where: { id: 'dept-10' },
         update: {},
@@ -194,7 +209,7 @@ async function createExtendedTestData() {
           name: '航空学院',
           type: OrgType.DEPARTMENT,
           description: '航空航天工程技术',
-          parentId: schools[5].id
+          parentId: schools[6].id  // 修复：北京航空航天大学
         }
       })
     ]);
@@ -370,32 +385,32 @@ async function createExtendedTestData() {
     // 4. 创建用户组织关系
     console.log('🔗 创建扩展用户组织关系...');
     const userOrgRelations = [
+      // 超级管理员关联到超级管理员组
+      { userId: users[0].id, organizationId: schools[0].id, role: Role.SUPER_ADMIN }, // 超级管理员组
+      
       // 学校管理员关联
-      { userId: users[1].id, organizationId: schools[0].id, role: Role.SCHOOL_ADMIN }, // 北大
-      { userId: users[2].id, organizationId: schools[1].id, role: Role.SCHOOL_ADMIN }, // 清华
-      { userId: users[3].id, organizationId: schools[2].id, role: Role.SCHOOL_ADMIN }, // 人大
-      { userId: users[4].id, organizationId: schools[3].id, role: Role.SCHOOL_ADMIN }, // 师大
-      { userId: users[5].id, organizationId: schools[4].id, role: Role.SCHOOL_ADMIN }, // 理工
-      { userId: users[6].id, organizationId: schools[5].id, role: Role.SCHOOL_ADMIN }, // 航天
+      { userId: users[1].id, organizationId: schools[1].id, role: Role.SCHOOL_ADMIN }, // 北大
+      { userId: users[2].id, organizationId: schools[2].id, role: Role.SCHOOL_ADMIN }, // 清华
+      { userId: users[3].id, organizationId: schools[3].id, role: Role.SCHOOL_ADMIN }, // 人大
+      { userId: users[4].id, organizationId: schools[4].id, role: Role.SCHOOL_ADMIN }, // 师大
+      { userId: users[5].id, organizationId: schools[5].id, role: Role.SCHOOL_ADMIN }, // 理工
+      { userId: users[6].id, organizationId: schools[6].id, role: Role.SCHOOL_ADMIN }, // 航天
       
-      // 销售员关联 - 只分配到学校级别
-      // 销售员1：北大
-      { userId: users[7].id, organizationId: schools[0].id, role: Role.MARKETER },
-      
-      // 销售员2：清华
-      { userId: users[8].id, organizationId: schools[1].id, role: Role.MARKETER },
+      // 销售员关联 - 只关联到学校
+      { userId: users[7].id, organizationId: schools[1].id, role: Role.MARKETER }, // 销售员1：北大
+      { userId: users[8].id, organizationId: schools[2].id, role: Role.MARKETER }, // 销售员2：清华
       
       // 销售员3：人大
-      { userId: users[9].id, organizationId: schools[2].id, role: Role.MARKETER },
+      { userId: users[9].id, organizationId: schools[3].id, role: Role.MARKETER },
       
       // 销售员4：师大
-      { userId: users[10].id, organizationId: schools[3].id, role: Role.MARKETER },
+      { userId: users[10].id, organizationId: schools[4].id, role: Role.MARKETER },
       
       // 销售员5：理工
-      { userId: users[11].id, organizationId: schools[4].id, role: Role.MARKETER },
+      { userId: users[11].id, organizationId: schools[5].id, role: Role.MARKETER },
       
       // 销售员6：航天
-      { userId: users[12].id, organizationId: schools[5].id, role: Role.MARKETER }
+      { userId: users[12].id, organizationId: schools[6].id, role: Role.MARKETER }
     ];
     
     for (const relation of userOrgRelations) {

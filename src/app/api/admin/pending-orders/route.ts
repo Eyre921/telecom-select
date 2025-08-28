@@ -1,54 +1,102 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { withAuth, getUserDataFilter } from '@/lib/permissions';
 
-export const GET = withAuth(
-  async (request: NextRequest) => {
-    try {
-      // 获取用户数据过滤条件
-      const dataFilter = await getUserDataFilter();
-      
-      // 构建查询条件
-      const whereClause: Prisma.PhoneNumberWhereInput = {
-        reservationStatus: 'PENDING_REVIEW'  // ✅ 只查询待审核状态的订单
-      };
+export async function GET(request: NextRequest) {
+  try {
+    // 简化的权限检查
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    }
 
-      // 应用多租户数据过滤
-      if (dataFilter && (dataFilter.schoolIds || dataFilter.departmentIds)) {
-        const orgFilters: Prisma.PhoneNumberWhereInput[] = [];
-        
-        if (dataFilter.schoolIds) {
-          orgFilters.push({ schoolId: { in: dataFilter.schoolIds } });
-        }
-        
-        if (dataFilter.departmentIds) {
-          orgFilters.push({ departmentId: { in: dataFilter.departmentIds } });
-        }
-        
-        if (orgFilters.length > 0) {
-          whereClause.OR = orgFilters;
+    // 获取用户信息和组织关系
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        organizations: {
+          include: {
+            organization: true
+          }
         }
       }
+    });
 
-      const pendingOrders = await prisma.phoneNumber.findMany({
-        where: whereClause,
-        orderBy: {
-          orderTimestamp: 'asc',
-        },
-        include: {
-          school: true,
-          department: true
-        }
-      });
-      
-      return NextResponse.json(pendingOrders);
-    } catch (error) {
-      console.error('获取待审核订单失败:', error);
-      return NextResponse.json(
-        { error: '获取待审核订单失败' },
-        { status: 500 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: '用户不存在' }, { status: 401 });
     }
+
+    // 检查角色权限
+    if (!['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'].includes(user.role)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const schoolId = searchParams.get('schoolId');
+    const departmentId = searchParams.get('departmentId');
+    
+    // 构建查询条件
+    const whereClause: Prisma.PhoneNumberWhereInput = {
+      reservationStatus: 'PENDING_REVIEW'
+    };
+    
+    // 应用URL参数筛选
+    if (schoolId) {
+      whereClause.schoolId = schoolId;
+    }
+    if (departmentId) {
+      whereClause.departmentId = departmentId;
+    }
+    
+    // 简化的权限过滤：只对非超级管理员应用组织过滤
+    if (user.role !== 'SUPER_ADMIN') {
+      const userOrgIds = user.organizations.map(uo => uo.organization.id);
+      
+      if (userOrgIds.length > 0) {
+        // 如果已经有URL参数筛选，确保在用户权限范围内
+        if (schoolId || departmentId) {
+          const allowedFilters: Prisma.PhoneNumberWhereInput[] = [];
+          
+          if (schoolId && userOrgIds.includes(schoolId)) {
+            allowedFilters.push({ schoolId });
+          }
+          if (departmentId && userOrgIds.includes(departmentId)) {
+            allowedFilters.push({ departmentId });
+          }
+          
+          if (allowedFilters.length === 0) {
+            // 用户没有权限访问指定的组织，返回空结果
+            return NextResponse.json([]);
+          }
+        } else {
+          // 没有URL参数，应用用户的组织过滤
+          whereClause.OR = [
+            { schoolId: { in: userOrgIds } },
+            { departmentId: { in: userOrgIds } }
+          ];
+        }
+      }
+    }
+
+    const pendingOrders = await prisma.phoneNumber.findMany({
+      where: whereClause,
+      orderBy: {
+        orderTimestamp: 'asc',
+      },
+      include: {
+        school: true,
+        department: true
+      }
+    });
+    
+    return NextResponse.json(pendingOrders);
+  } catch (error) {
+    console.error('获取待审核订单失败:', error);
+    return NextResponse.json(
+      { error: '获取待审核订单失败' },
+      { status: 500 }
+    );
   }
-);
+}

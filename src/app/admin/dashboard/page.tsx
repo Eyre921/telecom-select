@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useState} from 'react';
 import {signOut, useSession} from 'next-auth/react';
+import { useRouter } from 'next/navigation'; // 添加这个导入
 import Link from 'next/link';
 import {PhoneNumber, Organization} from '@prisma/client';
 import {StatsCards} from '@/components/admin/StatsCards';
@@ -167,6 +168,7 @@ import { SchoolSelector } from '@/components/admin/SchoolSelector';
 
 export default function DashboardPage() {
     const {data: session} = useSession();
+    const router = useRouter(); // 添加这行
     const isAdmin = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'SCHOOL_ADMIN';
     
     // 根据用户角色显示不同的按钮文案
@@ -238,14 +240,18 @@ export default function DashboardPage() {
             console.error('获取号码数据失败:', err);
             setError(errorMessage);
             
-            // 如果是认证错误，可以考虑重定向到登录页
-            if (errorMessage.includes('认证失败')) {
-                // 可以添加重定向逻辑
+            // 修复：统一的认证错误处理
+            if (errorMessage.includes('认证失败') || errorMessage.includes('权限不足')) {
+                // 清除本地session
+                signOut({ redirect: false });
+                // 重定向到登录页
+                router.push('/signin?callbackUrl=/admin/dashboard');
+                return;
             }
         } finally {
             setIsLoading(false);
         }
-    }, [sortConfig, selectedSchoolId, selectedDepartmentId]);
+    }, [sortConfig, selectedSchoolId, selectedDepartmentId, router]); // 添加 router 到依赖数组
     
     const fetchPendingOrders = useCallback(async () => {
         try {
@@ -479,7 +485,7 @@ export default function DashboardPage() {
         }
     };
 
-    // SchoolSelector的重置函数
+    // SchoolSelector的重置函数 - 可以移除或保留作为内部使用
     const handleResetFilters = () => {
         setSelectedSchoolId('');
         setSelectedDepartmentId('');
@@ -493,7 +499,7 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-6 lg:p-8">
             {/* 用户信息和导航区域 */}
             <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -559,16 +565,33 @@ export default function DashboardPage() {
                         </button>
                     </div>
                 </div>
+                
+                {/* 筛选组件移到标题栏 */}
+                <div className="border-t pt-4">
+                    <SchoolSelector
+                        selectedSchoolId={selectedSchoolId}
+                        selectedDepartmentId={selectedDepartmentId}
+                        onSchoolChange={setSelectedSchoolId}
+                        onDepartmentChange={setSelectedDepartmentId}
+                        showDepartments={true}
+                        showResetButton={false}
+                        disabled={isLoading}
+                        className="bg-transparent p-0"
+                    />
+                </div>
             </div>
 
-            {/* 移除原有的功能按钮区域，因为已经整合到上面的用户信息区域 */}
-            {/* --- 新增的功能按钮区域 --- */}
-            {/* <div className="flex justify-end items-center gap-4 mb-6"> ... </div> */}
-
             {isLoading && <FullPageSpinner/>}
-            <StatsCards/>
-            <PendingOrdersTable initialPendingNumbers={pendingOrders} onApprove={handleEdit}
-                                onRelease={handleRelease}/>
+            <StatsCards 
+                selectedSchoolId={selectedSchoolId} 
+                selectedDepartmentId={selectedDepartmentId} 
+            />
+            <PendingOrdersTable 
+                onApprove={handleEdit}
+                onRelease={handleRelease}
+                selectedSchoolId={selectedSchoolId}
+                selectedDepartmentId={selectedDepartmentId}
+            />
 
             <div className="mt-8 space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900">号码数据中心</h2>
@@ -595,17 +618,6 @@ export default function DashboardPage() {
                             </button>
                         </div>
                     </div>
-                    {/* 使用新的SchoolSelector组件替换原有的筛选区域 */}
-                    <SchoolSelector
-                        selectedSchoolId={selectedSchoolId}
-                        selectedDepartmentId={selectedDepartmentId}
-                        onSchoolChange={setSelectedSchoolId}
-                        onDepartmentChange={setSelectedDepartmentId}
-                        showDepartments={true}
-                        showResetButton={true}
-                        onReset={handleResetFilters}
-                        disabled={isLoading}
-                    />
                     
                     {/* 字段选择区域 - 优化布局 */}
                     <div className="bg-gray-50 p-4 rounded-lg">
@@ -806,12 +818,20 @@ export default function DashboardPage() {
             <EditOrderModal isOpen={isEditModalOpen} onClose={handleCloseModal} numberData={selectedNumber}
                             onSave={(id, data) => handleSave(id, data)}/>
             
-            <ExportModal 
-                isOpen={isExportModalOpen}
-                onClose={() => setIsExportModalOpen(false)}
-                data={allNumbers}
-                allColumns={ALL_COLUMNS}
-            />
+            {/* // 在dashboard页面中传递筛选参数给ExportModal */}
+            {isExportModalOpen && (
+                <ExportModal
+                    isOpen={isExportModalOpen}
+                    onClose={() => setIsExportModalOpen(false)}
+                    data={allNumbers}  // 修复：使用正确的变量名
+                    allColumns={ALL_COLUMNS}  // 修复：使用正确的变量名
+                    dashboardFilters={{
+                        selectedSchoolId,
+                        selectedDepartmentId,
+                        searchTerm
+                    }}
+                />
+            )}
         </div>
     );
 }

@@ -152,8 +152,8 @@ export async function POST(request: NextRequest) {
       return new NextResponse('参数不完整', { status: 400 });
     }
 
-    if (!role || !['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'].includes(role)) {
-      return new NextResponse('角色参数无效', { status: 400 });
+    if (!role || !['SCHOOL_ADMIN', 'MARKETER'].includes(role)) {
+      return new NextResponse('组织内角色只能是学校管理员或营销人员', { status: 400 });
     }
 
     // 1. 首先验证组织是否存在和类型是否正确

@@ -269,7 +269,6 @@ export const UserOrganizationModal = ({ isOpen, onClose, user, onSave }: UserOrg
               >
                 <option value="MARKETER">{ENUM_TRANSLATIONS.Role.MARKETER}</option>
                 <option value="SCHOOL_ADMIN">{ENUM_TRANSLATIONS.Role.SCHOOL_ADMIN}</option>
-                <option value="SUPER_ADMIN">{ENUM_TRANSLATIONS.Role.SUPER_ADMIN}</option>
               </select>
             </div>
             <div className="flex items-end">
@@ -310,7 +309,6 @@ export const UserOrganizationModal = ({ isOpen, onClose, user, onSave }: UserOrg
                     >
                       <option value="MARKETER">{ENUM_TRANSLATIONS.Role.MARKETER}</option>
                       <option value="SCHOOL_ADMIN">{ENUM_TRANSLATIONS.Role.SCHOOL_ADMIN}</option>
-                      <option value="SUPER_ADMIN">{ENUM_TRANSLATIONS.Role.SUPER_ADMIN}</option>
                     </select>
                     <button
                       onClick={() => handleRemoveOrganization(userOrg.id)}

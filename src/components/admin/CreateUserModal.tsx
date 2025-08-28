@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
-import { Role } from '@prisma/client';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { Role, Organization } from '@prisma/client';
 import { ENUM_TRANSLATIONS } from '@/lib/utils';
 
 interface CreateUserModalProps {
@@ -18,9 +19,12 @@ interface CreateUserForm {
   role: Role;
   password: string;
   confirmPassword: string;
+  organizationId: string;
+  // 删除 organizationRole 字段
 }
 
 export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProps) => {
+  const { data: session } = useSession();
   const [formData, setFormData] = useState<CreateUserForm>({
     name: '',
     username: '',
@@ -28,10 +32,35 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
     email: '',
     role: 'MARKETER',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    organizationId: ''
+    // 删除 organizationRole: 'MARKETER'
   });
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 检查当前用户是否可以创建超级管理员
+  const canCreateSuperAdmin = session?.user?.role === 'SUPER_ADMIN';
+
+  // 获取组织列表
+  useEffect(() => {
+    if (isOpen) {
+      fetchOrganizations();
+    }
+  }, [isOpen]);
+
+  const fetchOrganizations = async () => {
+    try {
+      const response = await fetch('/api/admin/organizations?type=SCHOOL');
+      if (response.ok) {
+        const data = await response.json();
+        setOrganizations(data);
+      }
+    } catch (err) {
+      console.error('获取组织列表失败:', err);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -41,25 +70,48 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
     setError(null);
   };
 
+  // 修复：定义具体的类型而不是使用 any
+  // 修复：定义具体的类型而不是使用 any
+  interface CreateUserRequest {
+    name: string;
+    phone: string;
+    role: string;
+    password: string;
+    username?: string;
+    email?: string;
+    organizationId?: string;
+    organizationRole?: string;
+  }
+  
+  // 添加缺失的CreateUserResponse接口定义
+  interface CreateUserResponse {
+    success?: boolean;
+    error?: string;
+    user?: {
+      id: string;
+      username: string;
+      name: string;
+    };
+  }
+  
+  // 在 handleSubmit 函数中
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    // 表单验证
+    setError('');
+  
+    // 权限验证：师大管理员不能创建超级管理员
+    if (formData.role === 'SUPER_ADMIN' && !canCreateSuperAdmin) {
+      setError('您没有权限创建超级管理员');
+      return;
+    }
+  
+    // 表单验证 - 只验证必填字段：姓名、手机号、密码
     if (!formData.name.trim()) {
       setError('请输入用户姓名');
       return;
     }
-    if (!formData.username.trim()) {
-      setError('请输入用户名');
-      return;
-    }
     if (!formData.phone.trim()) {
       setError('请输入手机号');
-      return;
-    }
-    if (!formData.email.trim()) {
-      setError('请输入邮箱地址');
       return;
     }
     if (!formData.password) {
@@ -74,36 +126,71 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
       setError('密码长度至少为6位');
       return;
     }
-
+  
+    // 角色和组织验证
+    if (formData.role !== 'SUPER_ADMIN' && !formData.organizationId) {
+      setError('非超级管理员必须分配到组织');
+      return;
+    }
+    if (formData.role === 'SUPER_ADMIN' && formData.organizationId) {
+      setError('超级管理员不能分配到组织');
+      return;
+    }
+  
     // 手机号格式验证
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(formData.phone.trim())) {
       setError('请输入有效的手机号');
       return;
     }
-
+  
+    // 邮箱格式验证（仅在填写时验证）
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setError('请输入有效的邮箱地址');
+        return;
+      }
+    }
+  
     try {
       setIsLoading(true);
+      const requestData: CreateUserRequest = {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        role: formData.role,
+        password: formData.password,
+        // 只有非超级管理员才传递组织信息，组织内角色直接使用用户类型
+        ...(formData.role !== 'SUPER_ADMIN' && {
+          organizationId: formData.organizationId,
+          organizationRole: formData.role // 直接使用用户类型作为组织内角色
+        })
+      };
+  
+      // 只有在填写了用户名和邮箱时才传递
+      if (formData.username.trim()) {
+        requestData.username = formData.username.trim();
+      }
+      if (formData.email.trim()) {
+        requestData.email = formData.email.trim();
+      }
+  
+      // 修复第133行：正确处理fetch响应
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          username: formData.username.trim(),
-          phone: formData.phone.trim(),
-          email: formData.email.trim(),
-          role: formData.role,
-          password: formData.password
-        }),
+        body: JSON.stringify(requestData),
       });
-
+  
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData: CreateUserResponse = await response.json();
         throw new Error(errorData.error || '创建用户失败');
       }
-
+  
+      // 如果需要处理成功响应的数据，也要正确类型化
+      const result: CreateUserResponse = await response.json();
       await onSave();
       onClose();
       
@@ -115,7 +202,9 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
         email: '',
         role: 'MARKETER',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        organizationId: ''
+        // 删除 organizationRole: 'MARKETER'
       });
     } catch (err) {
       console.error('Error creating user:', err);
@@ -161,7 +250,7 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
 
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              用户名 *
+              用户名
             </label>
             <input
               type="text"
@@ -169,9 +258,23 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="用于登录的用户名"
+              placeholder="用于登录的用户名（可选，为空时自动生成）"
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              邮箱地址
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="邮箱地址（可选）"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -192,23 +295,8 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              邮箱地址 *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          <div>
             <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-              用户角色 *
+              用户类型 *
             </label>
             <select
               id="role"
@@ -220,9 +308,42 @@ export const CreateUserModal = ({ isOpen, onClose, onSave }: CreateUserModalProp
             >
               <option value="MARKETER">{ENUM_TRANSLATIONS.Role.MARKETER}</option>
               <option value="SCHOOL_ADMIN">{ENUM_TRANSLATIONS.Role.SCHOOL_ADMIN}</option>
-              <option value="SUPER_ADMIN">{ENUM_TRANSLATIONS.Role.SUPER_ADMIN}</option>
+              {canCreateSuperAdmin && (
+                <option value="SUPER_ADMIN">{ENUM_TRANSLATIONS.Role.SUPER_ADMIN}</option>
+              )}
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {canCreateSuperAdmin 
+                ? "超级管理员独立存在，不分配到具体组织" 
+                : "您只能创建营销人员和学校管理员"}
+            </p>
           </div>
+
+          {/* 组织选择 - 只有非超级管理员才显示 */}
+          {formData.role !== 'SUPER_ADMIN' && (
+            <div>
+              <label htmlFor="organizationId" className="block text-sm font-medium text-gray-700 mb-1">
+                所属组织 *
+              </label>
+              <select
+                id="organizationId"
+                name="organizationId"
+                value={formData.organizationId}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="">请选择组织</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} ({ENUM_TRANSLATIONS.OrgType[org.type as keyof typeof ENUM_TRANSLATIONS.OrgType]})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* 删除整个组织内角色字段 */}
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">

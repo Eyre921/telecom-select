@@ -82,9 +82,6 @@ const UsersTable = ({
                 角色
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                所属组织
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 创建时间
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -108,28 +105,32 @@ const UsersTable = ({
                   {user.phone || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
-                    user.role === 'SCHOOL_ADMIN' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {ENUM_TRANSLATIONS.Role[user.role as keyof typeof ENUM_TRANSLATIONS.Role]}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.organizations.length > 0 ? (
                     <div className="space-y-1">
                       {user.organizations.map((userOrg) => (
-                        <div key={userOrg.id} className="text-xs">
-                          <span className="font-medium">{userOrg.organization.name}</span>
-                          <span className="text-gray-400 ml-1">
-                            ({ENUM_TRANSLATIONS.OrgType[userOrg.organization.type as keyof typeof ENUM_TRANSLATIONS.OrgType]})
+                        <div key={userOrg.id} className="flex items-center space-x-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            userOrg.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
+                            userOrg.role === 'SCHOOL_ADMIN' ? 'bg-blue-100 text-blue-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {ENUM_TRANSLATIONS.Role[userOrg.role as keyof typeof ENUM_TRANSLATIONS.Role]}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            @ {userOrg.organization.name}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span className="text-gray-400">未分配</span>
+                    // 对于没有组织关系的用户（如超级管理员），显示全局角色
+                    user.role === 'SUPER_ADMIN' ? (
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                        {ENUM_TRANSLATIONS.Role.SUPER_ADMIN}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">未分配角色</span>
+                    )
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -144,12 +145,7 @@ const UsersTable = ({
                   </button>
                   {isAdmin && (
                     <>
-                      <button
-                        onClick={() => onManageOrganizations(user)}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        分配组织
-                      </button>
+                      {/* 删除分配组织按钮 - 功能已集成到编辑功能中 */}
                       <button
                         onClick={() => onDelete(user.id)}
                         className="text-red-600 hover:text-red-900"

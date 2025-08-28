@@ -3,12 +3,50 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Role, OrgType } from '@prisma/client';
 import { NextRequest } from 'next/server';
+import { AsyncLocalStorage } from 'async_hooks';
 
-// 权限检查结果接口
+// 创建类型安全的缓存接口
+interface RequestCacheData {
+  user_permissions?: PermissionResult;
+  user_data_filter?: DataFilter | null;
+}
+
+// 定义缓存值的联合类型
+type CacheValue = PermissionResult | DataFilter | null;
+
+// 创建AsyncLocalStorage实例用于请求级别缓存
+const requestCache = new AsyncLocalStorage<Map<keyof RequestCacheData, CacheValue>>();
+
+// 修复：定义完整的UserWithOrganizations类型
+interface UserWithOrganizations {
+  id: string;
+  username: string | null;  // 修复：允许null值
+  name: string;
+  email: string | null;
+  phone: string;
+  role: Role;
+  organizations: {
+    id: string;
+    organizationId: string;
+    role: Role;
+    organization: {
+      id: string;
+      name: string;
+      type: OrgType;
+      parentId: string | null;
+    };
+  }[];
+}
+
+// 修复：权限检查结果接口，使其与getUserPermissions返回类型匹配
 export interface PermissionResult {
   hasPermission: boolean;
   user?: {
     id: string;
+    username: string | null;  // 修复：允许null值
+    name: string;
+    email: string | null;
+    phone: string;
     role: Role;
     organizations: Array<{
       id: string;
@@ -29,19 +67,42 @@ export interface DataFilter {
 }
 
 /**
- * 获取用户权限信息
+ * 获取请求缓存
  */
-export async function getUserPermissions(): Promise<PermissionResult> {
+function getRequestCache(): Map<keyof RequestCacheData, CacheValue> {
+  let cache = requestCache.getStore();
+  if (!cache) {
+    cache = new Map();
+    return cache;
+  }
+  return cache;
+}
+
+/**
+ * 带缓存的getUserPermissions函数
+ */
+export async function getUserPermissions(req?: NextRequest): Promise<PermissionResult> {
+  const cache = getRequestCache();
+  const cacheKey: keyof RequestCacheData = 'user_permissions';
+  
+  // 检查缓存
+  if (cache.has(cacheKey)) {
+    console.log('Using cached user permissions');
+    return cache.get(cacheKey) as PermissionResult;
+  }
+
   try {
     const session = await getServerSession(authOptions);
     
     // 增强session验证
     if (!session?.user?.id) {
       console.log('Session check failed:', { session: !!session, userId: session?.user?.id });
-      return {
+      const result: PermissionResult = {
         hasPermission: false,
         error: '用户未登录'
       };
+      cache.set(cacheKey, result);
+      return result;
     }
 
     // 添加详细的错误日志
@@ -61,18 +122,25 @@ export async function getUserPermissions(): Promise<PermissionResult> {
 
     if (!user) {
       console.error('User not found in database:', session.user.id);
-      return {
+      const result: PermissionResult = {
         hasPermission: false,
         error: '用户不存在'
       };
+      cache.set(cacheKey, result);
+      return result;
     }
 
     console.log('User found:', { id: user.id, role: user.role, orgCount: user.organizations.length });
 
-    return {
+    // 修复：返回完整的用户信息，包含所有必需字段
+    const result: PermissionResult = {
       hasPermission: true,
       user: {
         id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
         role: user.role,
         organizations: user.organizations.map(uo => ({
           id: uo.organization.id,
@@ -82,13 +150,423 @@ export async function getUserPermissions(): Promise<PermissionResult> {
         }))
       }
     };
+    
+    // 缓存结果
+    cache.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.error('获取用户权限失败:', error);
-    return {
+    const result: PermissionResult = {
       hasPermission: false,
       error: '权限检查失败'
     };
+    cache.set(cacheKey, result);
+    return result;
   }
+}
+
+/**
+ * 获取用户数据过滤条件 - 使用缓存机制
+ */
+export async function getUserDataFilter(): Promise<DataFilter | null> {
+  const cache = getRequestCache();
+  const cacheKey: keyof RequestCacheData = 'user_data_filter';
+  
+  // 检查缓存
+  if (cache.has(cacheKey)) {
+    console.log('Using cached user data filter');
+    return cache.get(cacheKey) as DataFilter | null;
+  }
+
+  const userPermission = await getUserPermissions();
+  
+  if (!userPermission.hasPermission || !userPermission.user) {
+    const result = null;
+    cache.set(cacheKey, result);
+    return result;
+  }
+
+  const { user } = userPermission;
+
+  // 超级管理员不需要过滤
+  if (user.role === 'SUPER_ADMIN') {
+    const result = {};
+    cache.set(cacheKey, result);
+    return result;
+  }
+
+  const schoolIds: string[] = [];
+  const departmentIds: string[] = [];
+  const organizationIds = user.organizations.map(org => org.id);
+
+  // 分类组织ID
+  for (const org of user.organizations) {
+    if (org.type === 'SCHOOL') {
+      schoolIds.push(org.id);
+    } else if (org.type === 'DEPARTMENT') {
+      departmentIds.push(org.id);
+    }
+  }
+
+  // 校级管理员需要包含其学校下的所有院系
+  if (user.role === 'SCHOOL_ADMIN' && schoolIds.length > 0) {
+    try {
+      const departments = await prisma.organization.findMany({
+        where: {
+          type: 'DEPARTMENT',
+          parentId: { in: schoolIds }
+        },
+        select: { id: true }
+      });
+      
+      departments.forEach(dept => {
+        if (!departmentIds.includes(dept.id)) {
+          departmentIds.push(dept.id);
+          if (!organizationIds.includes(dept.id)) {
+            organizationIds.push(dept.id);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('获取院系列表失败:', error);
+    }
+  }
+
+  // 销售员也需要包含其学校下的所有院系权限
+  if (user.role === 'MARKETER' && schoolIds.length > 0) {
+    try {
+      const departments = await prisma.organization.findMany({
+        where: {
+          type: 'DEPARTMENT',
+          parentId: { in: schoolIds }
+        },
+        select: { id: true }
+      });
+      
+      departments.forEach(dept => {
+        if (!departmentIds.includes(dept.id)) {
+          departmentIds.push(dept.id);
+          if (!organizationIds.includes(dept.id)) {
+            organizationIds.push(dept.id);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('获取销售员院系列表失败:', error);
+    }
+  }
+
+  const result = {
+    schoolIds: schoolIds.length > 0 ? schoolIds : undefined,
+    departmentIds: departmentIds.length > 0 ? departmentIds : undefined,
+    organizationIds
+  };
+  
+  // 缓存结果
+  cache.set(cacheKey, result);
+  return result;
+}
+
+/**
+ * 带缓存的withAuth中间件
+ */
+export function withAuth<T = Record<string, string>>(
+  handler: (req: NextRequest, context: { params: Promise<T> }) => Promise<Response>,
+  options: {
+    requiredRole?: Role[];
+    resourceType?: 'phone_number' | 'organization' | 'user';
+    action?: 'read' | 'write' | 'delete';
+  } = {}
+) {
+  return async function(
+    req: NextRequest, 
+    context: { params: Promise<T> }
+  ): Promise<Response> {
+    // 为每个请求创建新的缓存上下文
+    return requestCache.run(new Map(), async () => {
+      try {
+        const userPermission = await getUserPermissions();
+        
+        if (!userPermission.hasPermission) {
+          return new Response(
+            JSON.stringify({ error: userPermission.error || '权限不足' }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // 检查角色权限
+        if (options.requiredRole && userPermission.user) {
+          if (!options.requiredRole.includes(userPermission.user.role)) {
+            return new Response(
+              JSON.stringify({ error: '角色权限不足' }),
+              { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+
+        // 检查资源权限
+        if (options.resourceType) {
+          const resourcePermission = await checkResourcePermission(
+            options.resourceType,
+            undefined,
+            options.action
+          );
+          
+          if (!resourcePermission.hasPermission) {
+            return new Response(
+              JSON.stringify({ error: resourcePermission.error || '资源访问权限不足' }),
+              { status: 403, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+
+        // 调用原始处理函数
+        return await handler(req, context);
+      } catch (error) {
+        console.error('权限中间件错误:', error);
+        return new Response(
+          JSON.stringify({ error: '服务器内部错误' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    });
+  };
+}
+
+/**
+ * 检查管理员权限的辅助函数 - 修复版本
+ */
+export async function checkAdminPermission(): Promise<boolean> {
+  const userPermission = await getUserPermissions();
+  return userPermission.hasPermission && 
+         userPermission.user?.role !== 'MARKETER' &&
+         ['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(userPermission.user?.role || '');
+}
+
+/**
+ * 验证用户组织分配的合理性
+ * 确保院系销售员必须同时拥有对应学校的权限
+ */
+export async function validateUserOrganizations(
+  userId: string,
+  organizationIds: string[]
+): Promise<{ isValid: boolean; error?: string; missingSchools?: string[] }> {
+  try {
+    // 获取所有相关组织信息
+    const organizations = await prisma.organization.findMany({
+      where: {
+        id: { in: organizationIds }
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        parentId: true,
+        parent: {
+          select: {
+            id: true,
+            name: true,
+            type: true
+          }
+        }
+      }
+    });
+
+    const schools = organizations.filter(org => org.type === 'SCHOOL');
+    const departments = organizations.filter(org => org.type === 'DEPARTMENT');
+    const schoolIds = schools.map(school => school.id);
+    const missingSchools: string[] = [];
+
+    // 检查每个院系是否有对应的学校权限
+    for (const dept of departments) {
+      if (dept.parentId && !schoolIds.includes(dept.parentId)) {
+        // 查找缺失的学校信息
+        const parentSchool = await prisma.organization.findUnique({
+          where: { id: dept.parentId },
+          select: { name: true }
+        });
+        
+        if (parentSchool) {
+          missingSchools.push(`${dept.name} 需要对应的学校权限: ${parentSchool.name}`);
+        }
+      }
+    }
+
+    return {
+      isValid: missingSchools.length === 0,
+      error: missingSchools.length > 0 ? '院系权限缺少对应的学校权限' : undefined,
+      missingSchools
+    };
+  } catch (error) {
+    console.error('验证用户组织分配失败:', error);
+    return {
+      isValid: false,
+      error: '验证失败'
+    };
+  }
+}
+
+/**
+ * 验证并修正用户组织分配
+ * 自动添加缺失的学校权限
+ */
+export async function validateAndFixUserOrganizations(
+  userId: string,
+  organizationIds: string[]
+): Promise<{ success: boolean; finalOrganizationIds: string[]; addedSchools?: string[] }> {
+  try {
+    const validation = await validateUserOrganizations(userId, organizationIds);
+    
+    if (validation.isValid) {
+      return {
+        success: true,
+        finalOrganizationIds: organizationIds
+      };
+    }
+
+    // 获取需要添加的学校ID
+    const departments = await prisma.organization.findMany({
+      where: {
+        id: { in: organizationIds },
+        type: 'DEPARTMENT'
+      },
+      select: {
+        parentId: true,
+        parent: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+
+    const schoolsToAdd = departments
+      .filter(dept => dept.parentId && !organizationIds.includes(dept.parentId))
+      .map(dept => dept.parentId!)
+      .filter((id, index, arr) => arr.indexOf(id) === index); // 去重
+
+    const addedSchoolNames = departments
+      .filter(dept => dept.parentId && schoolsToAdd.includes(dept.parentId))
+      .map(dept => dept.parent?.name)
+      .filter((name, index, arr) => arr.indexOf(name) === index); // 去重
+
+    const finalOrganizationIds = [...organizationIds, ...schoolsToAdd];
+
+    return {
+      success: true,
+      finalOrganizationIds,
+      addedSchools: addedSchoolNames.filter(Boolean) as string[]
+    };
+  } catch (error) {
+    console.error('修正用户组织分配失败:', error);
+    return {
+      success: false,
+      finalOrganizationIds: organizationIds
+    };
+  }
+}
+
+/**
+ * 更新的getUserDataFilter函数，增强院系-学校关联验证
+ */
+export async function getUserDataFilterEnhanced(): Promise<DataFilter | null> {
+  const userPermission = await getUserPermissions();
+  
+  if (!userPermission.hasPermission || !userPermission.user) {
+    return null;
+  }
+
+  const { user } = userPermission;
+
+  // 超级管理员不需要过滤
+  if (user.role === 'SUPER_ADMIN') {
+    return {};
+  }
+
+  const schoolIds: string[] = [];
+  const departmentIds: string[] = [];
+  const organizationIds = user.organizations.map(org => org.id);
+
+  // 验证用户组织分配的合理性
+  const validation = await validateUserOrganizations(user.id, organizationIds);
+  if (!validation.isValid && user.role === 'MARKETER') {
+    console.warn(`用户 ${user.id} 的组织分配不合理:`, validation.error);
+    console.warn('缺失的学校权限:', validation.missingSchools);
+  }
+
+  // 分类组织ID
+  for (const org of user.organizations) {
+    if (org.type === 'SCHOOL') {
+      schoolIds.push(org.id);
+    } else if (org.type === 'DEPARTMENT') {
+      departmentIds.push(org.id);
+    }
+  }
+
+  // 校级管理员需要包含其学校下的所有院系
+  if (user.role === 'SCHOOL_ADMIN' && schoolIds.length > 0) {
+    try {
+      const departments = await prisma.organization.findMany({
+        where: {
+          type: 'DEPARTMENT',
+          parentId: { in: schoolIds }
+        },
+        select: { id: true }
+      });
+      
+      departments.forEach(dept => {
+        if (!departmentIds.includes(dept.id)) {
+          departmentIds.push(dept.id);
+          // 同时将院系ID添加到organizationIds中
+          if (!organizationIds.includes(dept.id)) {
+            organizationIds.push(dept.id);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('获取院系列表失败:', error);
+    }
+  }
+
+  // 销售员也需要包含其学校下的所有院系权限
+  if (user.role === 'MARKETER' && schoolIds.length > 0) {
+    try {
+      const departments = await prisma.organization.findMany({
+        where: {
+          type: 'DEPARTMENT',
+          parentId: { in: schoolIds }
+        },
+        select: { id: true }
+      });
+      
+      departments.forEach(dept => {
+        if (!departmentIds.includes(dept.id)) {
+          departmentIds.push(dept.id);
+          // 同时将院系ID添加到organizationIds中
+          if (!organizationIds.includes(dept.id)) {
+            organizationIds.push(dept.id);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('获取销售员院系列表失败:', error);
+    }
+  }
+
+  return {
+    schoolIds: schoolIds.length > 0 ? schoolIds : undefined,
+    departmentIds: departmentIds.length > 0 ? departmentIds : undefined,
+    organizationIds,
+    validationWarning: !validation.isValid ? validation.error : undefined
+  };
+}
+
+// 检查MARKETER角色是否有释放超时订单权限
+export function canReleaseOverdueOrders(userRole: string): boolean {
+  return userRole === 'SUPER_ADMIN' || 
+         userRole === 'SCHOOL_ADMIN' || 
+         userRole === 'MARKETER'; // 确保包含MARKETER
 }
 
 /**
@@ -282,340 +760,4 @@ async function checkUserPermission(
   }
 
   return { hasPermission: true, user };
-}
-
-/**
- * 获取用户数据过滤条件
- */
-export async function getUserDataFilter(): Promise<DataFilter | null> {
-  const userPermission = await getUserPermissions();
-  
-  if (!userPermission.hasPermission || !userPermission.user) {
-    return null;
-  }
-
-  const { user } = userPermission;
-
-  // 超级管理员不需要过滤
-  if (user.role === 'SUPER_ADMIN') {
-    return {};
-  }
-
-  const schoolIds: string[] = [];
-  const departmentIds: string[] = [];
-  const organizationIds = user.organizations.map(org => org.id);
-
-  // 验证用户组织分配的合理性
-  const validation = await validateUserOrganizations(user.id, organizationIds);
-  if (!validation.isValid && user.role === 'MARKETER') {
-    console.warn(`用户 ${user.id} 的组织分配不合理:`, validation.error);
-    console.warn('缺失的学校权限:', validation.missingSchools);
-  }
-
-  // 分类组织ID
-  for (const org of user.organizations) {
-    if (org.type === 'SCHOOL') {
-      schoolIds.push(org.id);
-    } else if (org.type === 'DEPARTMENT') {
-      departmentIds.push(org.id);
-    }
-  }
-
-  // 校级管理员需要包含其学校下的所有院系
-  if (user.role === 'SCHOOL_ADMIN' && schoolIds.length > 0) {
-    try {
-      const departments = await prisma.organization.findMany({
-        where: {
-          type: 'DEPARTMENT',
-          parentId: { in: schoolIds }
-        },
-        select: { id: true }
-      });
-      
-      departments.forEach(dept => {
-        if (!departmentIds.includes(dept.id)) {
-          departmentIds.push(dept.id);
-        }
-      });
-    } catch (error) {
-      console.error('获取院系列表失败:', error);
-    }
-  }
-
-  return {
-    schoolIds: schoolIds.length > 0 ? schoolIds : undefined,
-    departmentIds: departmentIds.length > 0 ? departmentIds : undefined,
-    organizationIds,
-    validationWarning: !validation.isValid ? validation.error : undefined
-  };
-}
-
-/**
- * API路由权限中间件 - 支持静态和动态路由
- */
-export function withAuth<T = Record<string, string>>(
-  handler: (req: NextRequest, context: { params: Promise<T> }) => Promise<Response>,
-  options: {
-    requiredRole?: Role[];
-    resourceType?: 'phone_number' | 'organization' | 'user';
-    action?: 'read' | 'write' | 'delete';
-  } = {}
-) {
-  return async function(
-    req: NextRequest, 
-    context: { params: Promise<T> }
-  ): Promise<Response> {
-    try {
-      const userPermission = await getUserPermissions();
-      
-      if (!userPermission.hasPermission) {
-        return new Response(
-          JSON.stringify({ error: userPermission.error || '权限不足' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // 检查角色权限
-      if (options.requiredRole && userPermission.user) {
-        if (!options.requiredRole.includes(userPermission.user.role)) {
-          return new Response(
-            JSON.stringify({ error: '角色权限不足' }),
-            { status: 403, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-
-      // 检查资源权限
-      if (options.resourceType) {
-        const resourcePermission = await checkResourcePermission(
-          options.resourceType,
-          undefined,
-          options.action
-        );
-        
-        if (!resourcePermission.hasPermission) {
-          return new Response(
-            JSON.stringify({ error: resourcePermission.error || '资源访问权限不足' }),
-            { status: 403, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-
-      // 调用原始处理函数
-      return await handler(req, context);
-    } catch (error) {
-      console.error('权限中间件错误:', error);
-      return new Response(
-        JSON.stringify({ error: '服务器内部错误' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-  };
-}
-
-/**
- * 检查管理员权限的辅助函数 - 修复版本
- */
-export async function checkAdminPermission(): Promise<boolean> {
-  const userPermission = await getUserPermissions();
-  return userPermission.hasPermission && 
-         userPermission.user?.role !== 'MARKETER' &&
-         ['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(userPermission.user?.role || '');
-}
-
-/**
- * 验证用户组织分配的合理性
- * 确保院系销售员必须同时拥有对应学校的权限
- */
-export async function validateUserOrganizations(
-  userId: string,
-  organizationIds: string[]
-): Promise<{ isValid: boolean; error?: string; missingSchools?: string[] }> {
-  try {
-    // 获取所有相关组织信息
-    const organizations = await prisma.organization.findMany({
-      where: {
-        id: { in: organizationIds }
-      },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        parentId: true,
-        parent: {
-          select: {
-            id: true,
-            name: true,
-            type: true
-          }
-        }
-      }
-    });
-
-    const schools = organizations.filter(org => org.type === 'SCHOOL');
-    const departments = organizations.filter(org => org.type === 'DEPARTMENT');
-    const schoolIds = schools.map(school => school.id);
-    const missingSchools: string[] = [];
-
-    // 检查每个院系是否有对应的学校权限
-    for (const dept of departments) {
-      if (dept.parentId && !schoolIds.includes(dept.parentId)) {
-        // 查找缺失的学校信息
-        const parentSchool = await prisma.organization.findUnique({
-          where: { id: dept.parentId },
-          select: { name: true }
-        });
-        
-        if (parentSchool) {
-          missingSchools.push(`${dept.name} 需要对应的学校权限: ${parentSchool.name}`);
-        }
-      }
-    }
-
-    return {
-      isValid: missingSchools.length === 0,
-      error: missingSchools.length > 0 ? '院系权限缺少对应的学校权限' : undefined,
-      missingSchools
-    };
-  } catch (error) {
-    console.error('验证用户组织分配失败:', error);
-    return {
-      isValid: false,
-      error: '验证失败'
-    };
-  }
-}
-
-/**
- * 验证并修正用户组织分配
- * 自动添加缺失的学校权限
- */
-export async function validateAndFixUserOrganizations(
-  userId: string,
-  organizationIds: string[]
-): Promise<{ success: boolean; finalOrganizationIds: string[]; addedSchools?: string[] }> {
-  try {
-    const validation = await validateUserOrganizations(userId, organizationIds);
-    
-    if (validation.isValid) {
-      return {
-        success: true,
-        finalOrganizationIds: organizationIds
-      };
-    }
-
-    // 获取需要添加的学校ID
-    const departments = await prisma.organization.findMany({
-      where: {
-        id: { in: organizationIds },
-        type: 'DEPARTMENT'
-      },
-      select: {
-        parentId: true,
-        parent: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    });
-
-    const schoolsToAdd = departments
-      .filter(dept => dept.parentId && !organizationIds.includes(dept.parentId))
-      .map(dept => dept.parentId!)
-      .filter((id, index, arr) => arr.indexOf(id) === index); // 去重
-
-    const addedSchoolNames = departments
-      .filter(dept => dept.parentId && schoolsToAdd.includes(dept.parentId))
-      .map(dept => dept.parent?.name)
-      .filter((name, index, arr) => arr.indexOf(name) === index); // 去重
-
-    const finalOrganizationIds = [...organizationIds, ...schoolsToAdd];
-
-    return {
-      success: true,
-      finalOrganizationIds,
-      addedSchools: addedSchoolNames.filter(Boolean) as string[]
-    };
-  } catch (error) {
-    console.error('修正用户组织分配失败:', error);
-    return {
-      success: false,
-      finalOrganizationIds: organizationIds
-    };
-  }
-}
-
-/**
- * 更新的getUserDataFilter函数，增强院系-学校关联验证
- */
-export async function getUserDataFilterEnhanced(): Promise<DataFilter | null> {
-  const userPermission = await getUserPermissions();
-  
-  if (!userPermission.hasPermission || !userPermission.user) {
-    return null;
-  }
-
-  const { user } = userPermission;
-
-  // 超级管理员不需要过滤
-  if (user.role === 'SUPER_ADMIN') {
-    return {};
-  }
-
-  const schoolIds: string[] = [];
-  const departmentIds: string[] = [];
-  const organizationIds = user.organizations.map(org => org.id);
-
-  // 验证用户组织分配的合理性
-  const validation = await validateUserOrganizations(user.id, organizationIds);
-  if (!validation.isValid && user.role === 'MARKETER') {
-    console.warn(`用户 ${user.id} 的组织分配不合理:`, validation.error);
-    console.warn('缺失的学校权限:', validation.missingSchools);
-  }
-
-  // 分类组织ID
-  for (const org of user.organizations) {
-    if (org.type === 'SCHOOL') {
-      schoolIds.push(org.id);
-    } else if (org.type === 'DEPARTMENT') {
-      departmentIds.push(org.id);
-    }
-  }
-
-  // 校级管理员需要包含其学校下的所有院系
-  if (user.role === 'SCHOOL_ADMIN' && schoolIds.length > 0) {
-    try {
-      const departments = await prisma.organization.findMany({
-        where: {
-          type: 'DEPARTMENT',
-          parentId: { in: schoolIds }
-        },
-        select: { id: true }
-      });
-      
-      departments.forEach(dept => {
-        if (!departmentIds.includes(dept.id)) {
-          departmentIds.push(dept.id);
-        }
-      });
-    } catch (error) {
-      console.error('获取院系列表失败:', error);
-    }
-  }
-
-  return {
-    schoolIds: schoolIds.length > 0 ? schoolIds : undefined,
-    departmentIds: departmentIds.length > 0 ? departmentIds : undefined,
-    organizationIds,
-    validationWarning: !validation.isValid ? validation.error : undefined
-  };
-}
-
-// 检查MARKETER角色是否有释放超时订单权限
-export function canReleaseOverdueOrders(userRole: string): boolean {
-  return userRole === 'SUPER_ADMIN' || 
-         userRole === 'SCHOOL_ADMIN' || 
-         userRole === 'MARKETER'; // 确保包含MARKETER
 }

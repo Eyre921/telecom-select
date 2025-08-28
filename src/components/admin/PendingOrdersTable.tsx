@@ -18,19 +18,43 @@ const formatTimeLeft = (timestamp: string | Date): string => {
 };
 
 interface PendingOrdersTableProps {
-    initialPendingNumbers: PhoneNumber[];
-    onApprove: (number: PhoneNumber) => void; // 用于通知父组件有订单被批准
-    onRelease: (numberId: string) => void; // 用于通知父组件有订单被释放
+    onApprove: (number: PhoneNumber) => void;
+    onRelease: (numberId: string) => void;
+    selectedSchoolId?: string;
+    selectedDepartmentId?: string;
 }
 
-export const PendingOrdersTable = ({initialPendingNumbers, onApprove, onRelease}: PendingOrdersTableProps) => {
-    const [pendingNumbers, setPendingNumbers] = useState(initialPendingNumbers);
+export const PendingOrdersTable = ({onApprove, onRelease, selectedSchoolId, selectedDepartmentId}: PendingOrdersTableProps) => {
+    const [pendingNumbers, setPendingNumbers] = useState<PhoneNumber[]>([]);
     const [releasingId, setReleasingId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // 允许父组件更新列表
     useEffect(() => {
-        setPendingNumbers(initialPendingNumbers);
-    }, [initialPendingNumbers]);
+        const fetchPendingOrders = async () => {
+            try {
+                setIsLoading(true);
+                const params = new URLSearchParams();
+                if (selectedSchoolId) {
+                    params.append('schoolId', selectedSchoolId);
+                }
+                if (selectedDepartmentId) {
+                    params.append('departmentId', selectedDepartmentId);
+                }
+                
+                const response = await fetch(`/api/admin/pending-orders?${params.toString()}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setPendingNumbers(data);
+                }
+            } catch (err) {
+                console.error('获取待审核订单失败:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPendingOrders();
+    }, [selectedSchoolId, selectedDepartmentId]);
 
     const handleRelease = async (numberId: string) => {
         if (!confirm('确定要手动释放这个号码吗？资源将返还号码池。')) return;
@@ -53,7 +77,14 @@ export const PendingOrdersTable = ({initialPendingNumbers, onApprove, onRelease}
                 <span className="text-sm text-gray-500">共 {pendingNumbers.length} 个订单</span>
             </div>
             
-            {pendingNumbers.length === 0 ? (
+            {isLoading ? (
+                <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <div className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                </div>
+            ) : pendingNumbers.length === 0 ? (
                 <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
                     <p className="text-center text-gray-500">当前没有待审核的订单。</p>
                 </div>
