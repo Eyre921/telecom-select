@@ -11,6 +11,7 @@ export async function POST(request: Request) {
             customerContact,
             shippingAddress,
             paymentAmount,
+            assignedMarketer,
         } = body;
 
         // 基础验证
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
                     customerContact,
                     shippingAddress: shippingAddress || null,
                     paymentAmount: parseFloat(paymentAmount),
+                    assignedMarketer: assignedMarketer || null,
                 },
             });
         });

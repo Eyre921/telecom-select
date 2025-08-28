@@ -5,6 +5,7 @@ import { PhoneNumber } from '@prisma/client';
 import { NumberCard } from '@/components/ui/NumberCard';
 import { OrderModal } from '@/components/ui/OrderModal';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 // 加载动画组件 - 使用中国电信蓝色
 const Spinner = () => (
@@ -14,8 +15,19 @@ const Spinner = () => (
 );
 
 export default function HomePage() {
+    const searchParams = useSearchParams();
+    
+    // 从URL参数获取过滤条件和销售人员信息
+    const schoolId = searchParams.get('schoolId');
+    const departmentId = searchParams.get('departmentId');
+    const marketer = searchParams.get('marketer');
+    
     const [allNumbers, setAllNumbers] = useState<PhoneNumber[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [organizationInfo, setOrganizationInfo] = useState<{
+        schoolName?: string;
+        departmentName?: string;
+    }>({});
 
     // 状态管理
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +50,37 @@ export default function HomePage() {
 
     const [reloadTrigger, setReloadTrigger] = useState(0);
 
+    // 获取组织信息
+    const fetchOrganizationInfo = useCallback(async () => {
+        if (!schoolId && !departmentId) return;
+        
+        try {
+            const promises = [];
+            
+            if (schoolId) {
+                promises.push(
+                    fetch(`/api/admin/organizations/${schoolId}`)
+                        .then(res => res.ok ? res.json() : null)
+                        .then(data => ({ schoolName: data?.name }))
+                );
+            }
+            
+            if (departmentId) {
+                promises.push(
+                    fetch(`/api/admin/organizations/${departmentId}`)
+                        .then(res => res.ok ? res.json() : null)
+                        .then(data => ({ departmentName: data?.name }))
+                );
+            }
+            
+            const results = await Promise.all(promises);
+            const info = results.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+            setOrganizationInfo(info);
+        } catch (error) {
+            console.error('获取组织信息失败:', error);
+        }
+    }, [schoolId, departmentId]);
+
     // 数据获取函数
     const fetchData = useCallback(async () => {
         if (isLoading || !hasMore) return;
@@ -50,6 +93,11 @@ export default function HomePage() {
                 page: String(page),
                 hideReserved: String(hideReserved),
             });
+            
+            // 添加过滤参数
+            if (schoolId) params.append('schoolId', schoolId);
+            if (departmentId) params.append('departmentId', departmentId);
+            
             const response = await fetch(`/api/numbers?${params.toString()}`);
 
             if (!response.ok) {
@@ -73,9 +121,9 @@ export default function HomePage() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, hasMore, isLoading, hideReserved]);
+    }, [page, hasMore, isLoading, hideReserved, schoolId, departmentId]);
 
-    // 当“屏蔽已选”状态改变时，触发重置
+    // 当"屏蔽已选"状态改变时，触发重置
     const handleHideReservedToggle = () => {
         setHideReserved(prev => !prev);
         setAllNumbers([]);
@@ -83,6 +131,11 @@ export default function HomePage() {
         setHasMore(true);
         setReloadTrigger(t => t + 1);
     };
+
+    // 初始加载组织信息
+    useEffect(() => {
+        fetchOrganizationInfo();
+    }, [fetchOrganizationInfo]);
 
     // 初始加载或触发重载时运行
     useEffect(() => {
@@ -146,6 +199,29 @@ export default function HomePage() {
         setTimeout(() => {
             setShowSuccessMessage(false);
         }, 5000);
+    };
+
+    // 生成标题文本
+    const getPageTitle = () => {
+        const parts = [];
+        if (organizationInfo.schoolName) {
+            parts.push(organizationInfo.schoolName);
+        }
+        if (organizationInfo.departmentName) {
+            parts.push(organizationInfo.departmentName);
+        }
+        
+        if (parts.length > 0) {
+            return `${parts.join(' - ')} 专属选号`;
+        }
+        return '🔍 开始选号';
+    };
+
+    const getPageSubtitle = () => {
+        if (organizationInfo.schoolName || organizationInfo.departmentName) {
+            return '为您筛选专属号码资源';
+        }
+        return '从下方号码库中选择您心仪的专属号码';
     };
 
     return (
@@ -229,8 +305,16 @@ export default function HomePage() {
                 )}
 
                 <header className="text-center mb-6 bg-white/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 telecom-card-shadow">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">🔍 开始选号</h2>
-                    <p className="text-gray-600 text-sm md:text-base">从下方号码库中选择您心仪的专属号码</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">{getPageTitle()}</h2>
+                    <p className="text-gray-600 text-sm md:text-base">{getPageSubtitle()}</p>
+                    {(organizationInfo.schoolName || organizationInfo.departmentName) && (
+                        <div className="mt-3 inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            已为您筛选专属号码
+                        </div>
+                    )}
                 </header>
 
                 {/* 搜索区域 - 使用中国电信风格 */}
@@ -300,6 +384,7 @@ export default function HomePage() {
                 onClose={handleCloseModal}
                 number={selectedNumber}
                 onOrderSuccess={handleOrderSuccess}
+                marketer={marketer}
             />
         </main>
     );

@@ -195,6 +195,10 @@ export default function DashboardPage() {
     const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
 
+    // 新增：分享链接相关状态
+    const [shareUrl, setShareUrl] = useState<string>('');
+    const [showShareModal, setShowShareModal] = useState(false);
+
     // 拖拽状态 - 移到组件内部
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -492,6 +496,40 @@ export default function DashboardPage() {
         setCurrentPage(1);
     };
 
+    // 新增：生成分享链接函数
+    const generateShareUrl = () => {
+        const baseUrl = window.location.origin;
+        const params = new URLSearchParams();
+        
+        // 添加筛选参数
+        if (selectedSchoolId) {
+            params.append('schoolId', selectedSchoolId);
+        }
+        if (selectedDepartmentId) {
+            params.append('departmentId', selectedDepartmentId);
+        }
+        
+        // 添加销售人员信息（当前登录用户）
+        if (session?.user?.name) {
+            params.append('marketer', session.user.name);
+        }
+        
+        const url = `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`;
+        setShareUrl(url);
+        setShowShareModal(true);
+    };
+
+    // 新增：复制链接到剪贴板函数
+    const copyToClipboard = async () => {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            alert('链接已复制到剪贴板！');
+        } catch (err) {
+            console.error('复制失败:', err);
+            alert('复制失败，请手动复制链接');
+        }
+    };
+
     if (isLoading && totalPages === 0) return <FullPageSpinner/>;
     if (error) return <div className="text-center text-red-500 bg-red-100 p-4 rounded-lg m-8">{error}</div>;
 
@@ -540,6 +578,17 @@ export default function DashboardPage() {
                                 管理用户
                             </Link>
                         )}
+                        
+                        {/* 新增：生成分享链接按钮 */}
+                        <button
+                            onClick={generateShareUrl}
+                            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors"
+                        >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                            </svg>
+                            生成分享链接
+                        </button>
                         
                         <button
                             onClick={() => setIsExportModalOpen(true)}
@@ -815,10 +864,53 @@ export default function DashboardPage() {
                 </div>
             )}
 
+            {/* // 新增：分享链接模态框 */}
+            {showShareModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">分享链接</h3>
+                            <button
+                                onClick={() => setShowShareModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-600 mb-2">
+                                以下链接包含当前的筛选条件和您的销售人员信息：
+                            </p>
+                            <div className="bg-gray-50 p-3 rounded border text-sm break-all">
+                                {shareUrl}
+                            </div>
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={copyToClipboard}
+                                className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                                复制链接
+                            </button>
+                            <button
+                                onClick={() => setShowShareModal(false)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-400 transition-colors"
+                            >
+                                关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <EditOrderModal isOpen={isEditModalOpen} onClose={handleCloseModal} numberData={selectedNumber}
                             onSave={(id, data) => handleSave(id, data)}/>
             
-            {/* // 在dashboard页面中传递筛选参数给ExportModal */}
+            {/* 在dashboard页面中传递筛选参数给ExportModal */}
             {isExportModalOpen && (
                 <ExportModal
                     isOpen={isExportModalOpen}

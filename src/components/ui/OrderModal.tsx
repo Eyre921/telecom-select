@@ -9,9 +9,20 @@ interface OrderModalProps {
     onClose: () => void;
     number: PhoneNumber | null;
     onOrderSuccess: () => void;
+    marketer?: string | null;
 }
 
-export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderModalProps) => {
+// 新增：订单数据类型接口
+interface OrderData {
+    numberId: string;
+    paymentAmount: number;
+    customerName: string;
+    customerContact: string;
+    shippingAddress?: string;
+    assignedMarketer?: string;
+}
+
+export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer }: OrderModalProps) => {
     // --- 请在这里修改您的二维码 ---
     // **第1步**: 将您的支付二维码图片链接粘贴到下面的引号中。
     // 例如: "https://www.your-website.com/qr-code.jpg"
@@ -57,16 +68,23 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
         setError(null);
 
         try {
+            const orderData: OrderData = {
+                numberId: number.id,
+                paymentAmount: paymentOption,
+                customerName,
+                customerContact,
+                shippingAddress: paymentOption === 200 ? shippingAddress : undefined,
+            };
+            
+            // 如果有销售人员参数，添加到订单数据中
+            if (marketer) {
+                orderData.assignedMarketer = marketer;
+            }
+            
             const response = await fetch('/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    numberId: number.id,
-                    paymentAmount: paymentOption,
-                    customerName,
-                    customerContact,
-                    shippingAddress: paymentOption === 200 ? shippingAddress : undefined,
-                }),
+                body: JSON.stringify(orderData),
             });
 
             if (!response.ok) {
@@ -98,6 +116,21 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
                     <>
                         <h2 className="text-2xl font-bold mb-2">预定号码</h2>
                         <p className="text-xl font-mono bg-gray-100 p-2 rounded text-center mb-4">{number.phoneNumber}</p>
+                        
+                        {/* 显示销售人员信息（如果有） */}
+                        {marketer && (
+                            <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                                <div className="flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="text-sm text-blue-800">
+                                        <strong>专属销售：</strong>{marketer}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">选择交单方式</label>
@@ -138,6 +171,11 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess }: OrderMod
                         <p className="text-sm text-gray-600 mb-4">
                             号码已为您临时锁定。请截图保存并使用微信或支付宝扫描下方二维码完成支付。
                             <strong className="text-red-500">支付后请务必联系销售人员确认订单！</strong>
+                            {marketer && (
+                                <span className="block mt-2 text-blue-600 font-medium">
+                                    您的专属销售：{marketer}
+                                </span>
+                            )}
                         </p>
                         <div className="flex justify-center my-4">
                             <Image
