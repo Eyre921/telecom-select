@@ -1,199 +1,169 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Organization, UserOrganization } from '@prisma/client';
-import { ENUM_TRANSLATIONS } from '@/lib/utils';
-import { SchoolSelector } from '@/components/admin/SchoolSelector';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
 import { EditUserModal } from '@/components/admin/EditUserModal';
 import { UserOrganizationModal } from '@/components/admin/UserOrganizationModal';
-import { OrganizationHierarchy } from '@/components/admin/OrganizationHierarchy';
+import { OrganizationManagementModal } from '@/components/admin/OrganizationManagementModal';
 
-// 扩展用户类型，包含组织信息
-type UserWithOrganizations = User & {
+// 修改类型定义，与UserOrganizationModal保持一致
+interface UserWithOrganizations extends User {
   organizations: (UserOrganization & {
     organization: Organization;
   })[];
+}
+
+const ITEMS_PER_PAGE = 10;
+
+const ENUM_TRANSLATIONS = {
+  Role: {
+    SUPER_ADMIN: '超级管理员',
+    SCHOOL_ADMIN: '学校管理员',
+    MARKETER: '营销人员'
+  },
+  OrgType: {
+    SCHOOL: '学校',
+    DEPARTMENT: '院系'
+  }
 };
-
-type SortConfig = { field: keyof User; direction: 'asc' | 'desc' };
-
-const ITEMS_PER_PAGE = 20;
 
 // 加载动画组件
 const FullPageSpinner = () => (
-  <div className="fixed inset-0 bg-white bg-opacity-75 z-50 flex justify-center items-center">
-    <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-blue-500"></div>
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
   </div>
 );
 
-// 在 UsersTable 组件中添加新的列
+// 用户表格组件
 const UsersTable = ({
   users,
   onEdit,
   onDelete,
   onManageOrganizations,
-  onSort,
-  sortConfig,
   isAdmin
 }: {
   users: UserWithOrganizations[];
   onEdit: (user: UserWithOrganizations) => void;
   onDelete: (id: string) => void;
   onManageOrganizations: (user: UserWithOrganizations) => void;
-  onSort: (field: keyof User) => void;
-  sortConfig: SortConfig;
   isAdmin: boolean;
 }) => {
+  if (users.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <p className="text-gray-500">暂无用户数据</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white shadow overflow-x-auto rounded-md">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              onClick={() => onSort('name')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              姓名
-              {sortConfig.field === 'name' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th
-              onClick={() => onSort('username')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              用户名
-              {sortConfig.field === 'username' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th
-              onClick={() => onSort('phone')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              手机号
-              {sortConfig.field === 'phone' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th
-              onClick={() => onSort('email')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              邮箱
-              {sortConfig.field === 'email' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th
-              onClick={() => onSort('role')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              角色
-              {sortConfig.field === 'role' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              所属组织层级
-            </th>
-            <th
-              onClick={() => onSort('createdAt')}
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-            >
-              创建时间
-              {sortConfig.field === 'createdAt' && (
-                <span>{sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}</span>
-              )}
-            </th>
-            <th className="relative px-6 py-3 text-right">操作</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {users.length === 0 ? (
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              <td colSpan={8} className="px-6 py-20 text-center text-gray-500">
-                未找到任何用户。
-              </td>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                姓名
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                用户名
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                邮箱
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                手机号
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                角色
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                所属组织
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                创建时间
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                操作
+              </th>
             </tr>
-          ) : (
-            users.map((user) => (
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.name || '-'}
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {user.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.username || '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {user.email}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.phone || '-'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.email || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.role === 'SUPER_ADMIN' ? 'bg-red-100 text-red-800' :
+                    user.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
                     user.role === 'SCHOOL_ADMIN' ? 'bg-blue-100 text-blue-800' :
                     'bg-green-100 text-green-800'
                   }`}>
-                    {ENUM_TRANSLATIONS.Role[user.role] || user.role}
+                    {ENUM_TRANSLATIONS.Role[user.role as keyof typeof ENUM_TRANSLATIONS.Role]}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="space-y-1">
-                    {user.organizations.length === 0 ? (
-                      <span className="text-gray-400">未分配</span>
-                    ) : (
-                      user.organizations.map((userOrg) => (
-                        <div key={userOrg.id} className="flex items-center space-x-2">
-                          <span className="text-sm">{userOrg.organization.name}</span>
-                          <span className={`inline-flex px-1 py-0.5 text-xs font-medium rounded ${
-                            userOrg.role === 'SUPER_ADMIN' ? 'bg-red-100 text-red-700' :
-                            userOrg.role === 'SCHOOL_ADMIN' ? 'bg-blue-100 text-blue-700' :
-                            'bg-green-100 text-green-700'
-                          }`}>
-                            {ENUM_TRANSLATIONS.Role[userOrg.role]}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {user.organizations.length > 0 ? (
+                    <div className="space-y-1">
+                      {user.organizations.map((userOrg) => (
+                        <div key={userOrg.id} className="text-xs">
+                          <span className="font-medium">{userOrg.organization.name}</span>
+                          <span className="text-gray-400 ml-1">
+                            ({ENUM_TRANSLATIONS.OrgType[userOrg.organization.type as keyof typeof ENUM_TRANSLATIONS.OrgType]})
                           </span>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">未分配</span>
+                  )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {new Date(user.createdAt).toLocaleString('zh-CN')}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(user.createdAt).toLocaleDateString('zh-CN')}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                   <button
                     onClick={() => onEdit(user)}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-blue-600 hover:text-blue-900"
                   >
                     编辑
                   </button>
-                  <button
-                    onClick={() => onManageOrganizations(user)}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    组织管理
-                  </button>
                   {isAdmin && (
-                    <button
-                      onClick={() => onDelete(user.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      删除
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onManageOrganizations(user)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        分配组织
+                      </button>
+                      <button
+                        onClick={() => onDelete(user.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        删除
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -265,38 +235,53 @@ export default function UsersPage() {
   if (!session) {
     return null;
   }
+
   const [users, setUsers] = useState<UserWithOrganizations[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'createdAt', direction: 'desc' });
   const [searchTerm, setSearchTerm] = useState('');
   
   // 筛选状态
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [schools, setSchools] = useState<Organization[]>([]);
   
   // 模态框状态
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [isOrgManagementModalOpen, setIsOrgManagementModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithOrganizations | null>(null);
 
+  // 获取学校列表
+  const fetchSchools = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/organizations?type=SCHOOL');
+      if (response.ok) {
+        const data = await response.json();
+        setSchools(data);
+      }
+    } catch (err) {
+      console.error('获取学校列表失败:', err);
+    }
+  }, []);
+  
   // 获取用户列表
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (page = currentPage, search = '', schoolId = '', role = '') => {
     try {
       setIsLoading(true);
+      setError(null);
+  
       const params = new URLSearchParams({
-        page: currentPage.toString(),
+        page: page.toString(),
         limit: ITEMS_PER_PAGE.toString(),
-        sortField: sortConfig.field,
-        sortDirection: sortConfig.direction,
-        ...(searchTerm && { search: searchTerm }),
-        ...(selectedSchoolId && { schoolId: selectedSchoolId }),
-        ...(selectedDepartmentId && { departmentId: selectedDepartmentId }),
-        ...(selectedRole && { role: selectedRole }),
+        sortField: 'username', // 固定按用户名排序
+        sortDirection: 'asc',
+        ...(search && { search }),
+        ...(schoolId && { organizationId: schoolId }),
+        ...(role && { role }),
       });
   
       const response = await fetch(`/api/admin/users?${params}`);
@@ -307,64 +292,59 @@ export default function UsersPage() {
       const data = await response.json();
       setUsers(data.users || []);
       
-      // 修复分页计算，确保total是有效数字
       const total = typeof data.total === 'number' && !isNaN(data.total) ? data.total : 0;
       const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
       setTotalPages(totalPages);
       
-      // 如果当前页超出范围，重置到第一页
-      if (currentPage > totalPages) {
+      if (page > totalPages) {
         setCurrentPage(1);
       }
     } catch (err) {
       console.error('Error fetching users:', err);
       setError(err instanceof Error ? err.message : '获取用户列表失败');
-      // 错误时重置分页
       setUsers([]);
       setTotalPages(1);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, sortConfig, searchTerm, selectedSchoolId, selectedDepartmentId, selectedRole]);
-
-  // 修复处理搜索函数
+  }, [currentPage]);
+  
+  // 处理搜索
   const handleSearch = useCallback(() => {
     setCurrentPage(1);
-    // 移除直接调用fetchUsers，让useEffect处理
-  }, []);
+    fetchUsers(1, searchTerm, selectedSchoolId, selectedRole);
+  }, [searchTerm, selectedSchoolId, selectedRole, fetchUsers]);
   
-  // 修复处理清除搜索函数
+  // 处理清除搜索
   const handleClearSearch = useCallback(() => {
     setSearchTerm('');
     setSelectedSchoolId('');
-    setSelectedDepartmentId('');
     setSelectedRole('');
     setCurrentPage(1);
-  }, []);
-  
-  // 修复处理排序函数
-  const handleSort = useCallback((field: keyof User) => {
-    setSortConfig(prev => ({
-      field,
-      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-    setCurrentPage(1);
-  }, []);
-  
-  // 确保useEffect正确响应所有依赖变化
-  useEffect(() => {
-    fetchUsers();
+    fetchUsers(1, '', '', '');
   }, [fetchUsers]);
   
-  // 添加一个单独的effect来处理筛选条件变化
+  // 初始化数据
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    } else {
-      fetchUsers();
-    }
-  }, [searchTerm, selectedSchoolId, selectedDepartmentId, selectedRole, sortConfig]);
-
+    fetchSchools();
+    fetchUsers();
+  }, [fetchSchools]);
+  
+  // 移除学校和角色筛选条件变化时的实时更新
+  // 删除这个 useEffect：
+  // useEffect(() => {
+  //   if (currentPage !== 1) {
+  //     setCurrentPage(1);
+  //   } else {
+  //     fetchUsers();
+  //   }
+  // }, [selectedSchoolId, selectedRole]);
+  
+  // 页码变化时获取数据
+  useEffect(() => {
+    fetchUsers(currentPage, searchTerm, selectedSchoolId, selectedRole);
+  }, [currentPage]);
+  
   // 处理编辑用户
   const handleEdit = (user: UserWithOrganizations) => {
     setSelectedUser(user);
@@ -399,6 +379,11 @@ export default function UsersPage() {
     setIsOrgModalOpen(true);
   };
 
+  // 处理整体组织管理
+  const handleOrganizationManagement = () => {
+    setIsOrgManagementModalOpen(true);
+  };
+
   // 处理用户保存
   const handleUserSave = async () => {
     setIsCreateModalOpen(false);
@@ -410,6 +395,12 @@ export default function UsersPage() {
   const handleOrgSave = async () => {
     setIsOrgModalOpen(false);
     await fetchUsers();
+  };
+
+  // 处理组织管理保存
+  const handleOrgManagementSave = async () => {
+    setIsOrgManagementModalOpen(false);
+    // 可能需要刷新相关数据
   };
 
   if (isLoading && users.length === 0) {
@@ -435,12 +426,20 @@ export default function UsersPage() {
               返回仪表盘
             </Link>
             {isAdmin && (
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-              >
-                创建用户
-              </button>
+              <>
+                <button
+                  onClick={handleOrganizationManagement}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700"
+                >
+                  组织管理
+                </button>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                >
+                  创建用户
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -454,8 +453,8 @@ export default function UsersPage() {
       )}
 
       {/* 搜索和筛选 */}
-      <div className="mb-6 space-y-4">
-        <div className="bg-white p-4 rounded-lg shadow space-y-4">
+      <div className="mb-6">
+        <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <input
@@ -464,14 +463,26 @@ export default function UsersPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+            </div>
+            <div className="w-48">
+              <select
+                value={selectedSchoolId}
+                onChange={(e) => setSelectedSchoolId(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">全部学校</option>
+                {schools.map(school => (
+                  <option key={school.id} value={school.id}>{school.name}</option>
+                ))}
+              </select>
             </div>
             <div className="w-48">
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">全部角色</option>
                 <option value="SUPER_ADMIN">超级管理员</option>
@@ -481,29 +492,19 @@ export default function UsersPage() {
             </div>
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
               disabled={isLoading}
             >
               {isLoading ? '搜索中...' : '搜索'}
             </button>
             <button
               onClick={handleClearSearch}
-              className="px-4 py-2 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600"
+              className="px-4 py-2 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600 transition-colors"
             >
               清除
             </button>
           </div>
         </div>
-
-        {/* 学校和院系筛选 */}
-        <SchoolSelector
-          selectedSchoolId={selectedSchoolId}
-          selectedDepartmentId={selectedDepartmentId}
-          onSchoolChange={setSelectedSchoolId}
-          onDepartmentChange={setSelectedDepartmentId}
-          showResetButton={true}
-          onReset={handleClearSearch}
-        />
       </div>
 
       {/* 用户表格 */}
@@ -512,9 +513,7 @@ export default function UsersPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onManageOrganizations={handleManageOrganizations}
-        onSort={handleSort}
-        sortConfig={sortConfig}
-        isAdmin={isAdmin || false}
+        isAdmin={isAdmin}
       />
 
       {/* 分页 */}
@@ -536,8 +535,8 @@ export default function UsersPage() {
       {isEditModalOpen && selectedUser && (
         <EditUserModal
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
           user={selectedUser}
+          onClose={() => setIsEditModalOpen(false)}
           onSave={handleUserSave}
         />
       )}
@@ -545,9 +544,17 @@ export default function UsersPage() {
       {isOrgModalOpen && selectedUser && (
         <UserOrganizationModal
           isOpen={isOrgModalOpen}
-          onClose={() => setIsOrgModalOpen(false)}
           user={selectedUser}
+          onClose={() => setIsOrgModalOpen(false)}
           onSave={handleOrgSave}
+        />
+      )}
+
+      {isOrgManagementModalOpen && (
+        <OrganizationManagementModal
+          isOpen={isOrgManagementModalOpen}
+          onClose={() => setIsOrgManagementModalOpen(false)}
+          onSave={handleOrgManagementSave}
         />
       )}
     </div>

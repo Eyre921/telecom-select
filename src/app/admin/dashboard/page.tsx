@@ -569,10 +569,13 @@ export default function DashboardPage() {
                         >
                             导出数据
                         </button>
-                        <Link href="/admin/import"
-                              className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
-                            批量导入数据
-                        </Link>
+                        {/* 批量导入按钮 - 仅对超级管理员和学校管理员可见 */}
+                        {isAdmin && (
+                            <Link href="/admin/import"
+                                  className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
+                                批量导入数据
+                            </Link>
+                        )}
                         <button
                             onClick={async () => {
                                 await signOut({ redirect: false });
