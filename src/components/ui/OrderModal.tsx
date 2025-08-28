@@ -10,6 +10,10 @@ interface OrderModalProps {
     number: PhoneNumber | null;
     onOrderSuccess: () => void;
     marketer?: string | null;
+    organizationInfo?: {
+        schoolName?: string;
+        departmentName?: string;
+    };
 }
 
 // 新增：订单数据类型接口
@@ -22,7 +26,7 @@ interface OrderData {
     assignedMarketer?: string;
 }
 
-export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer }: OrderModalProps) => {
+export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, organizationInfo }: OrderModalProps) => {
     // --- 请在这里修改您的二维码 ---
     // **第1步**: 将您的支付二维码图片链接粘贴到下面的引号中。
     // 例如: "https://www.your-website.com/qr-code.jpg"
@@ -116,6 +120,33 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer }
                     <>
                         <h2 className="text-2xl font-bold mb-2">预定号码</h2>
                         <p className="text-xl font-mono bg-gray-100 p-2 rounded text-center mb-4">{number.phoneNumber}</p>
+                        
+                        {/* 学校和院系信息醒目显示 */}
+                        {(organizationInfo?.schoolName || organizationInfo?.departmentName) && (
+                            <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg">
+                                <div className="text-center">
+                                    <div className="flex items-center justify-center mb-2">
+                                        <svg className="w-5 h-5 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                        <span className="text-red-700 font-bold text-sm">请确认您的机构信息</span>
+                                    </div>
+                                    {organizationInfo?.schoolName && (
+                                        <div className="text-lg font-bold text-red-800 mb-1">
+                                            🏫 {organizationInfo.schoolName}
+                                        </div>
+                                    )}
+                                    {organizationInfo?.departmentName && (
+                                        <div className="text-base font-semibold text-red-700 mb-2">
+                                            🎓 {organizationInfo.departmentName}
+                                        </div>
+                                    )}
+                                    <div className="text-xs text-red-600 font-medium">
+                                        ⚠️ 此号码仅限上述机构成员选择，请确认信息无误
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         
                         {/* 显示销售人员信息（如果有） */}
                         {marketer && (

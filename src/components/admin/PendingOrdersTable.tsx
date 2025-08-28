@@ -95,49 +95,52 @@ export const PendingOrdersTable = ({onApprove, onRelease, selectedSchoolId, sele
                         <div className="divide-y divide-gray-200">
                             {pendingNumbers.map((number) => (
                                 <div key={number.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                    {/* 单行显示所有数据 */}
-                                    <div className="flex items-center justify-between space-x-4 min-w-0">
-                                        {/* 左侧：号码和状态 */}
-                                        <div className="flex items-center space-x-3 flex-shrink-0">
-                                            <span className="text-lg font-mono font-medium text-indigo-600">
-                                                {number.phoneNumber}
-                                            </span>
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
-                                                new Date(number.orderTimestamp!).getTime() < Date.now() - 30 * 60 * 1000 
-                                                    ? 'bg-red-100 text-red-800' 
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                                {formatTimeLeft(number.orderTimestamp!)}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* 中间：客户信息 */}
-                                        <div className="flex items-center space-x-4 flex-1 min-w-0">
-                                            <span className="text-sm text-gray-700 truncate">
-                                                {number.customerName}
-                                            </span>
-                                            <span className="text-sm text-gray-500 truncate">
-                                                {number.customerContact}
-                                            </span>
-                                            {number.paymentAmount && (
-                                                <span className="text-sm text-green-600 font-medium whitespace-nowrap">
-                                                    ¥{number.paymentAmount}
+                                    {/* 响应式布局：窄设备上分两行显示 */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 sm:space-x-4 min-w-0">
+                                        {/* 第一行/左侧：号码、状态和客户信息 */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 min-w-0">
+                                            {/* 号码和状态 */}
+                                            <div className="flex items-center space-x-3 flex-shrink-0">
+                                                <span className="text-lg font-mono font-medium text-indigo-600">
+                                                    {number.phoneNumber}
                                                 </span>
-                                            )}
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                                                    new Date(number.orderTimestamp!).getTime() < Date.now() - 30 * 60 * 1000 
+                                                        ? 'bg-red-100 text-red-800' 
+                                                        : 'bg-yellow-100 text-yellow-800'
+                                                }`}>
+                                                    {formatTimeLeft(number.orderTimestamp!)}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* 客户信息 */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 flex-1 min-w-0">
+                                                <span className="text-sm text-gray-700 font-medium">
+                                                    {number.customerName}
+                                                </span>
+                                                <span className="text-sm text-gray-500">
+                                                    {number.customerContact}
+                                                </span>
+                                                {number.paymentAmount && (
+                                                    <span className="text-sm text-green-600 font-medium whitespace-nowrap">
+                                                        ¥{number.paymentAmount}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         
-                                        {/* 右侧：操作按钮 */}
-                                        <div className="flex items-center space-x-2 flex-shrink-0">
+                                        {/* 第二行/右侧：操作按钮 */}
+                                        <div className="flex items-center space-x-2 flex-shrink-0 self-start sm:self-center">
                                             <button 
                                                 onClick={() => onApprove(number)}
-                                                className="px-3 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 rounded transition-colors"
+                                                className="px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-500 hover:bg-indigo-50 rounded transition-colors"
                                             >
                                                 批准/编辑
                                             </button>
                                             <button
                                                 onClick={() => handleRelease(number.id)}
                                                 disabled={releasingId === number.id}
-                                                className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:text-gray-400 disabled:hover:bg-transparent"
+                                                className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:text-gray-400 disabled:hover:bg-transparent"
                                             >
                                                 {releasingId === number.id ? '释放中...' : '手动释放'}
                                             </button>

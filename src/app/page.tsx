@@ -385,6 +385,7 @@ export default function HomePage() {
                 number={selectedNumber}
                 onOrderSuccess={handleOrderSuccess}
                 marketer={marketer}
+                organizationInfo={organizationInfo}
             />
         </main>
     );

@@ -409,6 +409,10 @@ export default function DashboardPage() {
         setDragOverIndex(null);
     };
 
+
+
+
+
     const handleRelease = async (id: string) => {
         if (!confirm('您确定要释放这个号码吗？除号码本身外，所有客户和订单信息都将被清空。')) return;
         try {
@@ -537,7 +541,7 @@ export default function DashboardPage() {
         <div className="p-4 sm:p-6 lg:p-8">
             {/* 用户信息和导航区域 */}
             <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -565,53 +569,59 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3">
-                        {/* 管理用户按钮 - 仅对有权限的用户显示 */}
-                        {isAdmin && (
-                            <Link
-                                href="/admin/users"
-                                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors"
+                    {/* 按钮区域 - 在手机端移到下面 */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            {/* 管理用户按钮 - 仅对有权限的用户显示 */}
+                            {isAdmin && (
+                                <Link
+                                    href="/admin/users"
+                                    className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                                >
+                                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                    <span className="whitespace-nowrap">管理组织和用户</span>
+                                </Link>
+                            )}
+                            
+                            {/* 生成分享链接按钮 */}
+                            <button
+                                onClick={generateShareUrl}
+                                className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors text-sm"
                             >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                                 </svg>
-                                管理用户
-                            </Link>
-                        )}
+                                <span className="whitespace-nowrap">生成分享链接</span>
+                            </button>
+                            
+                            <button
+                                onClick={() => setIsExportModalOpen(true)}
+                                className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
+                            >
+                                <span className="whitespace-nowrap">导出数据</span>
+                            </button>
+                        </div>
                         
-                        {/* 新增：生成分享链接按钮 */}
-                        <button
-                            onClick={generateShareUrl}
-                            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                            </svg>
-                            生成分享链接
-                        </button>
-                        
-                        <button
-                            onClick={() => setIsExportModalOpen(true)}
-                            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                            导出数据
-                        </button>
-                        {/* 批量导入按钮 - 仅对超级管理员和学校管理员可见 */}
-                        {isAdmin && (
-                            <Link href="/admin/import"
-                                  className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors">
-                                批量导入数据
-                            </Link>
-                        )}
-                        <button
-                            onClick={async () => {
-                                await signOut({ redirect: false });
-                                window.location.href = '/signin';
-                            }}
-                            className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md hover:bg-gray-700 transition-colors"
-                        >
-                            登出
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            {/* 批量导入按钮 - 仅对超级管理员和学校管理员可见 */}
+                            {isAdmin && (
+                                <Link href="/admin/import"
+                                      className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors text-sm">
+                                    <span className="whitespace-nowrap">批量导入数据</span>
+                                </Link>
+                            )}
+                            <button
+                                onClick={async () => {
+                                    await signOut({ redirect: false });
+                                    window.location.href = '/signin';
+                                }}
+                                className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition-colors text-sm"
+                            >
+                                <span className="whitespace-nowrap">登出</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -645,173 +655,183 @@ export default function DashboardPage() {
             <div className="mt-8 space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900">号码数据中心</h2>
                 <div className="p-4 bg-white rounded-lg shadow space-y-4">
+                    {/* 修复搜索区域的布局 */}
                     <div className="flex items-center gap-4">
-                        <div className="flex space-x-2">
-                            <input
-                                type="text"
-                                placeholder="按号码、姓名、联系方式或营销人员搜索..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                className="flex-1 p-2 border rounded-md"
-                            />
-                            <button onClick={handleSearch}
-                                    className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400"
-                                    disabled={isLoading}>
-                                {isLoading ? '搜索中...' : '搜索'}
-                            </button>
-                            <button onClick={handleClearSearch}
-                                    className="px-4 py-2 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600"
-                                    disabled={isLoading}>
-                                清空
-                            </button>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1">
+                            <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                                <input
+                                    type="text"
+                                    placeholder="按号码、姓名、联系方式或营销人员搜索..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    className="flex-1 p-2 border rounded-md text-sm"
+                                />
+                                <div className="flex gap-2">
+                                    <button onClick={handleSearch}
+                                            className="px-3 py-2 sm:px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-blue-400 transition-colors text-sm whitespace-nowrap"
+                                            disabled={isLoading}>
+                                        {isLoading ? '搜索中...' : '搜索'}
+                                    </button>
+                                    <button onClick={handleClearSearch}
+                                            className="px-3 py-2 sm:px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors text-sm whitespace-nowrap"
+                                            disabled={isLoading}>
+                                        清空
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* 字段选择区域 - 优化布局 */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z" />
+                        </svg>
+                        自定义显示列
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        {/* 左侧：已选择字段 */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <h5 className="text-xs font-medium text-gray-600">已选择 ({visibleColumns.length})</h5>
+                                <span className="text-xs text-gray-400 hidden sm:inline">可拖拽排序</span>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-white">
+                                {visibleColumns.map((col, index) => (
+                                    // 在拖拽区域的JSX中（约第750行）
+                                    <div 
+                                        key={col} 
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        // 移除这三行触摸事件：
+                                        // onTouchStart={(e) => handleTouchStart(e, index)}
+                                        // onTouchMove={(e) => handleTouchMove(e, index)}
+                                        // onTouchEnd={(e) => handleTouchEnd(e, index)}
+                                        className={`group flex items-center justify-between p-2 text-sm border rounded cursor-move transition-all duration-150 ${
+                                            draggedIndex === index 
+                                                ? 'bg-blue-100 border-blue-300 opacity-60 scale-[0.98]' 
+                                                : dragOverIndex === index 
+                                                    ? 'bg-green-50 border-green-300 border-dashed' 
+                                                    : 'bg-blue-50 border-blue-200 hover:bg-blue-100 hover:border-blue-300'
+                                        }`}
+                                    >
+                                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                            {/* 拖拽手柄 - 在移动端显示更大的触摸区域 */}
+                                            <div className="flex flex-col space-y-0.5 text-gray-400 group-hover:text-blue-500 transition-colors p-1 sm:p-0">
+                                                <div className="w-1 h-1 bg-current rounded-full"></div>
+                                                <div className="w-1 h-1 bg-current rounded-full"></div>
+                                                <div className="w-1 h-1 bg-current rounded-full"></div>
+                                            </div>
+                                            
+                                            {/* 字段名称 */}
+                                            <span className="font-medium text-gray-700 truncate text-xs sm:text-sm">
+                                                {FIELD_TRANSLATIONS[col]}
+                                            </span>
+                                            
+                                            {/* 序号标签 */}
+                                            <span className="text-xs bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                {index + 1}
+                                            </span>
+                                        </div>
+                                        
+                                        {/* 操作按钮 - 在移动端增大触摸区域 */}
+                                        <div className="flex items-center space-x-1 ml-2">
+                                            <button
+                                                onClick={() => handleMoveColumnUp(col)}
+                                                disabled={index === 0}
+                                                className="p-1.5 sm:p-1 text-gray-400 hover:text-blue-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                                                title="上移"
+                                            >
+                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => handleMoveColumnDown(col)}
+                                                disabled={index === visibleColumns.length - 1}
+                                                className="p-1.5 sm:p-1 text-gray-400 hover:text-blue-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                                                title="下移"
+                                            >
+                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => handleColumnToggle(col)}
+                                                className="p-1.5 sm:p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                                title="移除"
+                                            >
+                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {visibleColumns.length === 0 && (
+                                    <div className="text-center py-4 text-gray-400 text-sm">
+                                        请从右侧添加字段
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* 右侧：可添加字段 */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <h5 className="text-xs font-medium text-gray-600">可添加字段</h5>
+                                <span className="text-xs text-gray-400">({ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).length} 个)</span>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-white">
+                                {ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).map(col => (
+                                    <button
+                                        key={col}
+                                        onClick={() => handleColumnToggle(col)}
+                                        className="w-full flex items-center justify-between p-2 text-sm bg-gray-50 border border-gray-200 rounded hover:bg-green-50 hover:border-green-300 transition-all duration-150 group"
+                                    >
+                                        <span className="text-gray-700 group-hover:text-green-700 font-medium">
+                                            {FIELD_TRANSLATIONS[col]}
+                                        </span>
+                                        <svg className="w-4 h-4 text-gray-400 group-hover:text-green-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                ))}
+                                {ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).length === 0 && (
+                                    <div className="text-center py-4 text-gray-400 text-sm">
+                                        所有字段已添加
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     
-                    {/* 字段选择区域 - 优化布局 */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z" />
-                            </svg>
-                            自定义显示列
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {/* 左侧：已选择字段 */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <h5 className="text-xs font-medium text-gray-600">已选择 ({visibleColumns.length})</h5>
-                                    <span className="text-xs text-gray-400">可拖拽排序</span>
-                                </div>
-                                <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-white">
-                                    {visibleColumns.map((col, index) => (
-                                        <div 
-                                            key={col} 
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, index)}
-                                            onDragEnd={handleDragEnd}
-                                            onDragOver={(e) => handleDragOver(e, index)}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={(e) => handleDrop(e, index)}
-                                            className={`group flex items-center justify-between p-2 text-sm border rounded cursor-move transition-all duration-150 ${
-                                                draggedIndex === index 
-                                                    ? 'bg-blue-100 border-blue-300 opacity-60 scale-[0.98]' 
-                                                    : dragOverIndex === index 
-                                                        ? 'bg-green-50 border-green-300 border-dashed' 
-                                                        : 'bg-blue-50 border-blue-200 hover:bg-blue-100 hover:border-blue-300'
-                                            }`}
-                                        >
-                                            <div className="flex items-center space-x-2 flex-1 min-w-0">
-                                                {/* 拖拽手柄 */}
-                                                <div className="flex flex-col space-y-0.5 text-gray-400 group-hover:text-blue-500 transition-colors">
-                                                    <div className="w-1 h-1 bg-current rounded-full"></div>
-                                                    <div className="w-1 h-1 bg-current rounded-full"></div>
-                                                    <div className="w-1 h-1 bg-current rounded-full"></div>
-                                                </div>
-                                                
-                                                {/* 字段名称 */}
-                                                <span className="font-medium text-gray-700 truncate">
-                                                    {FIELD_TRANSLATIONS[col]}
-                                                </span>
-                                                
-                                                {/* 序号标签 */}
-                                                <span className="text-xs bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
-                                                    {index + 1}
-                                                </span>
-                                            </div>
-                                            
-                                            {/* 操作按钮 */}
-                                            <div className="flex items-center space-x-1 ml-2">
-                                                <button
-                                                    onClick={() => handleMoveColumnUp(col)}
-                                                    disabled={index === 0}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                                                    title="上移"
-                                                >
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleMoveColumnDown(col)}
-                                                    disabled={index === visibleColumns.length - 1}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                                                    title="下移"
-                                                >
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleColumnToggle(col)}
-                                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                                    title="移除"
-                                                >
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {visibleColumns.length === 0 && (
-                                        <div className="text-center py-4 text-gray-400 text-sm">
-                                            请从右侧添加字段
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {/* 右侧：可添加字段 */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <h5 className="text-xs font-medium text-gray-600">可添加字段</h5>
-                                    <span className="text-xs text-gray-400">({ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).length} 个)</span>
-                                </div>
-                                <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-200 rounded p-2 bg-white">
-                                    {ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).map(col => (
-                                        <button
-                                            key={col}
-                                            onClick={() => handleColumnToggle(col)}
-                                            className="w-full flex items-center justify-between p-2 text-sm bg-gray-50 border border-gray-200 rounded hover:bg-green-50 hover:border-green-300 transition-all duration-150 group"
-                                        >
-                                            <span className="text-gray-700 group-hover:text-green-700 font-medium">
-                                                {FIELD_TRANSLATIONS[col]}
-                                            </span>
-                                            <svg className="w-4 h-4 text-gray-400 group-hover:text-green-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    ))}
-                                    {ALL_COLUMNS.filter(col => !visibleColumns.includes(col)).length === 0 && (
-                                        <div className="text-center py-4 text-gray-400 text-sm">
-                                            所有字段已添加
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                    {/* 快捷操作 */}
+                    <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+                        <div className="text-xs text-gray-500">
+                            提示：拖拽左侧字段可调整显示顺序
                         </div>
-                        
-                        {/* 快捷操作 */}
-                        <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
-                            <div className="text-xs text-gray-500">
-                                提示：拖拽左侧字段可调整显示顺序
-                            </div>
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={() => setVisibleColumns(ALL_COLUMNS)}
-                                    className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                                >
-                                    全选
-                                </button>
-                                <button
-                                    onClick={() => setVisibleColumns(DEFAULT_VISIBLE_COLUMNS)}
-                                    className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                                >
-                                    重置
-                                </button>
-                            </div>
+                        <div className="flex space-x-2">
+                            <button
+                                onClick={() => setVisibleColumns(ALL_COLUMNS)}
+                                className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                            >
+                                全选
+                            </button>
+                            <button
+                                onClick={() => setVisibleColumns(DEFAULT_VISIBLE_COLUMNS)}
+                                className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                            >
+                                重置
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -821,43 +841,45 @@ export default function DashboardPage() {
                 <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange}/>
             </div>
 
-            {/* 管理员危险操作区域 */}
+            {/* 管理员危险操作区域 - 优化移动端布局 */}
             {isAdmin && (
                 <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h3 className="text-lg font-semibold text-red-800 mb-4">管理员危险操作区域</h3>
                     <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                             <input
                                 type="text"
                                 placeholder="输入要删除的号码"
                                 value={deleteSearchTerm}
                                 onChange={e => setDeleteSearchTerm(e.target.value)}
-                                className="flex-1 p-2 border rounded-md"
+                                className="flex-1 p-2 border rounded-md text-sm"
                             />
                             <button onClick={handleDeleteByNumber}
-                                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700">
+                                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 text-sm whitespace-nowrap">
                                 按号码精确删除
                             </button>
                         </div>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                             <input
                                 type="text"
                                 placeholder="输入号段前缀（如：1380）"
                                 value={prefixTerm}
                                 onChange={e => setPrefixTerm(e.target.value)}
-                                className="flex-1 p-2 border rounded-md"
+                                className="flex-1 p-2 border rounded-md text-sm"
                             />
-                            <button onClick={() => handleAdminAction('BAN_PREFIX', {prefix: prefixTerm})}
-                                    className="px-4 py-2 bg-orange-600 text-white font-semibold rounded-md hover:bg-orange-700">
-                                按号段禁售
-                            </button>
-                            <button onClick={() => handleAdminAction('UNBAN_PREFIX', {prefix: prefixTerm})}
-                                    className="px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700">
-                                按号段解禁
-                            </button>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleAdminAction('BAN_PREFIX', {prefix: prefixTerm})}
+                                        className="flex-1 sm:flex-none px-4 py-2 bg-orange-600 text-white font-semibold rounded-md hover:bg-orange-700 text-sm whitespace-nowrap">
+                                    按号段禁售
+                                </button>
+                                <button onClick={() => handleAdminAction('UNBAN_PREFIX', {prefix: prefixTerm})}
+                                        className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 text-sm whitespace-nowrap">
+                                    按号段解禁
+                                </button>
+                            </div>
                         </div>
                         <button onClick={() => handleAdminAction('CLEAR_ALL_NUMBERS')}
-                                className="w-full px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800">
+                                className="w-full px-4 py-2 bg-red-700 text-white font-semibold rounded-md hover:bg-red-800 text-sm">
                             {clearButtonText}
                         </button>
                     </div>

@@ -3,6 +3,41 @@ import { OrgType } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAuth } from '@/lib/permissions';
 
+// 获取单个组织信息
+export const GET = async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+    try {
+        const { id } = await params;
+
+        // 查找组织
+        const organization = await prisma.organization.findUnique({
+            where: { id },
+            include: {
+                parent: {
+                    select: { id: true, name: true, type: true }
+                },
+                children: {
+                    select: { id: true, name: true, type: true }
+                }
+            }
+        });
+
+        if (!organization) {
+            return NextResponse.json(
+                { error: '组织不存在' },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(organization);
+    } catch (error) {
+        console.error('获取组织信息失败:', error);
+        return NextResponse.json(
+            { error: '获取组织信息失败' },
+            { status: 500 }
+        );
+    }
+};
+
 // 更新组织
 export const PUT = withAuth(
     async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
