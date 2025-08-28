@@ -9,10 +9,11 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       database: 'connected'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return Response.json({ 
       status: 'unhealthy', 
-      error: error.message 
+      error: errorMessage 
     }, { status: 503 });
   }
 }

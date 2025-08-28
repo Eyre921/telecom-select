@@ -17,11 +17,11 @@ const client = globalThis.prisma || new PrismaClient({
 if (process.env.NODE_ENV !== 'production') {
     globalThis.prisma = client;
 } else {
-  // 生产环境优化
-  client.$executeRaw`PRAGMA journal_mode=WAL;`;
-  client.$executeRaw`PRAGMA synchronous=NORMAL;`;
-  client.$executeRaw`PRAGMA cache_size=10000;`;
-  client.$executeRaw`PRAGMA temp_store=memory;`;
+  // 生产环境优化 - 使用异步执行避免警告
+  void client.$executeRaw`PRAGMA journal_mode=WAL;`;
+  void client.$executeRaw`PRAGMA synchronous=NORMAL;`;
+  void client.$executeRaw`PRAGMA cache_size=10000;`;
+  void client.$executeRaw`PRAGMA temp_store=memory;`;
 }
 
 export default client;
