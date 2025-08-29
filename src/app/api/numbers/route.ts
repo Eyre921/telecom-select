@@ -21,9 +21,6 @@ export async function GET(request: NextRequest) {
         const limit = 100;
         const skip = (page - 1) * limit;
 
-        // 获取用户数据过滤条件
-        const dataFilter = await getUserDataFilter();
-        
         // 构建动态查询条件
         const where: Prisma.PhoneNumberWhereInput = {};
         
@@ -88,8 +85,13 @@ export async function GET(request: NextRequest) {
                 // 如果用户不存在或不是有效角色，返回空结果
                 return NextResponse.json([]);
             }
-        } else {
+        }
+        // 移除原有的权限过滤逻辑 - 公共访问时不应用权限限制
+        // 注释掉以下代码块：
+        /*
+        else {
             // 原有的权限过滤逻辑
+            const dataFilter = await getUserDataFilter();
             if (dataFilter) {
                 const orgFilters = [];
                 
@@ -108,6 +110,7 @@ export async function GET(request: NextRequest) {
                 }
             }
         }
+        */
         
         // 前端筛选条件
         if (schoolId) {
