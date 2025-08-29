@@ -15,14 +15,14 @@ if (Test-Path $tempDir) {
 New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 
 try {
-    # Copy standalone files (excluding node_modules)
+    # Copy standalone files (excluding node_modules and public)
     Write-Host "Copying standalone files..." -ForegroundColor Cyan
     if (Test-Path "./.next/standalone") {
-        # Copy all files and folders except node_modules
-        Get-ChildItem -Path "./.next/standalone" | Where-Object { $_.Name -ne "node_modules" } | ForEach-Object {
+        # Copy all files and folders except node_modules and public
+        Get-ChildItem -Path "./.next/standalone" | Where-Object { $_.Name -ne "node_modules" -and $_.Name -ne "public" } | ForEach-Object {
             Copy-Item -Path $_.FullName -Destination $tempDir -Recurse -Force
         }
-        Write-Host "✓ Standalone files copied (excluding node_modules)" -ForegroundColor Green
+        Write-Host "✓ Standalone files copied (excluding node_modules and public)" -ForegroundColor Green
     } else {
         throw "Standalone directory not found at ./.next/standalone"
     }
