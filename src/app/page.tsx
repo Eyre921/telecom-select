@@ -28,6 +28,9 @@ export default function HomePage() {
         schoolName?: string;
         departmentName?: string;
     }>({});
+    
+    // 新增：销售员真实姓名状态
+    const [marketerRealName, setMarketerRealName] = useState<string | null>(null);
 
     // 状态管理
     const [searchTerm, setSearchTerm] = useState('');
@@ -82,21 +85,78 @@ export default function HomePage() {
     }, [schoolId, departmentId]);
 
     // 数据获取函数
+    // 获取marketer的组织信息并自动设置schoolId
+    const fetchMarketerInfo = useCallback(async () => {
+        if (!marketer) return null;
+        
+        try {
+            // 调用API获取marketer的组织信息
+            const response = await fetch(`/api/marketer-info?marketer=${encodeURIComponent(marketer)}`);
+            if (!response.ok) return null;
+            
+            const marketerData = await response.json();
+            
+            // 存储销售员的真实姓名
+            if (marketerData.marketer && marketerData.marketer.name) {
+                setMarketerRealName(marketerData.marketer.name);
+            }
+            
+            // 如果marketer只有一个学校权限，返回该学校ID
+            if (marketerData.schools && marketerData.schools.length === 1) {
+                return {
+                    autoSchoolId: marketerData.schools[0].id,
+                    autoSchoolName: marketerData.schools[0].name,
+                    marketerName: marketerData.marketer.name
+                };
+            }
+            
+            return {
+                marketerName: marketerData.marketer.name
+            };
+        } catch (error) {
+            console.error('获取marketer信息失败:', error);
+            return null;
+        }
+    }, [marketer]);
+
+    // 修改fetchData函数，在开始时检查marketer信息
     const fetchData = useCallback(async () => {
         if (isLoading || !hasMore) return;
-
+    
         setIsLoading(true);
         setError(null);
-
+    
         try {
+            // 如果是第一页且有marketer参数，先获取marketer信息
+            let autoSchoolId = schoolId;
+            let autoSchoolName = organizationInfo.schoolName;
+            
+            if (page === 1 && marketer) {
+                const marketerInfo = await fetchMarketerInfo();
+                if (marketerInfo) {
+                    if (marketerInfo.autoSchoolId && !schoolId) {
+                        autoSchoolId = marketerInfo.autoSchoolId;
+                        autoSchoolName = marketerInfo.autoSchoolName;
+                        
+                        // 更新组织信息状态
+                        setOrganizationInfo(prev => ({
+                            ...prev,
+                            schoolName: autoSchoolName
+                        }));
+                    }
+                }
+            }
+            
             const params = new URLSearchParams({
                 page: String(page),
                 hideReserved: String(hideReserved),
             });
             
             // 添加过滤参数
-            if (schoolId) params.append('schoolId', schoolId);
+            if (autoSchoolId) params.append('schoolId', autoSchoolId);
             if (departmentId) params.append('departmentId', departmentId);
+            // 添加marketer参数
+            if (marketer) params.append('marketer', marketer);
             
             const response = await fetch(`/api/numbers?${params.toString()}`);
 
@@ -121,7 +181,7 @@ export default function HomePage() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, hasMore, isLoading, hideReserved, schoolId, departmentId]);
+    }, [page, hasMore, isLoading, hideReserved, schoolId, departmentId, marketer, fetchMarketerInfo, organizationInfo.schoolName]);
 
     // 当"屏蔽已选"状态改变时，触发重置
     const handleHideReservedToggle = () => {
@@ -384,7 +444,7 @@ export default function HomePage() {
                 onClose={handleCloseModal}
                 number={selectedNumber}
                 onOrderSuccess={handleOrderSuccess}
-                marketer={marketer}
+                marketer={marketerRealName || marketer} // 优先使用真实姓名，fallback到URL参数
                 organizationInfo={organizationInfo}
             />
         </main>

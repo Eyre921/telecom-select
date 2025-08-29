@@ -3,6 +3,7 @@ import { getUserPermissions, getUserDataFilter } from '@/lib/permissions';
 import prisma from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import bcrypt from 'bcrypt'; // 添加bcrypt导入
 
 // GET /api/admin/users/[id] - 获取单个用户详情
 export async function GET(
@@ -65,7 +66,7 @@ export async function GET(
 // PATCH /api/admin/users/[id] - 更新用户信息
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  // 修改这里的类型定义
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // 权限检查
   const userPermission = await getUserPermissions();
@@ -88,7 +89,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { name, email } = body;
+    const { name, username, email, phone, password } = body;
 
     // 检查用户是否存在
     const existingUser = await prisma.user.findUnique({
@@ -122,20 +123,60 @@ export async function PATCH(
     
     if (name !== undefined) {
       if (!name.trim()) {
-        return new NextResponse('姓名不能为空', { status: 400 });
+        return NextResponse.json({ error: '姓名不能为空' }, { status: 400 });
       }
       updateData.name = name.trim();
     }
     
-    if (email !== undefined) {
-      if (!email.trim()) {
-        return new NextResponse('邮箱不能为空', { status: 400 });
+    // 添加用户名处理
+    if (username !== undefined && username.trim()) {
+      // 检查用户名是否已被其他用户使用
+      const usernameExists = await prisma.user.findFirst({
+        where: {
+          username: username.trim(),
+          id: { not: id }
+        }
+      });
+      
+      if (usernameExists) {
+        return NextResponse.json({ error: '该用户名已被使用' }, { status: 409 });
       }
       
+      updateData.username = username.trim();
+    }
+    
+    // 添加手机号处理
+    if (phone !== undefined) {
+      if (!phone.trim()) {
+        return NextResponse.json({ error: '手机号不能为空' }, { status: 400 });
+      }
+      
+      // 手机号格式验证
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      if (!phoneRegex.test(phone.trim())) {
+        return NextResponse.json({ error: '手机号格式不正确' }, { status: 400 });
+      }
+      
+      // 检查手机号是否已被其他用户使用
+      const phoneExists = await prisma.user.findFirst({
+        where: {
+          phone: phone.trim(),
+          id: { not: id }
+        }
+      });
+      
+      if (phoneExists) {
+        return NextResponse.json({ error: '该手机号已被使用' }, { status: 409 });
+      }
+      
+      updateData.phone = phone.trim();
+    }
+    
+    if (email !== undefined && email.trim()) {
       // 邮箱格式验证
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return new NextResponse('邮箱格式不正确', { status: 400 });
+      if (!emailRegex.test(email.trim())) {
+        return NextResponse.json({ error: '邮箱格式不正确' }, { status: 400 });
       }
       
       // 检查邮箱是否已被其他用户使用
@@ -147,10 +188,20 @@ export async function PATCH(
       });
       
       if (emailExists) {
-        return new NextResponse('该邮箱已被使用', { status: 409 });
+        return NextResponse.json({ error: '该邮箱已被使用' }, { status: 409 });
       }
       
       updateData.email = email.trim();
+    }
+    
+    // 添加密码处理
+    if (password !== undefined && password.trim()) {
+      if (password.length < 6) {
+        return NextResponse.json({ error: '密码长度至少为6位' }, { status: 400 });
+      }
+      
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
     }
 
     // 如果没有要更新的数据

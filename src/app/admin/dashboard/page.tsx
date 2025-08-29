@@ -12,6 +12,12 @@ import {ExportModal} from '@/components/admin/ExportModal';
 import {ENUM_TRANSLATIONS, FIELD_TRANSLATIONS} from '@/lib/utils';
 
 // --- 类型定义 ---
+interface ShareUrlVariant {
+    label: string;
+    url: string;
+    description: string;
+}
+
 // 扩展PhoneNumber类型，包含关联的学校信息
 type PhoneNumberWithOrganizations = PhoneNumber & {
     school?: Organization | null;
@@ -195,8 +201,7 @@ export default function DashboardPage() {
     const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
 
-    // 新增：分享链接相关状态
-    const [shareUrl, setShareUrl] = useState<string>('');
+    const [shareUrls, setShareUrls] = useState<ShareUrlVariant[]>([]);
     const [showShareModal, setShowShareModal] = useState(false);
 
     // 拖拽状态 - 移到组件内部
@@ -501,32 +506,92 @@ export default function DashboardPage() {
     };
 
     // 新增：生成分享链接函数
+    // 修改生成分享链接函数，增加空值处理
     const generateShareUrl = () => {
         const baseUrl = window.location.origin;
-        const params = new URLSearchParams();
+        const baseParams = new URLSearchParams();
         
         // 添加筛选参数
         if (selectedSchoolId) {
-            params.append('schoolId', selectedSchoolId);
+            baseParams.append('schoolId', selectedSchoolId);
         }
         if (selectedDepartmentId) {
-            params.append('departmentId', selectedDepartmentId);
+            baseParams.append('departmentId', selectedDepartmentId);
         }
         
-        // 添加销售人员信息（当前登录用户）
-        if (session?.user?.name) {
-            params.append('marketer', session.user.name);
+        // 生成多个marketer参数变体，处理空值情况
+        const urlVariants = [];
+        
+        if (session?.user) {
+            // 1. 使用用户名（如果存在且不为空）
+            if (session.user.username && session.user.username.trim()) {
+                const params = new URLSearchParams(baseParams);
+                params.append('marketer', session.user.username.trim());
+                urlVariants.push({
+                    label: '用户名链接',
+                    url: `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`,
+                    description: `使用用户名: ${session.user.username}`
+                });
+            }
+            
+            // 2. 使用邮箱（如果存在且不为空）
+            if (session.user.email && session.user.email.trim()) {
+                const params = new URLSearchParams(baseParams);
+                params.append('marketer', session.user.email.trim());
+                urlVariants.push({
+                    label: '邮箱链接',
+                    url: `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`,
+                    description: `使用邮箱: ${session.user.email}`
+                });
+            }
+            
+            // 3. 使用用户ID（如果存在且不为空）
+            if (session.user.id && session.user.id.trim()) {
+                const params = new URLSearchParams(baseParams);
+                params.append('marketer', session.user.id.trim());
+                urlVariants.push({
+                    label: 'ID链接',
+                    url: `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`,
+                    description: `使用用户ID: ${session.user.id}`
+                });
+            }
+            
+            // 4. 使用姓名（如果存在且不为空）
+            if (session.user.name && session.user.name.trim()) {
+                const params = new URLSearchParams(baseParams);
+                params.append('marketer', session.user.name.trim());
+                urlVariants.push({
+                    label: '姓名链接',
+                    url: `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`,
+                    description: `使用姓名: ${session.user.name}`
+                });
+            }
+            
+            // 如果没有任何可用的marketer参数，生成一个不含marketer的基础链接
+            if (urlVariants.length === 0) {
+                urlVariants.push({
+                    label: '基础链接',
+                    url: `${baseUrl}${baseParams.toString() ? '?' + baseParams.toString() : ''}`,
+                    description: '不包含销售员信息的基础链接'
+                });
+            }
+        } else {
+            // 如果没有session信息，生成基础链接
+            urlVariants.push({
+                label: '基础链接',
+                url: `${baseUrl}${baseParams.toString() ? '?' + baseParams.toString() : ''}`,
+                description: '不包含销售员信息的基础链接'
+            });
         }
         
-        const url = `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`;
-        setShareUrl(url);
+        setShareUrls(urlVariants);
         setShowShareModal(true);
     };
 
     // 新增：复制链接到剪贴板函数
-    const copyToClipboard = async () => {
+    const copySpecificLinkToClipboard = async (url: string) => {
         try {
-            await navigator.clipboard.writeText(shareUrl);
+            await navigator.clipboard.writeText(url);
             alert('链接已复制到剪贴板！');
         } catch (err) {
             console.error('复制失败:', err);
@@ -889,7 +954,7 @@ export default function DashboardPage() {
             {/* // 新增：分享链接模态框 */}
             {showShareModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold text-gray-900">分享链接</h3>
                             <button
@@ -903,21 +968,37 @@ export default function DashboardPage() {
                         </div>
                         
                         <div className="mb-4">
-                            <p className="text-sm text-gray-600 mb-2">
-                                以下链接包含当前的筛选条件和您的销售人员信息：
+                            <p className="text-sm text-gray-600 mb-4">
+                                以下链接包含当前的筛选条件，您可以选择不同的销售员参数格式（只影响链接显示）：
                             </p>
-                            <div className="bg-gray-50 p-3 rounded border text-sm break-all">
-                                {shareUrl}
+                            <p className="text-sm text-gray-600 mb-4">
+                                无论您选择哪一种，最终客户在提交订单时都会显示为您的姓名。
+                            </p>
+                            
+                            <div className="space-y-3">
+                                {shareUrls.map((urlVariant, index) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 className="font-medium text-gray-900">{urlVariant.label}</h4>
+                                                <p className="text-xs text-gray-500">{urlVariant.description}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => copySpecificLinkToClipboard(urlVariant.url)}
+                                                className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                                            >
+                                                复制
+                                            </button>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 rounded text-xs break-all font-mono">
+                                            {urlVariant.url}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         
-                        <div className="flex space-x-3">
-                            <button
-                                onClick={copyToClipboard}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                复制链接
-                            </button>
+                        <div className="flex justify-end">
                             <button
                                 onClick={() => setShowShareModal(false)}
                                 className="px-4 py-2 bg-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-400 transition-colors"
