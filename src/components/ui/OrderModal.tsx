@@ -27,11 +27,8 @@ interface OrderData {
 }
 
 export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, organizationInfo }: OrderModalProps) => {
-    // --- 请在这里修改您的二维码 ---
-    // **第1步**: 将您的支付二维码图片链接粘贴到下面的引号中。
-    // 例如: "https://www.your-website.com/qr-code.jpg"
-    const YOUR_QR_CODE_IMAGE_URL = "https://i.imgs.ovh/2025/08/11/EBUpM.png";
-    // ---------------------------------
+    // 移除硬编码的DEFAULT_QR_CODE_URL
+    // const DEFAULT_QR_CODE_URL = "https://i.imgs.ovh/2025/08/11/EBUpM.png";
 
     // 表单状态
     const [paymentOption, setPaymentOption] = useState<20 | 200>(20);
@@ -42,7 +39,86 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, 
     // UI 状态
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [orderSubmitted, setOrderSubmitted] = useState(false); // 用于切换到二维码视图的新状态
+    const [orderSubmitted, setOrderSubmitted] = useState(false);
+    
+    // 收款码相关状态
+    const [paymentQrCode, setPaymentQrCode] = useState<string | null>(null);
+    const [isLoadingQr, setIsLoadingQr] = useState(false);
+    const [systemDefaultQr, setSystemDefaultQr] = useState<string | null>(null);
+    const [hasSystemConfig, setHasSystemConfig] = useState(false);
+    // 新增：收款码来源状态
+    const [qrCodeSource, setQrCodeSource] = useState<'marketer' | 'system' | 'none'>('none');
+
+    // 获取系统默认收款码的函数
+    const fetchSystemDefaultQr = async () => {
+        try {
+            const response = await fetch('/api/admin/system-config');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.defaultPaymentQr) {
+                    setSystemDefaultQr(data.defaultPaymentQr);
+                    setHasSystemConfig(true);
+                } else {
+                    setSystemDefaultQr(null);
+                    setHasSystemConfig(false);
+                }
+            } else {
+                setSystemDefaultQr(null);
+                setHasSystemConfig(false);
+            }
+        } catch (error) {
+            console.error('获取系统默认收款码失败:', error);
+            setSystemDefaultQr(null);
+            setHasSystemConfig(false);
+        }
+    };
+    
+    // 在组件挂载时获取系统默认收款码
+    useEffect(() => {
+        fetchSystemDefaultQr();
+    }, []);
+    
+    // 获取销售员信息和二维码的函数
+    const fetchMarketerInfo = async (marketerName: string) => {
+        try {
+            setIsLoadingQr(true);
+            const response = await fetch(`/api/marketer-info?marketer=${encodeURIComponent(marketerName)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.marketer?.paymentQrCode) {
+                    setPaymentQrCode(data.marketer.paymentQrCode);
+                    setQrCodeSource('marketer');
+                } else {
+                    // 如果销售员没有设置二维码，使用系统默认二维码
+                    setPaymentQrCode(systemDefaultQr);
+                    setQrCodeSource(systemDefaultQr ? 'system' : 'none');
+                }
+            } else {
+                // API调用失败，使用系统默认二维码
+                setPaymentQrCode(systemDefaultQr);
+                setQrCodeSource(systemDefaultQr ? 'system' : 'none');
+            }
+        } catch (error) {
+            console.error('获取销售员信息失败:', error);
+            // 出错时使用系统默认二维码
+            setPaymentQrCode(systemDefaultQr);
+            setQrCodeSource(systemDefaultQr ? 'system' : 'none');
+        } finally {
+            setIsLoadingQr(false);
+        }
+    };
+    
+    // 当系统默认收款码加载完成后，处理收款码显示逻辑
+    useEffect(() => {
+        if (isOpen && marketer && systemDefaultQr !== undefined) {
+            fetchMarketerInfo(marketer);
+        } else if (isOpen && !marketer && systemDefaultQr !== undefined) {
+            // 没有销售员信息时使用系统默认收款码
+            setPaymentQrCode(systemDefaultQr);
+            setQrCodeSource(systemDefaultQr ? 'system' : 'none');
+        }
+    }, [isOpen, marketer, systemDefaultQr]);
 
     // 当模态框关闭或选中的号码变化时，重置所有状态
     useEffect(() => {
@@ -56,6 +132,9 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, 
                 setError(null);
                 setIsLoading(false);
                 setOrderSubmitted(false);
+                setPaymentQrCode(null);
+                setIsLoadingQr(false);
+                setQrCodeSource('none'); // 重置收款码来源
             }, 300);
         }
     }, [isOpen]);
@@ -107,6 +186,20 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, 
             setError(errorMessage);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // 获取二维码提示文本的函数
+    const getQrCodeTipText = () => {
+        switch (qrCodeSource) {
+            case 'marketer':
+                return '💡 这是您专属销售员的二维码';
+            case 'system':
+                return '💡 未配置个人图片，展示系统基础图片';
+            case 'none':
+                return '❌ 未配置基础图片，请联系管理员';
+            default:
+                return '';
         }
     };
 
@@ -200,8 +293,8 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, 
                         <h2 className="text-2xl font-bold text-green-600 mb-2">预定成功！</h2>
                         <p className="text-lg font-mono bg-gray-100 p-2 rounded mb-4">{number.phoneNumber}</p>
                         <p className="text-sm text-gray-600 mb-4">
-                            号码已为您临时锁定。请截图保存并使用微信或支付宝扫描下方二维码完成支付。
-                            <strong className="text-red-500">支付后请务必联系销售人员确认订单！</strong>
+                            号码已为您临时锁定。请截图保存并联系工作人员完成支付并
+                            <strong className="text-red-500">确认订单！</strong>
                             {marketer && (
                                 <span className="block mt-2 text-blue-600 font-medium">
                                     您的专属销售：{marketer}
@@ -209,15 +302,27 @@ export const OrderModal = ({ isOpen, onClose, number, onOrderSuccess, marketer, 
                             )}
                         </p>
                         <div className="flex justify-center my-4">
-                            <Image
-                                src={YOUR_QR_CODE_IMAGE_URL}
-                                alt="支付二维码"
-                                width={224}
-                                height={224}
-                                className="w-48 h-48 md:w-56 md:h-56 border rounded-lg"
-                                onError={(e) => { e.currentTarget.src = 'https://placehold.co/256x256/f87171/ffffff?text=图片加载失败'; }}
-                            />
+                            {isLoadingQr ? (
+                                <div className="w-48 h-48 md:w-56 md:h-56 border rounded-lg flex items-center justify-center bg-gray-100">
+                                    <div className="text-gray-500">加载二维码中...</div>
+                                </div>
+                            ) : (
+                                <Image
+                                    src={paymentQrCode || 'https://placehold.co/256x256/f87171/ffffff?text=未配置二维码'}
+                                    alt="支付二维码"
+                                    width={224}
+                                    height={224}
+                                    className="w-48 h-48 md:w-56 md:h-56 border rounded-lg"
+                                    onError={(e) => { 
+                                        e.currentTarget.src = 'https://placehold.co/256x256/f87171/ffffff?text=图片加载失败'; 
+                                    }}
+                                />
+                            )}
                         </div>
+                        {/* 根据二维码来源显示不同的提示信息 */}
+                        <p className="text-xs text-gray-500 mb-4">
+                            {getQrCodeTipText()}
+                        </p>
                         <button
                             onClick={handleClose}
                             className="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors"

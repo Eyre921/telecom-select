@@ -47,5 +47,5 @@ next-env.d.ts
 /test-results
 /package
 /multi-tenant-test-reports
-
+/public/uploads
 

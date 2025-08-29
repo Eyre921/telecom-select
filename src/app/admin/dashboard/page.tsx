@@ -203,10 +203,187 @@ export default function DashboardPage() {
 
     const [shareUrls, setShareUrls] = useState<ShareUrlVariant[]>([]);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showPaymentQrModal, setShowPaymentQrModal] = useState(false);
+    const [currentPaymentQr, setCurrentPaymentQr] = useState<string | null>(null);
+    const [isUploadingQr, setIsUploadingQr] = useState(false);
+
+    const [showSystemConfigModal, setShowSystemConfigModal] = useState(false);
+    const [systemDefaultQr, setSystemDefaultQr] = useState<string | null>(null);
+    const [isUploadingSystemQr, setIsUploadingSystemQr] = useState(false);
 
     // 拖拽状态 - 移到组件内部
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    const fetchSystemConfig = async () => {
+        try {
+            const response = await fetch('/api/admin/system-config');
+            if (response.ok) {
+                const data = await response.json();
+                setSystemDefaultQr(data.defaultPaymentQr);
+            }
+        } catch (error) {
+            console.error('获取系统配置失败:', error);
+        }
+    };
+
+    const handleUploadSystemQr = async (file: File) => {
+        try {
+            setIsUploadingSystemQr(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/api/admin/system-config', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                setSystemDefaultQr(result.url);
+                alert('基础二维码上传成功！');
+            } else {
+                alert(result.error || '上传失败');
+            }
+        } catch (error) {
+            console.error('上传失败:', error);
+            alert('上传失败，请重试');
+        } finally {
+            setIsUploadingSystemQr(false);
+        }
+    };
+
+    const handleSaveSystemQrUrl = async (url: string) => {
+        try {
+            setIsUploadingSystemQr(true);
+            const response = await fetch('/api/admin/system-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url, description: '系统默认二维码（链接）' })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                setSystemDefaultQr(result.url);
+                alert('基础二维码保存成功！');
+            } else {
+                alert(result.error || '保存失败');
+            }
+        } catch (error) {
+            console.error('保存失败:', error);
+            alert('保存失败，请重试');
+        } finally {
+            setIsUploadingSystemQr(false);
+        }
+    };
+
+    const handleDeleteSystemQr = async () => {
+        if (!confirm('确定要删除基础二维码吗？')) return;
+        
+        try {
+            const response = await fetch('/api/admin/system-config', {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                setSystemDefaultQr(null);
+                alert('基础二维码删除成功！');
+            } else {
+                alert(result.error || '删除失败');
+            }
+        } catch (error) {
+            console.error('删除失败:', error);
+            alert('删除失败，请重试');
+        }
+    };
+
+    const fetchCurrentPaymentQr = async () => {
+        try {
+            const response = await fetch('/api/admin/payment-qr');
+            if (response.ok) {
+                const data = await response.json();
+                setCurrentPaymentQr(data.qrCode);
+            }
+        } catch (error) {
+            console.error('获取二维码失败:', error);
+        }
+    };
+
+    const handleUploadPaymentQr = async (file: File) => {
+        setIsUploadingQr(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/api/admin/payment-qr', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setCurrentPaymentQr(data.qrCode);
+                alert('二维码上传成功！');
+            } else {
+                const error = await response.json();
+                alert(`上传失败: ${error.error}`);
+            }
+        } catch (error) {
+            alert('上传失败，请重试');
+        } finally {
+            setIsUploadingQr(false);
+        }
+    };
+
+    const handleSavePaymentQrUrl = async (url: string) => {
+        setIsUploadingQr(true);
+        try {
+            const response = await fetch('/api/admin/payment-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setCurrentPaymentQr(data.qrCode);
+                alert('二维码链接保存成功！');
+            } else {
+                const error = await response.json();
+                alert(`保存失败: ${error.error}`);
+            }
+        } catch (error) {
+            alert('保存失败，请重试');
+        } finally {
+            setIsUploadingQr(false);
+        }
+    };
+
+    const handleDeletePaymentQr = async () => {
+        if (!confirm('确定要删除二维码吗？')) return;
+        
+        try {
+            const response = await fetch('/api/admin/payment-qr', {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                setCurrentPaymentQr(null);
+                alert('二维码删除成功！');
+            } else {
+                const error = await response.json();
+                alert(`删除失败: ${error.error}`);
+            }
+        } catch (error) {
+            alert('删除失败，请重试');
+        }
+    };
 
     const fetchData = useCallback(async (pageToFetch: number, currentSearchTerm: string) => {
         setIsLoading(true);
@@ -278,7 +455,14 @@ export default function DashboardPage() {
     useEffect(() => {
         fetchData(1, '');
         fetchPendingOrders();
-    }, [fetchData, fetchPendingOrders]); // 保持原有依赖项，不添加 searchTerm
+        fetchCurrentPaymentQr();
+    }, [fetchData, fetchPendingOrders]);
+
+    useEffect(() => {
+        if (session?.user?.role === 'SUPER_ADMIN') {
+            fetchSystemConfig();
+        }
+    }, [session]); // 保持原有依赖项，不添加 searchTerm
     
     // 修改 handleSearch 函数，确保从第一页开始搜索
     const handleSearch = () => {
@@ -661,6 +845,17 @@ export default function DashboardPage() {
                                 <span className="whitespace-nowrap">生成分享链接</span>
                             </button>
                             
+                            {/* 二维码管理按钮 - 移动到顶部 */}
+                            <button
+                                onClick={() => setShowPaymentQrModal(true)}
+                                className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-orange-600 text-white font-medium rounded-md hover:bg-orange-700 transition-colors text-sm"
+                            >
+                                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                                <span className="whitespace-nowrap">二维码管理</span>
+                            </button>
+                            
                             <button
                                 onClick={() => setIsExportModalOpen(true)}
                                 className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors text-sm"
@@ -941,6 +1136,18 @@ export default function DashboardPage() {
                                         className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 text-sm whitespace-nowrap">
                                     按号段解禁
                                 </button>
+                                {session?.user?.role === 'SUPER_ADMIN' && (
+                                    <button
+                                        onClick={() => setShowSystemConfigModal(true)}
+                                        className="inline-flex items-center justify-center px-3 py-2 sm:px-4 bg-orange-600 text-white font-medium rounded-md hover:bg-orange-700 transition-colors text-sm"
+                                    >
+                                        <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span className="whitespace-nowrap">系统配置</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                         <button onClick={() => handleAdminAction('CLEAR_ALL_NUMBERS')}
@@ -1000,7 +1207,133 @@ export default function DashboardPage() {
                         
                         <div className="flex justify-end">
                             <button
-                                onClick={() => setShowShareModal(false)}
+                                onClick={() => setShowShareModal(true)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-400 transition-colors"
+                            >
+                                生成分享链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPaymentQrModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">二维码管理</h3>
+                            <button
+                                onClick={() => setShowPaymentQrModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {/* 当前二维码显示 */}
+                            {currentPaymentQr && (
+                                <div className="border border-gray-200 rounded-lg p-4">
+                                    <h4 className="font-medium text-gray-900 mb-2">当前二维码</h4>
+                                    {currentPaymentQr.startsWith('http') ? (
+                                        <div>
+                                            <p className="text-sm text-gray-600 mb-2">链接地址：</p>
+                                            <div className="bg-gray-50 p-2 rounded text-xs break-all font-mono mb-2">
+                                                {currentPaymentQr}
+                                            </div>
+                                            <img 
+                                                src={currentPaymentQr} 
+                                                alt="二维码" 
+                                                className="max-w-full h-auto max-h-48 mx-auto rounded"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <img 
+                                            src={currentPaymentQr} 
+                                            alt="二维码" 
+                                            className="max-w-full h-auto max-h-48 mx-auto rounded"
+                                        />
+                                    )}
+                                    <button
+                                        onClick={handleDeletePaymentQr}
+                                        className="mt-2 w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                                    >
+                                        删除二维码
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {/* 上传图片 */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-medium text-gray-900 mb-2">上传二维码图片</h4>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            handleUploadPaymentQr(file);
+                                        }
+                                    }}
+                                    className="w-full p-2 border border-gray-300 rounded text-sm"
+                                    disabled={isUploadingQr}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">支持 JPG、PNG 格式，最大 5MB</p>
+                            </div>
+                            
+                            {/* 保存链接 */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-medium text-gray-900 mb-2">或输入二维码链接</h4>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com/qrcode.jpg"
+                                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                const url = (e.target as HTMLInputElement).value.trim();
+                                                if (url) {
+                                                    handleSavePaymentQrUrl(url);
+                                                    (e.target as HTMLInputElement).value = '';
+                                                }
+                                            }
+                                        }}
+                                        disabled={isUploadingQr}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                                            const url = input.value.trim();
+                                            if (url) {
+                                                handleSavePaymentQrUrl(url);
+                                                input.value = '';
+                                            }
+                                        }}
+                                        className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                                        disabled={isUploadingQr}
+                                    >
+                                        保存
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">输入二维码图片的直链地址</p>
+                            </div>
+                            
+                            {isUploadingQr && (
+                                <div className="text-center py-4">
+                                    <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-sm text-gray-600 mt-2">处理中...</p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="flex justify-end mt-6">
+                            <button
+                                onClick={() => setShowPaymentQrModal(false)}
                                 className="px-4 py-2 bg-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-400 transition-colors"
                             >
                                 关闭
@@ -1012,6 +1345,146 @@ export default function DashboardPage() {
 
             <EditOrderModal isOpen={isEditModalOpen} onClose={handleCloseModal} numberData={selectedNumber}
                             onSave={(id, data) => handleSave(id, data)}/>
+
+            {showSystemConfigModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">系统配置 - 基础二维码</h3>
+                            <button
+                                onClick={() => setShowSystemConfigModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div className="mb-4">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="flex items-start">
+                                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div className="text-sm text-blue-800">
+                                        <p className="font-medium mb-1">基础二维码（图片）说明：</p>
+                                        <p>当销售员没有设置个人二维码时，系统将使用此图片在订单提交页面展示；您也可以设置其他非二维码图片。</p>
+                                                                            </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {/* 当前基础二维码显示 */}
+                            {systemDefaultQr && (
+                                <div className="border border-gray-200 rounded-lg p-4">
+                                    <h4 className="font-medium text-gray-900 mb-2">当前基础图片</h4>
+                                    {systemDefaultQr.startsWith('http') ? (
+                                        <div>
+                                            <p className="text-sm text-gray-600 mb-2">链接地址：</p>
+                                            <div className="bg-gray-50 p-2 rounded text-xs break-all font-mono mb-2">
+                                                {systemDefaultQr}
+                                            </div>
+                                            <img 
+                                                src={systemDefaultQr} 
+                                                alt="基础图片" 
+                                                className="max-w-full h-auto max-h-48 mx-auto rounded"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <img 
+                                            src={systemDefaultQr} 
+                                            alt="基础图片" 
+                                            className="max-w-full h-auto max-h-48 mx-auto rounded"
+                                        />
+                                    )}
+                                    <button
+                                        onClick={handleDeleteSystemQr}
+                                        className="mt-2 w-full px-3 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                                    >
+                                        删除基础图片
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {/* 上传图片 */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-medium text-gray-900 mb-2">上传基础图片</h4>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            handleUploadSystemQr(file);
+                                        }
+                                    }}
+                                    className="w-full p-2 border border-gray-300 rounded text-sm"
+                                    disabled={isUploadingSystemQr}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">支持 JPG、PNG 格式，最大 5MB</p>
+                            </div>
+                            
+                            {/* 保存链接 */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-medium text-gray-900 mb-2">或输入基础图片链接</h4>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com/qrcode.jpg"
+                                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                const url = (e.target as HTMLInputElement).value.trim();
+                                                if (url) {
+                                                    handleSaveSystemQrUrl(url);
+                                                    (e.target as HTMLInputElement).value = '';
+                                                }
+                                            }
+                                        }}
+                                        disabled={isUploadingSystemQr}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                                            const url = input.value.trim();
+                                            if (url) {
+                                                handleSaveSystemQrUrl(url);
+                                                input.value = '';
+                                            }
+                                        }}
+                                        className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                                        disabled={isUploadingSystemQr}
+                                    >
+                                        保存
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">输入基础二维码图片的直链地址</p>
+                            </div>
+                            
+                            {isUploadingSystemQr && (
+                                <div className="text-center py-4">
+                                    <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-sm text-gray-600 mt-2">处理中...</p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="flex justify-end mt-6">
+                            <button
+                                onClick={() => setShowSystemConfigModal(false)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-400 transition-colors"
+                            >
+                                关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {/* 在dashboard页面中传递筛选参数给ExportModal */}
             {isExportModalOpen && (

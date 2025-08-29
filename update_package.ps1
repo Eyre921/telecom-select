@@ -40,15 +40,6 @@ try {
         Write-Host "⚠ Static directory not found, skipping" -ForegroundColor Yellow
     }
 
-    # Copy public files
-    Write-Host "Copying public files..." -ForegroundColor Cyan
-    if (Test-Path "./public") {
-        Copy-Item -Path "./public" -Destination "$tempDir/public" -Recurse -Force
-        Write-Host "✓ Public files copied" -ForegroundColor Green
-    } else {
-        Write-Host "⚠ Public directory not found, skipping" -ForegroundColor Yellow
-    }
-
     # Package with PowerShell Compress-Archive (ZIP format)
     Write-Host ""
     Write-Host "Packaging upgrade files..." -ForegroundColor Cyan

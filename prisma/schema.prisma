@@ -34,6 +34,7 @@ model User {
   password      String    // 密码改为必需字段
   image         String?
   role          Role      @default(MARKETER)
+  paymentQrCode String?   // 新增：收款码字段，可以存储图片URL或直链
   accounts      Account[]
   sessions      Session[]
   
@@ -163,4 +164,14 @@ enum DeliveryStatus {
   IN_TRANSIT_UNACTIVATED
   IN_TRANSIT_ACTIVATED
   RECEIVED_UNACTIVATED
+}
+
+// 新增：系统配置表，用于存储超级管理员配置的基础收款码
+model SystemConfig {
+  id            String   @id @default(cuid())
+  key           String   @unique  // 配置键，如 "default_payment_qr"
+  value         String   // 配置值
+  description   String?  // 配置描述
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

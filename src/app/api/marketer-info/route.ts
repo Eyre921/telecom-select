@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
                     { name: marketer }
                 ]
             },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                role: true,
+                paymentQrCode: true, // 添加收款码字段
                 organizations: {
                     include: {
                         organization: {
@@ -59,7 +63,8 @@ export async function GET(request: NextRequest) {
             marketer: {
                 id: marketerUser.id,
                 name: marketerUser.name,
-                role: marketerUser.role
+                role: marketerUser.role,
+                paymentQrCode: marketerUser.paymentQrCode // 包含收款码信息
             },
             schools,
             departments
