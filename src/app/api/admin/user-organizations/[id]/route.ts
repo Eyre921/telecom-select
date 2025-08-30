@@ -11,20 +11,20 @@ export async function GET(
   // 权限检查
   const userPermission = await getUserPermissions();
   if (!userPermission.hasPermission) {
-    return new NextResponse('权限不足', { status: 401 });
+    return NextResponse.json({ error: '权限不足' }, { status: 401 });
   }
 
   const user = userPermission.user!;
   
   // 检查读取权限
   if (user.role === 'MARKETER') {
-    return new NextResponse('权限不足', { status: 403 });
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
 
-  const { id } = await params; // 注意这里需要 await
+  const { id } = await params;
 
   if (!id) {
-    return new NextResponse('关系ID不能为空', { status: 400 });
+    return NextResponse.json({ error: '关系ID不能为空' }, { status: 400 });
   }
 
   try {
@@ -58,19 +58,19 @@ export async function GET(
     });
 
     if (!userOrganization) {
-      return new NextResponse('用户组织关系不存在', { status: 404 });
+      return NextResponse.json({ error: '用户组织关系不存在' }, { status: 404 });
     }
 
     // 权限检查：确保只能查看管理范围内的关系
     const dataFilter = await getUserDataFilter();
     if (dataFilter?.organizationIds && !dataFilter.organizationIds.includes(userOrganization.organizationId)) {
-      return new NextResponse('无权限查看该关系', { status: 403 });
+      return NextResponse.json({ error: '无权限查看该关系' }, { status: 403 });
     }
 
     return NextResponse.json(userOrganization);
   } catch (error) {
     console.error('获取用户组织关系详情失败:', error);
-    return new NextResponse('服务器错误', { status: 500 });
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
@@ -82,20 +82,20 @@ export async function PATCH(
   // 权限检查
   const userPermission = await getUserPermissions();
   if (!userPermission.hasPermission) {
-    return new NextResponse('权限不足', { status: 401 });
+    return NextResponse.json({ error: '权限不足' }, { status: 401 });
   }
 
   const user = userPermission.user!;
   
   // 检查写入权限
   if (user.role === 'MARKETER') {
-    return new NextResponse('权限不足', { status: 403 });
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
 
-  const { id } = await params; // 注意这里需要 await
+  const { id } = await params;
 
   if (!id) {
-    return new NextResponse('关系ID不能为空', { status: 400 });
+    return NextResponse.json({ error: '关系ID不能为空' }, { status: 400 });
   }
 
   try {
@@ -104,7 +104,7 @@ export async function PATCH(
 
     // 参数验证
     if (!role || !['SUPER_ADMIN', 'SCHOOL_ADMIN', 'MARKETER'].includes(role)) {
-      return new NextResponse('角色参数无效', { status: 400 });
+      return NextResponse.json({ error: '角色参数无效' }, { status: 400 });
     }
 
     // 检查关系是否存在
@@ -113,13 +113,13 @@ export async function PATCH(
     });
 
     if (!existingRelation) {
-      return new NextResponse('用户组织关系不存在', { status: 404 });
+      return NextResponse.json({ error: '用户组织关系不存在' }, { status: 404 });
     }
 
     // 权限检查：确保只能在管理范围内操作
     const dataFilter = await getUserDataFilter();
     if (dataFilter?.organizationIds && !dataFilter.organizationIds.includes(existingRelation.organizationId)) {
-      return new NextResponse('无权限操作该关系', { status: 403 });
+      return NextResponse.json({ error: '无权限操作该关系' }, { status: 403 });
     }
 
     // 更新角色
@@ -155,7 +155,7 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('更新用户组织关系失败:', error);
-    return new NextResponse('服务器错误', { status: 500 });
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
@@ -167,20 +167,20 @@ export async function DELETE(
   // 权限检查
   const userPermission = await getUserPermissions();
   if (!userPermission.hasPermission) {
-    return new NextResponse('权限不足', { status: 401 });
+    return NextResponse.json({ error: '权限不足' }, { status: 401 });
   }
 
   const user = userPermission.user!;
   
   // 检查写入权限
   if (user.role === 'MARKETER') {
-    return new NextResponse('权限不足', { status: 403 });
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
 
-  const { id } = await params; // 注意这里需要 await
+  const { id } = await params;
 
   if (!id) {
-    return new NextResponse('关系ID不能为空', { status: 400 });
+    return NextResponse.json({ error: '关系ID不能为空' }, { status: 400 });
   }
 
   try {
@@ -190,13 +190,13 @@ export async function DELETE(
     });
 
     if (!existingRelation) {
-      return new NextResponse('用户组织关系不存在', { status: 404 });
+      return NextResponse.json({ error: '用户组织关系不存在' }, { status: 404 });
     }
 
     // 权限检查：确保只能在管理范围内操作
     const dataFilter = await getUserDataFilter();
     if (dataFilter?.organizationIds && !dataFilter.organizationIds.includes(existingRelation.organizationId)) {
-      return new NextResponse('无权限操作该关系', { status: 403 });
+      return NextResponse.json({ error: '无权限操作该关系' }, { status: 403 });
     }
 
     // 删除关系
@@ -210,6 +210,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('删除用户组织关系失败:', error);
-    return new NextResponse('服务器错误', { status: 500 });
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }

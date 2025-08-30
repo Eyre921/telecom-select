@@ -10,14 +10,14 @@ export async function GET(request: NextRequest) {
   // 权限检查
   const userPermission = await getUserPermissions();
   if (!userPermission.hasPermission) {
-    return new NextResponse('权限不足', { status: 401 });
+    return NextResponse.json({ error: '权限不足' }, { status: 401 });
   }
 
   const user = userPermission.user!;
   
   // 检查读取权限
   if (user.role === 'MARKETER') {
-    return new NextResponse('权限不足', { status: 403 });
+    return NextResponse.json({ error: '权限不足' }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -114,11 +114,11 @@ export async function GET(request: NextRequest) {
 
   // 组织过滤 - 添加权限检查
   if (organizationId) {
-  // 检查当前用户是否有权限访问指定的组织
-  const dataFilter = await getUserDataFilter();
-  if (dataFilter?.organizationIds && !dataFilter.organizationIds.includes(organizationId)) {
-    return new NextResponse('无权限访问该组织的用户数据', { status: 403 });
-  }
+    // 检查当前用户是否有权限访问指定的组织
+    const dataFilter = await getUserDataFilter();
+    if (dataFilter?.organizationIds && !dataFilter.organizationIds.includes(organizationId)) {
+      return NextResponse.json({ error: '无权限访问该组织的用户数据' }, { status: 403 });
+    }
   
   where.organizations = {
     ...where.organizations,
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('获取用户列表失败:', error);
-    return new NextResponse('服务器错误', { status: 500 });
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
